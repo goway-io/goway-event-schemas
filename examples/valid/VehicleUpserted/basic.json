@@ -10,5 +10,10 @@
   ],
   "loading_method": "both",
   "capacity_kg": 20000,
+  "brand": "Isuzu",
+  "model": "Elf",
+  "color": "white",
+  "year": 2019,
+  "volume_m3": 8.0,
   "updated_at": "2026-10-14T09:30:00.123456+00:00"
 }

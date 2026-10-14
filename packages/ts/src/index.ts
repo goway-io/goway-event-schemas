@@ -213,6 +213,12 @@ export type TicketReplyStatus = "answered" | "closed";
  */
 export type Theme = "light" | "dark" | "system";
 /**
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "VehicleColor".
+ */
+export type VehicleColor =
+  "white" | "black" | "silver" | "gray" | "red" | "blue" | "green" | "yellow" | "orange" | "brown" | "beige" | "other";
+/**
  * How the vehicle is loaded.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -2092,6 +2098,26 @@ export interface VehicleUpserted {
    * Payload in kilograms; null when not given.
    */
   capacity_kg: number | null;
+  /**
+   * Make, as the driver entered it.
+   */
+  brand?: string | null;
+  /**
+   * Model, as the driver entered it.
+   */
+  model?: string | null;
+  /**
+   * Body colour code; apps name it in their language.
+   */
+  color?: VehicleColor | null;
+  /**
+   * Year of manufacture.
+   */
+  year?: number | null;
+  /**
+   * Body volume in m³.
+   */
+  volume_m3?: number | null;
   /**
    * When the vehicle was saved. ISO 8601 with offset, as Python's `isoformat()` writes it.
    */

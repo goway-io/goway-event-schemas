@@ -2900,6 +2900,84 @@ pub struct UserUpdated {
     pub updated_at: ::chrono::DateTime<::chrono::offset::Utc>,
     pub user_id: ::uuid::Uuid,
 }
+#[doc = "`VehicleColor`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum VehicleColor {
+    #[serde(rename = "white")]
+    White,
+    #[serde(rename = "black")]
+    Black,
+    #[serde(rename = "silver")]
+    Silver,
+    #[serde(rename = "gray")]
+    Gray,
+    #[serde(rename = "red")]
+    Red,
+    #[serde(rename = "blue")]
+    Blue,
+    #[serde(rename = "green")]
+    Green,
+    #[serde(rename = "yellow")]
+    Yellow,
+    #[serde(rename = "orange")]
+    Orange,
+    #[serde(rename = "brown")]
+    Brown,
+    #[serde(rename = "beige")]
+    Beige,
+    #[serde(rename = "other")]
+    Other,
+}
+impl ::std::fmt::Display for VehicleColor {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::White => f.write_str("white"),
+            Self::Black => f.write_str("black"),
+            Self::Silver => f.write_str("silver"),
+            Self::Gray => f.write_str("gray"),
+            Self::Red => f.write_str("red"),
+            Self::Blue => f.write_str("blue"),
+            Self::Green => f.write_str("green"),
+            Self::Yellow => f.write_str("yellow"),
+            Self::Orange => f.write_str("orange"),
+            Self::Brown => f.write_str("brown"),
+            Self::Beige => f.write_str("beige"),
+            Self::Other => f.write_str("other"),
+        }
+    }
+}
+impl ::std::str::FromStr for VehicleColor {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "white" => Ok(Self::White),
+            "black" => Ok(Self::Black),
+            "silver" => Ok(Self::Silver),
+            "gray" => Ok(Self::Gray),
+            "red" => Ok(Self::Red),
+            "blue" => Ok(Self::Blue),
+            "green" => Ok(Self::Green),
+            "yellow" => Ok(Self::Yellow),
+            "orange" => Ok(Self::Orange),
+            "brown" => Ok(Self::Brown),
+            "beige" => Ok(Self::Beige),
+            "other" => Ok(Self::Other),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for VehicleColor {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for VehicleColor {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
 #[doc = "How the vehicle is loaded."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum VehicleLoadingMethod {
@@ -2953,14 +3031,23 @@ pub struct VehicleRemoved {
 #[doc = "A fleet vehicle was added or changed; the whole vehicle is sent every time."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct VehicleUpserted {
+    #[doc = "Make, as the driver entered it."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub brand: ::std::option::Option<VehicleUpsertedBrand>,
     #[doc = "Capability codes: rear_ramp, open_top, side_curtain, tail_lift, refrigerated."]
     pub capabilities: ::std::vec::Vec<::std::string::String>,
     #[doc = "Payload in kilograms; null when not given."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub capacity_kg: ::std::option::Option<u64>,
+    #[doc = "Body colour code; apps name it in their language."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub color: ::std::option::Option<VehicleColor>,
     #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
     pub event_id: ::uuid::Uuid,
     pub loading_method: VehicleLoadingMethod,
+    #[doc = "Model, as the driver entered it."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub model: ::std::option::Option<VehicleUpsertedModel>,
     pub org_id: ::uuid::Uuid,
     #[doc = "Normalized plate: no spaces, upper case."]
     pub plate_number: ::std::string::String,
@@ -2969,6 +3056,104 @@ pub struct VehicleUpserted {
     #[doc = "When the vehicle was saved. ISO 8601 with offset, as Python's `isoformat()` writes it."]
     pub updated_at: ::chrono::DateTime<::chrono::offset::Utc>,
     pub vehicle_id: ::uuid::Uuid,
+    #[doc = "Body volume in m³."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub volume_m3: ::std::option::Option<f64>,
+    #[doc = "Year of manufacture."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub year: ::std::option::Option<i64>,
+}
+#[doc = "Make, as the driver entered it."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct VehicleUpsertedBrand(::std::string::String);
+impl ::std::ops::Deref for VehicleUpsertedBrand {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<VehicleUpsertedBrand> for ::std::string::String {
+    fn from(value: VehicleUpsertedBrand) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for VehicleUpsertedBrand {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 40usize {
+            return Err("longer than 40 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for VehicleUpsertedBrand {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for VehicleUpsertedBrand {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for VehicleUpsertedBrand {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+#[doc = "Model, as the driver entered it."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct VehicleUpsertedModel(::std::string::String);
+impl ::std::ops::Deref for VehicleUpsertedModel {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<VehicleUpsertedModel> for ::std::string::String {
+    fn from(value: VehicleUpsertedModel) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for VehicleUpsertedModel {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 60usize {
+            return Err("longer than 60 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for VehicleUpsertedModel {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for VehicleUpsertedModel {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for VehicleUpsertedModel {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
 }
 #[doc = "The new verification status."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]

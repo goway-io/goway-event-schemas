@@ -1578,6 +1578,21 @@ class UserUpdated(BaseModel):
     """
 
 
+class VehicleColor(StrEnum):
+    WHITE = "white"
+    BLACK = "black"
+    SILVER = "silver"
+    GRAY = "gray"
+    RED = "red"
+    BLUE = "blue"
+    GREEN = "green"
+    YELLOW = "yellow"
+    ORANGE = "orange"
+    BROWN = "brown"
+    BEIGE = "beige"
+    OTHER = "other"
+
+
 class VehicleLoadingMethod(StrEnum):
     """
     How the vehicle is loaded.
@@ -1634,6 +1649,26 @@ class VehicleUpserted(BaseModel):
     capacity_kg: Annotated[int | None, Field(ge=0)]
     """
     Payload in kilograms; null when not given.
+    """
+    brand: Annotated[str | None, Field(max_length=40)] = None
+    """
+    Make, as the driver entered it.
+    """
+    model: Annotated[str | None, Field(max_length=60)] = None
+    """
+    Model, as the driver entered it.
+    """
+    color: VehicleColor | None = None
+    """
+    Body colour code; apps name it in their language.
+    """
+    year: Annotated[int | None, Field(ge=1970, le=2100)] = None
+    """
+    Year of manufacture.
+    """
+    volume_m3: Annotated[float | None, Field(gt=0.0, le=200.0)] = None
+    """
+    Body volume in m³.
     """
     updated_at: AwareDatetime
     """

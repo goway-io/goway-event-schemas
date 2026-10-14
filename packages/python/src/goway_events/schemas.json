@@ -3716,6 +3716,24 @@
         "updated_at"
       ]
     },
+    "VehicleColor": {
+      "title": "VehicleColor",
+      "type": "string",
+      "enum": [
+        "white",
+        "black",
+        "silver",
+        "gray",
+        "red",
+        "blue",
+        "green",
+        "yellow",
+        "orange",
+        "brown",
+        "beige",
+        "other"
+      ]
+    },
     "VehicleLoadingMethod": {
       "title": "VehicleLoadingMethod",
       "type": "string",
@@ -3796,6 +3814,51 @@
           ],
           "minimum": 0,
           "description": "Payload in kilograms; null when not given."
+        },
+        "brand": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 40,
+          "description": "Make, as the driver entered it."
+        },
+        "model": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 60,
+          "description": "Model, as the driver entered it."
+        },
+        "color": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VehicleColor"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Body colour code; apps name it in their language."
+        },
+        "year": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1970,
+          "maximum": 2100,
+          "description": "Year of manufacture."
+        },
+        "volume_m3": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "exclusiveMinimum": 0,
+          "maximum": 200,
+          "description": "Body volume in m³."
         },
         "updated_at": {
           "type": "string",
