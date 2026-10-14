@@ -29,8 +29,9 @@ info:
     - An offer goes to every eligible driver on the line at once. The first accepted claim wins; the others get
       `offer_result` with `withdrawn`, which costs them nothing. Nobody is offered the same load twice.
     - One pending offer per driver. It expires at `deadline_at`, and an expired offer is not a decline.
-    - `go_online` takes `duration_hours` from the allowed set (6, 12 or 24 unless an admin changes it; 12 when left
-      out) and queues the driver on both directions unless `bidirectional` is false. Line changes per day are limited.
+    - The line is saved in goway-auth (`PUT /v1/carrier/line`: regions, return direction, truck; a limited number of
+      changes a day). `go_online` takes no parameters and stays on until `go_offline` or a lost connection; changing
+      the line while online moves the driver to the new queue and repeats `online`.
     - After a disconnect the driver keeps presence and queue position for the offline grace window (90 seconds by
       default).
     - Locations are relayed only during an active booking, and sampled as delivery evidence every 30 seconds by
@@ -90,10 +91,8 @@ channels:
         $ref: '#/components/messages/bookingCancelled'
       driverLocation:
         $ref: '#/components/messages/driverLocation'
-      lineExpiring:
-        $ref: '#/components/messages/lineExpiring'
-      lineExpired:
-        $ref: '#/components/messages/lineExpired'
+      verificationChanged:
+        $ref: '#/components/messages/verificationChanged'
       offersBlocked:
         $ref: '#/components/messages/offersBlocked'
       offersUnblocked:
@@ -146,8 +145,7 @@ operations:
       - $ref: '#/channels/socket/messages/bookingCompleted'
       - $ref: '#/channels/socket/messages/bookingCancelled'
       - $ref: '#/channels/socket/messages/driverLocation'
-      - $ref: '#/channels/socket/messages/lineExpiring'
-      - $ref: '#/channels/socket/messages/lineExpired'
+      - $ref: '#/channels/socket/messages/verificationChanged'
       - $ref: '#/channels/socket/messages/offersBlocked'
       - $ref: '#/channels/socket/messages/offersUnblocked'
       - $ref: '#/channels/socket/messages/notification'
@@ -261,16 +259,11 @@ components:
       title: Driver position
       payload:
         $ref: '../schemas/frames/server/driver_location.json'
-    lineExpiring:
-      name: line_expiring
-      title: Line ends soon
+    verificationChanged:
+      name: verification_changed
+      title: Verification changed
       payload:
-        $ref: '../schemas/frames/server/line_expiring.json'
-    lineExpired:
-      name: line_expired
-      title: Line ended
-      payload:
-        $ref: '../schemas/frames/server/line_expired.json'
+        $ref: '../schemas/frames/server/verification_changed.json'
     offersBlocked:
       name: offers_blocked
       title: Offers blocked

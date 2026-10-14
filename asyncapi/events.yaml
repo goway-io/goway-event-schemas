@@ -152,6 +152,14 @@ channels:
         $ref: '#/components/messages/carrierDocumentExpiring'
     x-publisher: goway-auth
     x-consumers: [goway-notify]
+  carrierLineChanged:
+    address: carrier.line_changed
+    description: A driver opened or changed their line, its return direction or its truck.
+    messages:
+      carrierLineChanged:
+        $ref: '#/components/messages/carrierLineChanged'
+    x-publisher: goway-auth
+    x-consumers: [goway-realtime]
   carrierVerificationChanged:
     address: carrier.verification_changed
     description: A carrier organization's verification status moved.
@@ -470,6 +478,11 @@ operations:
     channel:
       $ref: '#/channels/carrierDocumentExpiring'
     description: Published by the hourly document sweep, once per document.
+  publishCarrierLineChanged:
+    action: send
+    channel:
+      $ref: '#/channels/carrierLineChanged'
+    description: Published when a driver saves a line, and when the line's truck is removed.
   publishCarrierVerificationChanged:
     action: send
     channel:
@@ -702,6 +715,11 @@ components:
       title: Document expiring
       payload:
         $ref: '../schemas/events/carrier.document_expiring.json'
+    carrierLineChanged:
+      name: carrier.line_changed
+      title: Line changed
+      payload:
+        $ref: '../schemas/events/carrier.line_changed.json'
     carrierVerificationChanged:
       name: carrier.verification_changed
       title: Verification changed

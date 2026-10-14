@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CarrierLineChanged",
+  "description": "A driver opened or changed their line, its return direction or its truck.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "from_region_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Where the line starts."
+    },
+    "to_region_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Where the line ends."
+    },
+    "bidirectional": {
+      "type": "boolean",
+      "description": "The way back is taken too."
+    },
+    "vehicle_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "The truck for the line; null after it was removed."
+    },
+    "changed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "event_id",
+    "user_id",
+    "org_id",
+    "from_region_id",
+    "to_region_id",
+    "bidirectional",
+    "vehicle_id",
+    "changed_at"
+  ]
+}

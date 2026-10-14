@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "VerificationChangedFrame",
+  "description": "Frame `verification_changed` goway-realtime sends to an app.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "verification_changed"
+    },
+    "data": {
+      "title": "VerificationChanged",
+      "description": "The carrier's verification moved; the app re-reads `GET /v1/carrier/verification` for the note.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "title": "VerificationStatus",
+          "type": "string",
+          "enum": [
+            "pending",
+            "approved",
+            "rejected",
+            "expired"
+          ],
+          "description": "The new verification status; `expired` when an approved document ran out."
+        }
+      },
+      "required": [
+        "status"
+      ]
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the server sent the frame, RFC 3339 UTC."
+    }
+  },
+  "required": [
+    "type",
+    "data",
+    "ts"
+  ]
+}

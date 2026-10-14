@@ -9,7 +9,7 @@ export function describe(frame: ServerFrame): string {
     case "offers_unblocked":
       return frame.type;
     case "online":
-      return `#${frame.data.queue_position} until ${frame.data.expires_at}, blocked: ${frame.data.offers_blocked ?? "no"}`;
+      return `#${frame.data.queue_position} on ${frame.data.from_region_id}→${frame.data.to_region_id}, blocked: ${frame.data.offers_blocked ?? "no"}`;
     case "offer_proposed":
       return `${frame.data.amount} ${frame.data.currency} until ${frame.data.deadline_at}`;
     case "offer_result":
@@ -28,10 +28,8 @@ export function describe(frame: ServerFrame): string {
       return frame.data.by;
     case "driver_location":
       return `${frame.data.lat},${frame.data.lng} heading ${frame.data.heading ?? "?"}`;
-    case "line_expiring":
-      return `ends ${frame.data.expires_at}`;
-    case "line_expired":
-      return `ended ${frame.data.expired_at}`;
+    case "verification_changed":
+      return frame.data.status;
     case "offers_blocked":
       return frame.data.reason;
     case "notification":
@@ -49,14 +47,7 @@ export function describe(frame: ServerFrame): string {
   }
 }
 
-export const online: ClientFrame = {
-  type: "go_online",
-  data: {
-    from_region_id: "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
-    to_region_id: "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
-    vehicle_id: "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e09",
-  },
-};
+export const online: ClientFrame = { type: "go_online", data: {} };
 
 export const ping: ClientFrame = { type: "ping" };
 
@@ -66,9 +57,6 @@ export const stillEligible: WalletEligibilityChanged["reason"] = null;
 
 // @ts-expect-error a frame type the server never sends
 export const unknownFrame: ServerFrame = { type: "teleport", data: {}, ts: "2026-10-14T09:30:00Z" };
-
-// @ts-expect-error go_online needs a vehicle
-export const noVehicle: ClientFrame = { type: "go_online", data: { from_region_id: "a", to_region_id: "b" } };
 
 // @ts-expect-error the data of one frame cannot travel under another frame's type
 export const crossed: ClientFrame = { type: "offer_response", data: online.data };

@@ -53,6 +53,7 @@ fn through(title: &str, value: &Value) -> Result<Value, serde_json::Error> {
         "CarrierDocumentReviewed" => round_trip::<goway_events::CarrierDocumentReviewed>(value),
         "CarrierDocumentExpired" => round_trip::<goway_events::CarrierDocumentExpired>(value),
         "CarrierDocumentExpiring" => round_trip::<goway_events::CarrierDocumentExpiring>(value),
+        "CarrierLineChanged" => round_trip::<goway_events::CarrierLineChanged>(value),
         "CarrierVerificationChanged" => round_trip::<goway_events::CarrierVerificationChanged>(value),
         "SupportTicketCreated" => round_trip::<goway_events::SupportTicketCreated>(value),
         "SupportTicketReplied" => round_trip::<goway_events::SupportTicketReplied>(value),

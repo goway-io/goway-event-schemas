@@ -11,40 +11,10 @@
     },
     "data": {
       "title": "GoOnline",
-      "description": "Start receiving instant offers on a line with one vehicle.",
+      "description": "Start receiving instant offers on the line saved with `PUT /v1/carrier/line`, with its vehicle.",
       "type": "object",
       "additionalProperties": false,
-      "properties": {
-        "from_region_id": {
-          "type": "string",
-          "format": "uuid"
-        },
-        "to_region_id": {
-          "type": "string",
-          "format": "uuid"
-        },
-        "vehicle_id": {
-          "type": "string",
-          "format": "uuid"
-        },
-        "duration_hours": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 48,
-          "default": 12,
-          "description": "How long to stay online; must be one of the allowed durations."
-        },
-        "bidirectional": {
-          "type": "boolean",
-          "default": true,
-          "description": "Also take loads on the way back."
-        }
-      },
-      "required": [
-        "from_region_id",
-        "to_region_id",
-        "vehicle_id"
-      ]
+      "properties": {}
     }
   },
   "required": [

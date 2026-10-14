@@ -67,10 +67,7 @@ const _$GoOfflineFrameTypeEnumMap = {
 GoOnlineFrame _$GoOnlineFrameFromJson(Map<String, dynamic> json) =>
     $checkedCreate('GoOnlineFrame', json, ($checkedConvert) {
       final val = GoOnlineFrame(
-        data: $checkedConvert(
-          'data',
-          (v) => GoOnline.fromJson(v as Map<String, dynamic>),
-        ),
+        data: $checkedConvert('data', (v) => v as Map<String, dynamic>),
         type: $checkedConvert(
           'type',
           (v) => $enumDecode(_$GoOnlineFrameTypeEnumMap, v),
@@ -86,38 +83,6 @@ Map<String, dynamic> _$GoOnlineFrameToJson(GoOnlineFrame instance) =>
     };
 
 const _$GoOnlineFrameTypeEnumMap = {GoOnlineFrameType.GO_ONLINE: 'go_online'};
-
-GoOnline _$GoOnlineFromJson(Map<String, dynamic> json) => $checkedCreate(
-  'GoOnline',
-  json,
-  ($checkedConvert) {
-    final val = GoOnline(
-      bidirectional: $checkedConvert('bidirectional', (v) => v as bool?),
-      durationHours: $checkedConvert(
-        'duration_hours',
-        (v) => (v as num?)?.toInt(),
-      ),
-      fromRegionId: $checkedConvert('from_region_id', (v) => v as String),
-      toRegionId: $checkedConvert('to_region_id', (v) => v as String),
-      vehicleId: $checkedConvert('vehicle_id', (v) => v as String),
-    );
-    return val;
-  },
-  fieldKeyMap: const {
-    'durationHours': 'duration_hours',
-    'fromRegionId': 'from_region_id',
-    'toRegionId': 'to_region_id',
-    'vehicleId': 'vehicle_id',
-  },
-);
-
-Map<String, dynamic> _$GoOnlineToJson(GoOnline instance) => <String, dynamic>{
-  'bidirectional': ?instance.bidirectional,
-  'duration_hours': ?instance.durationHours,
-  'from_region_id': instance.fromRegionId,
-  'to_region_id': instance.toRegionId,
-  'vehicle_id': instance.vehicleId,
-};
 
 LocationFrame _$LocationFrameFromJson(Map<String, dynamic> json) =>
     $checkedCreate('LocationFrame', json, ($checkedConvert) {
@@ -994,82 +959,6 @@ Map<String, dynamic> _$KickedToJson(Kicked instance) => <String, dynamic>{
   'reason': ?instance.reason,
 };
 
-LineExpiredFrame _$LineExpiredFrameFromJson(Map<String, dynamic> json) =>
-    $checkedCreate('LineExpiredFrame', json, ($checkedConvert) {
-      final val = LineExpiredFrame(
-        data: $checkedConvert(
-          'data',
-          (v) => LineExpired.fromJson(v as Map<String, dynamic>),
-        ),
-        ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
-        type: $checkedConvert(
-          'type',
-          (v) => $enumDecode(_$LineExpiredFrameTypeEnumMap, v),
-        ),
-      );
-      return val;
-    });
-
-Map<String, dynamic> _$LineExpiredFrameToJson(LineExpiredFrame instance) =>
-    <String, dynamic>{
-      'data': instance.data,
-      'ts': instance.ts.toIso8601String(),
-      'type': _$LineExpiredFrameTypeEnumMap[instance.type]!,
-    };
-
-const _$LineExpiredFrameTypeEnumMap = {
-  LineExpiredFrameType.LINE_EXPIRED: 'line_expired',
-};
-
-LineExpired _$LineExpiredFromJson(Map<String, dynamic> json) =>
-    $checkedCreate('LineExpired', json, ($checkedConvert) {
-      final val = LineExpired(
-        expiredAt: $checkedConvert('expired_at', (v) => (v as num).toInt()),
-      );
-      return val;
-    }, fieldKeyMap: const {'expiredAt': 'expired_at'});
-
-Map<String, dynamic> _$LineExpiredToJson(LineExpired instance) =>
-    <String, dynamic>{'expired_at': instance.expiredAt};
-
-LineExpiringFrame _$LineExpiringFrameFromJson(Map<String, dynamic> json) =>
-    $checkedCreate('LineExpiringFrame', json, ($checkedConvert) {
-      final val = LineExpiringFrame(
-        data: $checkedConvert(
-          'data',
-          (v) => LineExpiring.fromJson(v as Map<String, dynamic>),
-        ),
-        ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
-        type: $checkedConvert(
-          'type',
-          (v) => $enumDecode(_$LineExpiringFrameTypeEnumMap, v),
-        ),
-      );
-      return val;
-    });
-
-Map<String, dynamic> _$LineExpiringFrameToJson(LineExpiringFrame instance) =>
-    <String, dynamic>{
-      'data': instance.data,
-      'ts': instance.ts.toIso8601String(),
-      'type': _$LineExpiringFrameTypeEnumMap[instance.type]!,
-    };
-
-const _$LineExpiringFrameTypeEnumMap = {
-  LineExpiringFrameType.LINE_EXPIRING: 'line_expiring',
-};
-
-LineExpiring _$LineExpiringFromJson(Map<String, dynamic> json) =>
-    $checkedCreate('LineExpiring', json, ($checkedConvert) {
-      final val = LineExpiring(
-        expiresAt: $checkedConvert('expires_at', (v) => (v as num).toInt()),
-      );
-      return val;
-    }, fieldKeyMap: const {'expiresAt': 'expires_at'});
-
-Map<String, dynamic> _$LineExpiringToJson(LineExpiring instance) =>
-    <String, dynamic>{'expires_at': instance.expiresAt};
-
 NotificationFrame _$NotificationFrameFromJson(Map<String, dynamic> json) =>
     $checkedCreate('NotificationFrame', json, ($checkedConvert) {
       final val = NotificationFrame(
@@ -1390,7 +1279,8 @@ Online _$OnlineFromJson(Map<String, dynamic> json) => $checkedCreate(
   json,
   ($checkedConvert) {
     final val = Online(
-      expiresAt: $checkedConvert('expires_at', (v) => (v as num).toInt()),
+      bidirectional: $checkedConvert('bidirectional', (v) => v as bool),
+      fromRegionId: $checkedConvert('from_region_id', (v) => v as String),
       offersBlocked: $checkedConvert(
         'offers_blocked',
         (v) => $enumDecodeNullable(_$OffersBlockedReasonEnumMap, v),
@@ -1399,20 +1289,27 @@ Online _$OnlineFromJson(Map<String, dynamic> json) => $checkedCreate(
         'queue_position',
         (v) => (v as num).toInt(),
       ),
+      toRegionId: $checkedConvert('to_region_id', (v) => v as String),
+      vehicleId: $checkedConvert('vehicle_id', (v) => v as String),
     );
     return val;
   },
   fieldKeyMap: const {
-    'expiresAt': 'expires_at',
+    'fromRegionId': 'from_region_id',
     'offersBlocked': 'offers_blocked',
     'queuePosition': 'queue_position',
+    'toRegionId': 'to_region_id',
+    'vehicleId': 'vehicle_id',
   },
 );
 
 Map<String, dynamic> _$OnlineToJson(Online instance) => <String, dynamic>{
-  'expires_at': instance.expiresAt,
+  'bidirectional': instance.bidirectional,
+  'from_region_id': instance.fromRegionId,
   'offers_blocked': ?_$OffersBlockedReasonEnumMap[instance.offersBlocked],
   'queue_position': instance.queuePosition,
+  'to_region_id': instance.toRegionId,
+  'vehicle_id': instance.vehicleId,
 };
 
 PongFrame _$PongFrameFromJson(Map<String, dynamic> json) =>
@@ -1548,3 +1445,54 @@ Subscribed _$SubscribedFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$SubscribedToJson(Subscribed instance) =>
     <String, dynamic>{'booking_id': instance.bookingId};
+
+VerificationChangedFrame _$VerificationChangedFrameFromJson(
+  Map<String, dynamic> json,
+) => $checkedCreate('VerificationChangedFrame', json, ($checkedConvert) {
+  final val = VerificationChangedFrame(
+    data: $checkedConvert(
+      'data',
+      (v) => VerificationChanged.fromJson(v as Map<String, dynamic>),
+    ),
+    ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
+    type: $checkedConvert(
+      'type',
+      (v) => $enumDecode(_$VerificationChangedFrameTypeEnumMap, v),
+    ),
+  );
+  return val;
+});
+
+Map<String, dynamic> _$VerificationChangedFrameToJson(
+  VerificationChangedFrame instance,
+) => <String, dynamic>{
+  'data': instance.data,
+  'ts': instance.ts.toIso8601String(),
+  'type': _$VerificationChangedFrameTypeEnumMap[instance.type]!,
+};
+
+const _$VerificationChangedFrameTypeEnumMap = {
+  VerificationChangedFrameType.VERIFICATION_CHANGED: 'verification_changed',
+};
+
+VerificationChanged _$VerificationChangedFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('VerificationChanged', json, ($checkedConvert) {
+      final val = VerificationChanged(
+        status: $checkedConvert(
+          'status',
+          (v) => $enumDecode(_$VerificationStatusEnumMap, v),
+        ),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$VerificationChangedToJson(
+  VerificationChanged instance,
+) => <String, dynamic>{'status': _$VerificationStatusEnumMap[instance.status]!};
+
+const _$VerificationStatusEnumMap = {
+  VerificationStatus.APPROVED: 'approved',
+  VerificationStatus.EXPIRED: 'expired',
+  VerificationStatus.PENDING: 'pending',
+  VerificationStatus.REJECTED: 'rejected',
+};

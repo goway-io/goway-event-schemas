@@ -1,9 +1,12 @@
 {
   "type": "online",
   "data": {
-    "queue_position": 4,
-    "expires_at": 1792013400123,
-    "offers_blocked": "BALANCE_INSUFFICIENT"
+    "from_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
+    "to_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e09",
+    "bidirectional": true,
+    "vehicle_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+    "queue_position": 3,
+    "offers_blocked": "SUBSCRIPTION_REQUIRED"
   },
-  "ts": "2026-10-14T09:30:00.123Z"
+  "ts": "2026-10-15T08:05:00.123Z"
 }

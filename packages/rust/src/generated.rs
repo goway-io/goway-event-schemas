@@ -676,6 +676,24 @@ pub struct CarrierDocumentUpdated {
     #[doc = "Version of this document kind, from 1."]
     pub version: ::std::num::NonZeroU64,
 }
+#[doc = "A driver opened or changed their line, its return direction or its truck."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct CarrierLineChanged {
+    #[doc = "The way back is taken too."]
+    pub bidirectional: bool,
+    pub changed_at: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "Where the line starts."]
+    pub from_region_id: ::uuid::Uuid,
+    pub org_id: ::uuid::Uuid,
+    #[doc = "Where the line ends."]
+    pub to_region_id: ::uuid::Uuid,
+    pub user_id: ::uuid::Uuid,
+    #[doc = "The truck for the line; null after it was removed."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub vehicle_id: ::std::option::Option<::uuid::Uuid>,
+}
 #[doc = "A carrier organization's verification moved: submitted or reopened by a replaced document (`pending`), or decided by an operator."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct CarrierVerificationChanged {
@@ -1196,18 +1214,25 @@ pub struct GoOfflineFrame {
     #[serde(rename = "type")]
     pub type_: ::std::string::String,
 }
-#[doc = "Start receiving instant offers on a line with one vehicle."]
+#[doc = "Start receiving instant offers on the line saved with `PUT /v1/carrier/line`, with its vehicle."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
-pub struct GoOnline {
-    #[doc = "Also take loads on the way back."]
-    #[serde(default = "defaults::default_bool::<true>")]
-    pub bidirectional: bool,
-    #[doc = "How long to stay online; must be one of the allowed durations."]
-    #[serde(default = "defaults::default_nzu64::<::std::num::NonZeroU64, 12>")]
-    pub duration_hours: ::std::num::NonZeroU64,
-    pub from_region_id: ::uuid::Uuid,
-    pub to_region_id: ::uuid::Uuid,
-    pub vehicle_id: ::uuid::Uuid,
+#[serde(transparent)]
+pub struct GoOnline(pub ::serde_json::Map<::std::string::String, ::serde_json::Value>);
+impl ::std::ops::Deref for GoOnline {
+    type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
+    fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        &self.0
+    }
+}
+impl ::std::convert::From<GoOnline> for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+    fn from(value: GoOnline) -> Self {
+        value.0
+    }
+}
+impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>> for GoOnline {
+    fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
+        Self(value)
+    }
 }
 #[doc = "Frame `go_online` an app sends to goway-realtime."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
@@ -1285,36 +1310,6 @@ pub struct Kicked {
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct KickedFrame {
     pub data: Kicked,
-    #[doc = "When the server sent the frame, RFC 3339 UTC."]
-    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
-    #[serde(rename = "type")]
-    pub type_: ::std::string::String,
-}
-#[doc = "The driver's line ended and the driver is offline; open a line again to get offers."]
-#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
-pub struct LineExpired {
-    #[doc = "When the line ended, unix milliseconds."]
-    pub expired_at: i64,
-}
-#[doc = "Frame `line_expired` goway-realtime sends to an app."]
-#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
-pub struct LineExpiredFrame {
-    pub data: LineExpired,
-    #[doc = "When the server sent the frame, RFC 3339 UTC."]
-    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
-    #[serde(rename = "type")]
-    pub type_: ::std::string::String,
-}
-#[doc = "The driver's line ends soon (`line_expiry_warning_minutes` before)."]
-#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
-pub struct LineExpiring {
-    #[doc = "When the line ends, unix milliseconds."]
-    pub expires_at: i64,
-}
-#[doc = "Frame `line_expiring` goway-realtime sends to an app."]
-#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
-pub struct LineExpiringFrame {
-    pub data: LineExpiring,
     #[doc = "When the server sent the frame, RFC 3339 UTC."]
     pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
     #[serde(rename = "type")]
@@ -2006,16 +2001,22 @@ impl ::std::convert::TryFrom<::std::string::String> for OfflineReason {
         value.parse()
     }
 }
-#[doc = "The driver is on the line after `go_online`."]
+#[doc = "The driver is on their line: after `go_online`, and again whenever the line is changed while online."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct Online {
-    #[doc = "When the line ends, unix milliseconds."]
-    pub expires_at: i64,
-    #[doc = "Set when the wallet blocks offers, null otherwise; this frame only ever sends `BALANCE_INSUFFICIENT`."]
+    #[doc = "The way back is taken too."]
+    pub bidirectional: bool,
+    #[doc = "Where the line starts."]
+    pub from_region_id: ::uuid::Uuid,
+    #[doc = "Set when the wallet blocks offers, with the reason; null otherwise."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub offers_blocked: ::std::option::Option<OffersBlockedReason>,
     #[doc = "Place in the outbound line's queue, from 1."]
     pub queue_position: ::std::num::NonZeroU64,
+    #[doc = "Where the line ends."]
+    pub to_region_id: ::uuid::Uuid,
+    #[doc = "The truck the offers are matched against."]
+    pub vehicle_id: ::uuid::Uuid,
 }
 #[doc = "Frame `online` goway-realtime sends to an app."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
@@ -2386,20 +2387,6 @@ pub enum ServerFrame {
         #[doc = "When the server sent the frame, RFC 3339 UTC."]
         ts: ::chrono::DateTime<::chrono::offset::Utc>,
     },
-    #[doc = "Frame `line_expiring` goway-realtime sends to an app."]
-    #[serde(rename = "line_expiring")]
-    LineExpiring {
-        data: LineExpiring,
-        #[doc = "When the server sent the frame, RFC 3339 UTC."]
-        ts: ::chrono::DateTime<::chrono::offset::Utc>,
-    },
-    #[doc = "Frame `line_expired` goway-realtime sends to an app."]
-    #[serde(rename = "line_expired")]
-    LineExpired {
-        data: LineExpired,
-        #[doc = "When the server sent the frame, RFC 3339 UTC."]
-        ts: ::chrono::DateTime<::chrono::offset::Utc>,
-    },
     #[doc = "Frame `offers_blocked` goway-realtime sends to an app."]
     #[serde(rename = "offers_blocked")]
     OffersBlocked {
@@ -2439,6 +2426,13 @@ pub enum ServerFrame {
     #[serde(rename = "error")]
     Error {
         data: FrameError,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `verification_changed` goway-realtime sends to an app."]
+    #[serde(rename = "verification_changed")]
+    VerificationChanged {
+        data: VerificationChanged,
         #[doc = "When the server sent the frame, RFC 3339 UTC."]
         ts: ::chrono::DateTime<::chrono::offset::Utc>,
     },
@@ -3249,6 +3243,20 @@ impl<'de> ::serde::Deserialize<'de> for VehicleUpsertedModel {
             .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
     }
 }
+#[doc = "The carrier's verification moved; the app re-reads `GET /v1/carrier/verification` for the note."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct VerificationChanged {
+    pub status: VerificationStatus,
+}
+#[doc = "Frame `verification_changed` goway-realtime sends to an app."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct VerificationChangedFrame {
+    pub data: VerificationChanged,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
 #[doc = "The new verification status; `expired` when an approved document ran out."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum VerificationStatus {
@@ -3517,19 +3525,6 @@ impl<'de> ::serde::Deserialize<'de> for WalletToppedUpCurrency {
         ::std::string::String::deserialize(deserializer)?
             .parse()
             .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
-    }
-}
-#[doc = " Generation of default values for serde."]
-pub mod defaults {
-    pub(super) fn default_bool<const V: bool>() -> bool {
-        V
-    }
-    pub(super) fn default_nzu64<T, const V: u64>() -> T
-    where
-        T: ::std::convert::TryFrom<::std::num::NonZeroU64>,
-        <T as ::std::convert::TryFrom<::std::num::NonZeroU64>>::Error: ::std::fmt::Debug,
-    {
-        T::try_from(::std::num::NonZeroU64::try_from(V).unwrap()).unwrap()
     }
 }
 #[doc = " Error types."]

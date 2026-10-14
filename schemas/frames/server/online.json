@@ -11,18 +11,33 @@
     },
     "data": {
       "title": "Online",
-      "description": "The driver is on the line after `go_online`.",
+      "description": "The driver is on their line: after `go_online`, and again whenever the line is changed while online.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "from_region_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Where the line starts."
+        },
+        "to_region_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Where the line ends."
+        },
+        "bidirectional": {
+          "type": "boolean",
+          "description": "The way back is taken too."
+        },
+        "vehicle_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The truck the offers are matched against."
+        },
         "queue_position": {
           "type": "integer",
           "minimum": 1,
           "description": "Place in the outbound line's queue, from 1."
-        },
-        "expires_at": {
-          "type": "integer",
-          "description": "When the line ends, unix milliseconds."
         },
         "offers_blocked": {
           "anyOf": [
@@ -38,12 +53,15 @@
               "type": "null"
             }
           ],
-          "description": "Set when the wallet blocks offers, null otherwise; this frame only ever sends `BALANCE_INSUFFICIENT`."
+          "description": "Set when the wallet blocks offers, with the reason; null otherwise."
         }
       },
       "required": [
+        "from_region_id",
+        "to_region_id",
+        "bidirectional",
+        "vehicle_id",
         "queue_position",
-        "expires_at",
         "offers_blocked"
       ]
     },

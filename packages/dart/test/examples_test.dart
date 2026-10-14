@@ -36,6 +36,17 @@ String relative(File file) => file.path.substring(examples.path.length + 1);
 
 Map<String, dynamic> read(File file) => jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
 
+/// The models leave nulls out when they write (`include_if_null: false`); an app only reads server frames, so a
+/// null read and dropped again is the same frame.
+Object? withoutNulls(Object? value) => switch (value) {
+      Map<String, dynamic> map => {
+          for (final entry in map.entries)
+            if (entry.value != null) entry.key: withoutNulls(entry.value),
+        },
+      List<dynamic> list => [for (final item in list) withoutNulls(item)],
+      _ => value,
+    };
+
 void main() {
   for (final (title, file) in examplesOf('valid')) {
     test('${relative(file)} reads and writes back unchanged', () {
@@ -44,7 +55,7 @@ void main() {
         expect(ServerFrame.fromJson(original), isNot(isA<UnknownServerFrame>()), reason: 'add its case to frames.dart');
       }
       final written = jsonDecode(jsonEncode(parse(title, original)));
-      expect(written, equals(original));
+      expect(written, equals(withoutNulls(original)));
     });
   }
 

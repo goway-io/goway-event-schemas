@@ -102,10 +102,9 @@ sealed class ServerFrame {
         'booking_completed' => BookingCompletedMessage(BookingCompletedFrame.fromJson(json)),
         'booking_cancelled' => BookingCancelledMessage(BookingCancelledFrame.fromJson(json)),
         'driver_location' => DriverLocationMessage(DriverLocationFrame.fromJson(json)),
-        'line_expiring' => LineExpiringMessage(LineExpiringFrame.fromJson(json)),
-        'line_expired' => LineExpiredMessage(LineExpiredFrame.fromJson(json)),
         'offers_blocked' => OffersBlockedMessage(OffersBlockedFrame.fromJson(json)),
         'offers_unblocked' => OffersUnblockedMessage(OffersUnblockedFrame.fromJson(json)),
+        'verification_changed' => VerificationChangedMessage(VerificationChangedFrame.fromJson(json)),
         'notification' => NotificationMessage(NotificationFrame.fromJson(json)),
         'session_started' => SessionStartedMessage(SessionStartedFrame.fromJson(json)),
         'kicked' => KickedMessage(KickedFrame.fromJson(json)),
@@ -216,16 +215,9 @@ final class DriverLocationMessage extends ServerFrame {
   Map<String, dynamic> toJson() => frame.toJson();
 }
 
-final class LineExpiringMessage extends ServerFrame {
-  const LineExpiringMessage(this.frame);
-  final LineExpiringFrame frame;
-  @override
-  Map<String, dynamic> toJson() => frame.toJson();
-}
-
-final class LineExpiredMessage extends ServerFrame {
-  const LineExpiredMessage(this.frame);
-  final LineExpiredFrame frame;
+final class VerificationChangedMessage extends ServerFrame {
+  const VerificationChangedMessage(this.frame);
+  final VerificationChangedFrame frame;
   @override
   Map<String, dynamic> toJson() => frame.toJson();
 }

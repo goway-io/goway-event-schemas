@@ -153,6 +153,39 @@ class CancelledBy(StrEnum):
     OPERATOR = "operator"
 
 
+class CarrierLineChanged(BaseModel):
+    """
+    A driver opened or changed their line, its return direction or its truck.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    user_id: UUID
+    org_id: UUID
+    from_region_id: UUID
+    """
+    Where the line starts.
+    """
+    to_region_id: UUID
+    """
+    Where the line ends.
+    """
+    bidirectional: bool
+    """
+    The way back is taken too.
+    """
+    vehicle_id: UUID | None
+    """
+    The truck for the line; null after it was removed.
+    """
+    changed_at: AwareDatetime
+
+
 class ChargeLine(BaseModel):
     """
     One priced line of the haul.
@@ -493,23 +526,12 @@ class GoOfflineFrame(BaseModel):
 
 class GoOnline(BaseModel):
     """
-    Start receiving instant offers on a line with one vehicle.
+    Start receiving instant offers on the line saved with `PUT /v1/carrier/line`, with its vehicle.
     """
 
     model_config = ConfigDict(
         extra="ignore",
     )
-    from_region_id: UUID
-    to_region_id: UUID
-    vehicle_id: UUID
-    duration_hours: Annotated[int | None, Field(ge=1, le=48)] = 12
-    """
-    How long to stay online; must be one of the allowed durations.
-    """
-    bidirectional: bool | None = True
-    """
-    Also take loads on the way back.
-    """
 
 
 class GoOnlineFrame(BaseModel):
@@ -553,66 +575,6 @@ class KickedFrame(BaseModel):
     )
     type: Literal["kicked"]
     data: Kicked
-    ts: AwareDatetime
-    """
-    When the server sent the frame, RFC 3339 UTC.
-    """
-
-
-class LineExpired(BaseModel):
-    """
-    The driver's line ended and the driver is offline; open a line again to get offers.
-    """
-
-    model_config = ConfigDict(
-        extra="ignore",
-    )
-    expired_at: int
-    """
-    When the line ended, unix milliseconds.
-    """
-
-
-class LineExpiredFrame(BaseModel):
-    """
-    Frame `line_expired` goway-realtime sends to an app.
-    """
-
-    model_config = ConfigDict(
-        extra="ignore",
-    )
-    type: Literal["line_expired"]
-    data: LineExpired
-    ts: AwareDatetime
-    """
-    When the server sent the frame, RFC 3339 UTC.
-    """
-
-
-class LineExpiring(BaseModel):
-    """
-    The driver's line ends soon (`line_expiry_warning_minutes` before).
-    """
-
-    model_config = ConfigDict(
-        extra="ignore",
-    )
-    expires_at: int
-    """
-    When the line ends, unix milliseconds.
-    """
-
-
-class LineExpiringFrame(BaseModel):
-    """
-    Frame `line_expiring` goway-realtime sends to an app.
-    """
-
-    model_config = ConfigDict(
-        extra="ignore",
-    )
-    type: Literal["line_expiring"]
-    data: LineExpiring
     ts: AwareDatetime
     """
     When the server sent the frame, RFC 3339 UTC.
@@ -998,23 +960,35 @@ class OfflineReason(StrEnum):
 
 class Online(BaseModel):
     """
-    The driver is on the line after `go_online`.
+    The driver is on their line: after `go_online`, and again whenever the line is changed while online.
     """
 
     model_config = ConfigDict(
         extra="ignore",
     )
+    from_region_id: UUID
+    """
+    Where the line starts.
+    """
+    to_region_id: UUID
+    """
+    Where the line ends.
+    """
+    bidirectional: bool
+    """
+    The way back is taken too.
+    """
+    vehicle_id: UUID
+    """
+    The truck the offers are matched against.
+    """
     queue_position: Annotated[int, Field(ge=1)]
     """
     Place in the outbound line's queue, from 1.
     """
-    expires_at: int
-    """
-    When the line ends, unix milliseconds.
-    """
     offers_blocked: OffersBlockedReason | None
     """
-    Set when the wallet blocks offers, null otherwise; this frame only ever sends `BALANCE_INSUFFICIENT`.
+    Set when the wallet blocks offers, with the reason; null otherwise.
     """
 
 
@@ -2511,6 +2485,33 @@ class SupportTicketReplied(BaseModel):
     status: TicketReplyStatus
 
 
+class VerificationChanged(BaseModel):
+    """
+    The carrier's verification moved; the app re-reads `GET /v1/carrier/verification` for the note.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    status: VerificationStatus
+
+
+class VerificationChangedFrame(BaseModel):
+    """
+    Frame `verification_changed` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["verification_changed"]
+    data: VerificationChanged
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
 class BookingEtaFrame(BaseModel):
     """
     Frame `booking_eta` goway-realtime sends to an app. Sent to the booking's viewers only, and dropped when a socket is slow. It currently forwards the internal `booking.eta_updated` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
@@ -2542,14 +2543,13 @@ class ServerFrame(
         | BookingCompletedFrame
         | BookingCancelledFrame
         | DriverLocationFrame
-        | LineExpiringFrame
-        | LineExpiredFrame
         | OffersBlockedFrame
         | OffersUnblockedFrame
         | NotificationFrame
         | SessionStartedFrame
         | KickedFrame
         | ErrorFrame
+        | VerificationChangedFrame
     ]
 ):
     root: Annotated[
@@ -2566,14 +2566,13 @@ class ServerFrame(
         | BookingCompletedFrame
         | BookingCancelledFrame
         | DriverLocationFrame
-        | LineExpiringFrame
-        | LineExpiredFrame
         | OffersBlockedFrame
         | OffersUnblockedFrame
         | NotificationFrame
         | SessionStartedFrame
         | KickedFrame
-        | ErrorFrame,
+        | ErrorFrame
+        | VerificationChangedFrame,
         Field(discriminator="type", title="ServerFrame"),
     ]
     """

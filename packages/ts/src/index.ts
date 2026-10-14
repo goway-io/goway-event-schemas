@@ -175,14 +175,13 @@ export type ServerFrame =
   | BookingCompletedFrame
   | BookingCancelledFrame
   | DriverLocationFrame
-  | LineExpiringFrame
-  | LineExpiredFrame
   | OffersBlockedFrame
   | OffersUnblockedFrame
   | NotificationFrame
   | SessionStartedFrame
   | KickedFrame
-  | ErrorFrame;
+  | ErrorFrame
+  | VerificationChangedFrame;
 /**
  * Why every session of the user was closed. An operator's own note on a block stays with staff.
  *
@@ -700,6 +699,37 @@ export interface CarrierDocumentUpdated {
   version: number;
 }
 /**
+ * A driver opened or changed their line, its return direction or its truck.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "CarrierLineChanged".
+ */
+export interface CarrierLineChanged {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  user_id: string;
+  org_id: string;
+  /**
+   * Where the line starts.
+   */
+  from_region_id: string;
+  /**
+   * Where the line ends.
+   */
+  to_region_id: string;
+  /**
+   * The way back is taken too.
+   */
+  bidirectional: boolean;
+  /**
+   * The truck for the line; null after it was removed.
+   */
+  vehicle_id: string | null;
+  changed_at: string;
+}
+/**
  * A carrier organization's verification moved: submitted or reopened by a replaced document (`pending`), or decided by an operator.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -745,24 +775,12 @@ export interface GoOnlineFrame {
   data: GoOnline;
 }
 /**
- * Start receiving instant offers on a line with one vehicle.
+ * Start receiving instant offers on the line saved with `PUT /v1/carrier/line`, with its vehicle.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "GoOnline".
  */
-export interface GoOnline {
-  from_region_id: string;
-  to_region_id: string;
-  vehicle_id: string;
-  /**
-   * How long to stay online; must be one of the allowed durations.
-   */
-  duration_hours?: number;
-  /**
-   * Also take loads on the way back.
-   */
-  bidirectional?: boolean;
-}
+export interface GoOnline {}
 /**
  * Frame `go_offline` an app sends to goway-realtime.
  *
@@ -1178,58 +1196,6 @@ export interface KickedFrame {
   ts: string;
 }
 /**
- * The driver's line ended and the driver is offline; open a line again to get offers.
- *
- * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
- * via the `definition` "LineExpired".
- */
-export interface LineExpired {
-  /**
-   * When the line ended, unix milliseconds.
-   */
-  expired_at: number;
-}
-/**
- * Frame `line_expired` goway-realtime sends to an app.
- *
- * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
- * via the `definition` "LineExpiredFrame".
- */
-export interface LineExpiredFrame {
-  type: "line_expired";
-  data: LineExpired;
-  /**
-   * When the server sent the frame, RFC 3339 UTC.
-   */
-  ts: string;
-}
-/**
- * The driver's line ends soon (`line_expiry_warning_minutes` before).
- *
- * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
- * via the `definition` "LineExpiring".
- */
-export interface LineExpiring {
-  /**
-   * When the line ends, unix milliseconds.
-   */
-  expires_at: number;
-}
-/**
- * Frame `line_expiring` goway-realtime sends to an app.
- *
- * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
- * via the `definition` "LineExpiringFrame".
- */
-export interface LineExpiringFrame {
-  type: "line_expiring";
-  data: LineExpiring;
-  /**
-   * When the server sent the frame, RFC 3339 UTC.
-   */
-  ts: string;
-}
-/**
  * The shipper withdrew an open load.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -1626,22 +1592,34 @@ export interface OfflineFrame {
   ts: string;
 }
 /**
- * The driver is on the line after `go_online`.
+ * The driver is on their line: after `go_online`, and again whenever the line is changed while online.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "Online".
  */
 export interface Online {
   /**
+   * Where the line starts.
+   */
+  from_region_id: string;
+  /**
+   * Where the line ends.
+   */
+  to_region_id: string;
+  /**
+   * The way back is taken too.
+   */
+  bidirectional: boolean;
+  /**
+   * The truck the offers are matched against.
+   */
+  vehicle_id: string;
+  /**
    * Place in the outbound line's queue, from 1.
    */
   queue_position: number;
   /**
-   * When the line ends, unix milliseconds.
-   */
-  expires_at: number;
-  /**
-   * Set when the wallet blocks offers, null otherwise; this frame only ever sends `BALANCE_INSUFFICIENT`.
+   * Set when the wallet blocks offers, with the reason; null otherwise.
    */
   offers_blocked: OffersBlockedReason | null;
 }
@@ -1817,6 +1795,29 @@ export interface SessionStarted {
    * When the sign-in happened, as `user.login` wrote it.
    */
   at: string | null;
+}
+/**
+ * Frame `verification_changed` goway-realtime sends to an app.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "VerificationChangedFrame".
+ */
+export interface VerificationChangedFrame {
+  type: "verification_changed";
+  data: VerificationChanged;
+  /**
+   * When the server sent the frame, RFC 3339 UTC.
+   */
+  ts: string;
+}
+/**
+ * The carrier's verification moved; the app re-reads `GET /v1/carrier/verification` for the note.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "VerificationChanged".
+ */
+export interface VerificationChanged {
+  status: VerificationStatus;
 }
 /**
  * An admin changed or reset runtime settings of one service. Published by goway-lib for goway-auth, goway-loads, goway-billing and goway-notify, and by goway-realtime itself, with the same fields.

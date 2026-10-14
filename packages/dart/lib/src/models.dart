@@ -18,8 +18,6 @@
 //     final driverLocationFrame = driverLocationFrameFromJson(jsonString);
 //     final errorFrame = errorFrameFromJson(jsonString);
 //     final kickedFrame = kickedFrameFromJson(jsonString);
-//     final lineExpiredFrame = lineExpiredFrameFromJson(jsonString);
-//     final lineExpiringFrame = lineExpiringFrameFromJson(jsonString);
 //     final notificationFrame = notificationFrameFromJson(jsonString);
 //     final offerProposedFrame = offerProposedFrameFromJson(jsonString);
 //     final offerResultFrame = offerResultFrameFromJson(jsonString);
@@ -30,6 +28,7 @@
 //     final pongFrame = pongFrameFromJson(jsonString);
 //     final sessionStartedFrame = sessionStartedFrameFromJson(jsonString);
 //     final subscribedFrame = subscribedFrameFromJson(jsonString);
+//     final verificationChangedFrame = verificationChangedFrameFromJson(jsonString);
 
 import 'package:json_annotation/json_annotation.dart';
 import 'dart:convert';
@@ -104,14 +103,6 @@ KickedFrame kickedFrameFromJson(String str) => KickedFrame.fromJson(json.decode(
 
 String kickedFrameToJson(KickedFrame data) => json.encode(data.toJson());
 
-LineExpiredFrame lineExpiredFrameFromJson(String str) => LineExpiredFrame.fromJson(json.decode(str));
-
-String lineExpiredFrameToJson(LineExpiredFrame data) => json.encode(data.toJson());
-
-LineExpiringFrame lineExpiringFrameFromJson(String str) => LineExpiringFrame.fromJson(json.decode(str));
-
-String lineExpiringFrameToJson(LineExpiringFrame data) => json.encode(data.toJson());
-
 NotificationFrame notificationFrameFromJson(String str) => NotificationFrame.fromJson(json.decode(str));
 
 String notificationFrameToJson(NotificationFrame data) => json.encode(data.toJson());
@@ -151,6 +142,10 @@ String sessionStartedFrameToJson(SessionStartedFrame data) => json.encode(data.t
 SubscribedFrame subscribedFrameFromJson(String str) => SubscribedFrame.fromJson(json.decode(str));
 
 String subscribedFrameToJson(SubscribedFrame data) => json.encode(data.toJson());
+
+VerificationChangedFrame verificationChangedFrameFromJson(String str) => VerificationChangedFrame.fromJson(json.decode(str));
+
+String verificationChangedFrameToJson(VerificationChangedFrame data) => json.encode(data.toJson());
 
 
 ///Frame `auth` an app sends to goway-realtime.
@@ -237,7 +232,7 @@ final goOfflineFrameTypeValues = EnumValues({
 @JsonSerializable()
 class GoOnlineFrame {
     @JsonKey(name: "data")
-    final GoOnline data;
+    final Map<String, dynamic> data;
     @JsonKey(name: "type")
     final GoOnlineFrameType type;
 
@@ -249,38 +244,6 @@ class GoOnlineFrame {
     factory GoOnlineFrame.fromJson(Map<String, dynamic> json) => _$GoOnlineFrameFromJson(json);
 
     Map<String, dynamic> toJson() => _$GoOnlineFrameToJson(this);
-}
-
-
-///Start receiving instant offers on a line with one vehicle.
-@JsonSerializable()
-class GoOnline {
-    
-    ///Also take loads on the way back.
-    @JsonKey(name: "bidirectional")
-    final bool? bidirectional;
-    
-    ///How long to stay online; must be one of the allowed durations.
-    @JsonKey(name: "duration_hours")
-    final int? durationHours;
-    @JsonKey(name: "from_region_id")
-    final String fromRegionId;
-    @JsonKey(name: "to_region_id")
-    final String toRegionId;
-    @JsonKey(name: "vehicle_id")
-    final String vehicleId;
-
-    GoOnline({
-        this.bidirectional,
-        this.durationHours,
-        required this.fromRegionId,
-        required this.toRegionId,
-        required this.vehicleId,
-    });
-
-    factory GoOnline.fromJson(Map<String, dynamic> json) => _$GoOnlineFromJson(json);
-
-    Map<String, dynamic> toJson() => _$GoOnlineToJson(this);
 }
 
 enum GoOnlineFrameType {
@@ -1392,108 +1355,6 @@ final kickedFrameTypeValues = EnumValues({
 });
 
 
-///Frame `line_expired` goway-realtime sends to an app.
-@JsonSerializable()
-class LineExpiredFrame {
-    @JsonKey(name: "data")
-    final LineExpired data;
-    
-    ///When the server sent the frame, RFC 3339 UTC.
-    @JsonKey(name: "ts")
-    final DateTime ts;
-    @JsonKey(name: "type")
-    final LineExpiredFrameType type;
-
-    LineExpiredFrame({
-        required this.data,
-        required this.ts,
-        required this.type,
-    });
-
-    factory LineExpiredFrame.fromJson(Map<String, dynamic> json) => _$LineExpiredFrameFromJson(json);
-
-    Map<String, dynamic> toJson() => _$LineExpiredFrameToJson(this);
-}
-
-
-///The driver's line ended and the driver is offline; open a line again to get offers.
-@JsonSerializable()
-class LineExpired {
-    
-    ///When the line ended, unix milliseconds.
-    @JsonKey(name: "expired_at")
-    final int expiredAt;
-
-    LineExpired({
-        required this.expiredAt,
-    });
-
-    factory LineExpired.fromJson(Map<String, dynamic> json) => _$LineExpiredFromJson(json);
-
-    Map<String, dynamic> toJson() => _$LineExpiredToJson(this);
-}
-
-enum LineExpiredFrameType {
-    @JsonValue("line_expired")
-    LINE_EXPIRED
-}
-
-final lineExpiredFrameTypeValues = EnumValues({
-    "line_expired": LineExpiredFrameType.LINE_EXPIRED
-});
-
-
-///Frame `line_expiring` goway-realtime sends to an app.
-@JsonSerializable()
-class LineExpiringFrame {
-    @JsonKey(name: "data")
-    final LineExpiring data;
-    
-    ///When the server sent the frame, RFC 3339 UTC.
-    @JsonKey(name: "ts")
-    final DateTime ts;
-    @JsonKey(name: "type")
-    final LineExpiringFrameType type;
-
-    LineExpiringFrame({
-        required this.data,
-        required this.ts,
-        required this.type,
-    });
-
-    factory LineExpiringFrame.fromJson(Map<String, dynamic> json) => _$LineExpiringFrameFromJson(json);
-
-    Map<String, dynamic> toJson() => _$LineExpiringFrameToJson(this);
-}
-
-
-///The driver's line ends soon (`line_expiry_warning_minutes` before).
-@JsonSerializable()
-class LineExpiring {
-    
-    ///When the line ends, unix milliseconds.
-    @JsonKey(name: "expires_at")
-    final int expiresAt;
-
-    LineExpiring({
-        required this.expiresAt,
-    });
-
-    factory LineExpiring.fromJson(Map<String, dynamic> json) => _$LineExpiringFromJson(json);
-
-    Map<String, dynamic> toJson() => _$LineExpiringToJson(this);
-}
-
-enum LineExpiringFrameType {
-    @JsonValue("line_expiring")
-    LINE_EXPIRING
-}
-
-final lineExpiringFrameTypeValues = EnumValues({
-    "line_expiring": LineExpiringFrameType.LINE_EXPIRING
-});
-
-
 ///Frame `notification` goway-realtime sends to an app.
 @JsonSerializable()
 class NotificationFrame {
@@ -1895,27 +1756,42 @@ class OnlineFrame {
 }
 
 
-///The driver is on the line after `go_online`.
+///The driver is on their line: after `go_online`, and again whenever the line is changed
+///while online.
 @JsonSerializable()
 class Online {
     
-    ///When the line ends, unix milliseconds.
-    @JsonKey(name: "expires_at")
-    final int expiresAt;
+    ///The way back is taken too.
+    @JsonKey(name: "bidirectional")
+    final bool bidirectional;
     
-    ///Set when the wallet blocks offers, null otherwise; this frame only ever sends
-    ///`BALANCE_INSUFFICIENT`.
+    ///Where the line starts.
+    @JsonKey(name: "from_region_id")
+    final String fromRegionId;
+    
+    ///Set when the wallet blocks offers, with the reason; null otherwise.
     @JsonKey(name: "offers_blocked")
     final OffersBlockedReason? offersBlocked;
     
     ///Place in the outbound line's queue, from 1.
     @JsonKey(name: "queue_position")
     final int queuePosition;
+    
+    ///Where the line ends.
+    @JsonKey(name: "to_region_id")
+    final String toRegionId;
+    
+    ///The truck the offers are matched against.
+    @JsonKey(name: "vehicle_id")
+    final String vehicleId;
 
     Online({
-        required this.expiresAt,
+        required this.bidirectional,
+        required this.fromRegionId,
         required this.offersBlocked,
         required this.queuePosition,
+        required this.toRegionId,
+        required this.vehicleId,
     });
 
     factory Online.fromJson(Map<String, dynamic> json) => _$OnlineFromJson(json);
@@ -2098,6 +1974,76 @@ enum SubscribedFrameType {
 
 final subscribedFrameTypeValues = EnumValues({
     "subscribed": SubscribedFrameType.SUBSCRIBED
+});
+
+
+///Frame `verification_changed` goway-realtime sends to an app.
+@JsonSerializable()
+class VerificationChangedFrame {
+    @JsonKey(name: "data")
+    final VerificationChanged data;
+    
+    ///When the server sent the frame, RFC 3339 UTC.
+    @JsonKey(name: "ts")
+    final DateTime ts;
+    @JsonKey(name: "type")
+    final VerificationChangedFrameType type;
+
+    VerificationChangedFrame({
+        required this.data,
+        required this.ts,
+        required this.type,
+    });
+
+    factory VerificationChangedFrame.fromJson(Map<String, dynamic> json) => _$VerificationChangedFrameFromJson(json);
+
+    Map<String, dynamic> toJson() => _$VerificationChangedFrameToJson(this);
+}
+
+
+///The carrier's verification moved; the app re-reads `GET /v1/carrier/verification` for the
+///note.
+@JsonSerializable()
+class VerificationChanged {
+    @JsonKey(name: "status")
+    final VerificationStatus status;
+
+    VerificationChanged({
+        required this.status,
+    });
+
+    factory VerificationChanged.fromJson(Map<String, dynamic> json) => _$VerificationChangedFromJson(json);
+
+    Map<String, dynamic> toJson() => _$VerificationChangedToJson(this);
+}
+
+
+///The new verification status; `expired` when an approved document ran out.
+enum VerificationStatus {
+    @JsonValue("approved")
+    APPROVED,
+    @JsonValue("expired")
+    EXPIRED,
+    @JsonValue("pending")
+    PENDING,
+    @JsonValue("rejected")
+    REJECTED
+}
+
+final verificationStatusValues = EnumValues({
+    "approved": VerificationStatus.APPROVED,
+    "expired": VerificationStatus.EXPIRED,
+    "pending": VerificationStatus.PENDING,
+    "rejected": VerificationStatus.REJECTED
+});
+
+enum VerificationChangedFrameType {
+    @JsonValue("verification_changed")
+    VERIFICATION_CHANGED
+}
+
+final verificationChangedFrameTypeValues = EnumValues({
+    "verification_changed": VerificationChangedFrameType.VERIFICATION_CHANGED
 });
 
 class EnumValues<T> {

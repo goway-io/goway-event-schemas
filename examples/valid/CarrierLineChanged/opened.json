@@ -1,0 +1,10 @@
+{
+  "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+  "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+  "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
+  "from_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
+  "to_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e09",
+  "bidirectional": true,
+  "vehicle_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+  "changed_at": "2026-10-15T08:05:00+00:00"
+}
