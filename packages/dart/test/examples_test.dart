@@ -40,6 +40,9 @@ void main() {
   for (final (title, file) in examplesOf('valid')) {
     test('${relative(file)} reads and writes back unchanged', () {
       final original = read(file);
+      if (title == 'ServerFrame') {
+        expect(ServerFrame.fromJson(original), isNot(isA<UnknownServerFrame>()), reason: 'add its case to frames.dart');
+      }
       final written = jsonDecode(jsonEncode(parse(title, original)));
       expect(written, equals(original));
     });
@@ -58,6 +61,25 @@ void main() {
     final result = (frame as OfferResultMessage).frame.data;
     expect(result.outcome, OfferOutcome.WON);
     expect(result.bookingId, isNotNull);
+  });
+
+  test('an app reads a frame type it does not know yet as UnknownServerFrame and keeps it whole', () {
+    final json = <String, dynamic>{
+      'type': 'convoy_formed',
+      'data': {'convoy_id': '0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0c', 'size': 3},
+      'ts': '2026-10-14T09:30:00.123Z',
+    };
+    final frame = ServerFrame.fromJson(json);
+    expect(frame, isA<UnknownServerFrame>());
+    final unknown = frame as UnknownServerFrame;
+    expect(unknown.type, 'convoy_formed');
+    expect(unknown.data, json['data']);
+    expect(unknown.toJson(), json);
+  });
+
+  test('a server frame without a string type is refused', () {
+    expect(() => ServerFrame.fromJson({'data': {}}), throwsFormatException);
+    expect(() => ServerFrame.fromJson({'type': 7, 'data': {}}), throwsFormatException);
   });
 
   test('an app reads a frame with a field it does not know yet', () {

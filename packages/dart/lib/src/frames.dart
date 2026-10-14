@@ -1,5 +1,6 @@
 // Written by hand: no Dart generator emits a discriminated union from JSON Schema. When a frame is added to
-// the schemas, add its case here; the example tests fail until it is.
+// the schemas, add its case here; the example tests fail until it is (a valid example must not read as
+// UnknownServerFrame).
 
 import 'models.dart';
 
@@ -79,6 +80,9 @@ final class UnsubscribeBookingMessage extends ClientFrame {
 }
 
 /// Any frame goway-realtime sends; `type` tells which.
+///
+/// A new server frame type is additive: a server newer than this package may send one, and it arrives as
+/// [UnknownServerFrame] instead of an error, so an installed app keeps its socket. Ignore it.
 sealed class ServerFrame {
   const ServerFrame();
 
@@ -106,8 +110,19 @@ sealed class ServerFrame {
         'session_started' => SessionStartedMessage(SessionStartedFrame.fromJson(json)),
         'kicked' => KickedMessage(KickedFrame.fromJson(json)),
         'error' => ErrorMessage(ErrorFrame.fromJson(json)),
-        final other => throw FormatException('unknown server frame type: $other'),
+        final String other => UnknownServerFrame(other, json),
+        final other => throw FormatException('server frame type must be a string, got: $other'),
       };
+}
+
+/// A frame type this version of the package does not know yet; [type] and [data] are kept as they came.
+final class UnknownServerFrame extends ServerFrame {
+  const UnknownServerFrame(this.type, this.json);
+  final String type;
+  final Map<String, dynamic> json;
+  Object? get data => json['data'];
+  @override
+  Map<String, dynamic> toJson() => json;
 }
 
 final class ConnectedMessage extends ServerFrame {

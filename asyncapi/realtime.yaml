@@ -7,7 +7,8 @@ info:
     the apps send are `receive` (From the app), frames the server sends are `send` (To the app).
 
     Every frame is a JSON object `{"type", "data"}`; frames from the server also carry `ts` (RFC 3339 UTC), and
-    `ping` and `go_offline` may leave `data` out.
+    `ping` and `go_offline` may leave `data` out. The server may add frame types at any time: ignore a frame whose
+    `type` the app does not know, and never fail or drop the socket over one.
 
     ## Connecting
 
