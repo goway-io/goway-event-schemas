@@ -1119,10 +1119,6 @@ class Connected {
 @JsonSerializable()
 class ConnectionConfig {
     
-    ///Line changes a driver may make per Tashkent day.
-    @JsonKey(name: "line_changes_per_day")
-    final int lineChangesPerDay;
-    
     ///Seconds between durable GPS samples.
     @JsonKey(name: "location_sample_seconds")
     final int locationSampleSeconds;
@@ -1136,7 +1132,6 @@ class ConnectionConfig {
     final int offerTtlSeconds;
 
     ConnectionConfig({
-        required this.lineChangesPerDay,
         required this.locationSampleSeconds,
         required this.offerGraceSeconds,
         required this.offerTtlSeconds,
@@ -1710,15 +1705,19 @@ class Offline {
 
 
 ///Why the server took the driver off the line; absent when the driver left by themselves.
+///`vehicle_unavailable`: the line's truck was removed, left the fleet, or the line has none.
 enum OfflineReason {
     @JsonValue("documents_expired")
     DOCUMENTS_EXPIRED,
+    @JsonValue("vehicle_unavailable")
+    VEHICLE_UNAVAILABLE,
     @JsonValue("verification_rejected")
     VERIFICATION_REJECTED
 }
 
 final offlineReasonValues = EnumValues({
     "documents_expired": OfflineReason.DOCUMENTS_EXPIRED,
+    "vehicle_unavailable": OfflineReason.VEHICLE_UNAVAILABLE,
     "verification_rejected": OfflineReason.VERIFICATION_REJECTED
 });
 

@@ -813,8 +813,6 @@ pub struct ConnectedFrame {
 #[doc = "Current realtime settings the app plays by."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct ConnectionConfig {
-    #[doc = "Line changes a driver may make per Tashkent day."]
-    pub line_changes_per_day: u64,
     #[doc = "Seconds between durable GPS samples."]
     pub location_sample_seconds: u64,
     #[doc = "Extra seconds after the deadline a late answer is still honoured."]
@@ -1097,8 +1095,6 @@ pub struct DriverOnline {
     pub bidirectional: bool,
     #[doc = "Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it."]
     pub event_id: ::uuid::Uuid,
-    #[doc = "When the line ends, unix milliseconds."]
-    pub expires_at: i64,
     pub from_region_id: ::uuid::Uuid,
     pub org_id: ::uuid::Uuid,
     pub to_region_id: ::uuid::Uuid,
@@ -1963,19 +1959,22 @@ pub struct OfflineFrame {
     #[serde(rename = "type")]
     pub type_: ::std::string::String,
 }
-#[doc = "Why the server took the driver off the line; absent when the driver left by themselves."]
+#[doc = "Why the server took the driver off the line; absent when the driver left by themselves. `vehicle_unavailable`: the line's truck was removed, left the fleet, or the line has none."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum OfflineReason {
     #[serde(rename = "documents_expired")]
     DocumentsExpired,
     #[serde(rename = "verification_rejected")]
     VerificationRejected,
+    #[serde(rename = "vehicle_unavailable")]
+    VehicleUnavailable,
 }
 impl ::std::fmt::Display for OfflineReason {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         match *self {
             Self::DocumentsExpired => f.write_str("documents_expired"),
             Self::VerificationRejected => f.write_str("verification_rejected"),
+            Self::VehicleUnavailable => f.write_str("vehicle_unavailable"),
         }
     }
 }
@@ -1985,6 +1984,7 @@ impl ::std::str::FromStr for OfflineReason {
         match value {
             "documents_expired" => Ok(Self::DocumentsExpired),
             "verification_rejected" => Ok(Self::VerificationRejected),
+            "vehicle_unavailable" => Ok(Self::VehicleUnavailable),
             _ => Err("invalid value".into()),
         }
     }

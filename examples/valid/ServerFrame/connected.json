@@ -7,7 +7,6 @@
     "config": {
       "offer_ttl_seconds": 20,
       "offer_grace_seconds": 3,
-      "line_changes_per_day": 3,
       "location_sample_seconds": 30
     }
   },

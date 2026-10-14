@@ -4654,10 +4654,6 @@
       "bidirectional": {
        "type": "boolean",
        "description": "Also takes loads on the way back."
-      },
-      "expires_at": {
-       "type": "integer",
-       "description": "When the line ends, unix milliseconds."
       }
      },
      "required": [
@@ -4667,8 +4663,7 @@
       "from_region_id",
       "to_region_id",
       "vehicle_id",
-      "bidirectional",
-      "expires_at"
+      "bidirectional"
      ]
     },
     "examples": [
@@ -4681,8 +4676,7 @@
        "from_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
        "to_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
        "vehicle_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e09",
-       "bidirectional": true,
-       "expires_at": 1792013400123
+       "bidirectional": true
       }
      }
     ]

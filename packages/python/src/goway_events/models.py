@@ -231,10 +231,6 @@ class ConnectionConfig(BaseModel):
     """
     Extra seconds after the deadline a late answer is still honoured.
     """
-    line_changes_per_day: Annotated[int, Field(ge=0)]
-    """
-    Line changes a driver may make per Tashkent day.
-    """
     location_sample_seconds: Annotated[int, Field(ge=0)]
     """
     Seconds between durable GPS samples.
@@ -437,10 +433,6 @@ class DriverOnline(BaseModel):
     bidirectional: bool
     """
     Also takes loads on the way back.
-    """
-    expires_at: int
-    """
-    When the line ends, unix milliseconds.
     """
 
 
@@ -951,11 +943,12 @@ class OffersUnblockedFrame(BaseModel):
 
 class OfflineReason(StrEnum):
     """
-    Why the server took the driver off the line; absent when the driver left by themselves.
+    Why the server took the driver off the line; absent when the driver left by themselves. `vehicle_unavailable`: the line's truck was removed, left the fleet, or the line has none.
     """
 
     DOCUMENTS_EXPIRED = "documents_expired"
     VERIFICATION_REJECTED = "verification_rejected"
+    VEHICLE_UNAVAILABLE = "vehicle_unavailable"
 
 
 class Online(BaseModel):

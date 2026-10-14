@@ -142,12 +142,12 @@ export type OfferOutcome = "won" | "lost" | "declined" | "expired" | "withdrawn"
  */
 export type OffersBlockedReason = "BALANCE_INSUFFICIENT" | "SUBSCRIPTION_REQUIRED";
 /**
- * Why the server took the driver off the line; absent when the driver left by themselves.
+ * Why the server took the driver off the line; absent when the driver left by themselves. `vehicle_unavailable`: the line's truck was removed, left the fleet, or the line has none.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "OfflineReason".
  */
-export type OfflineReason = "documents_expired" | "verification_rejected";
+export type OfflineReason = "documents_expired" | "verification_rejected" | "vehicle_unavailable";
 /**
  * Who was rated; only the driver today.
  *
@@ -918,10 +918,6 @@ export interface ConnectionConfig {
    */
   offer_grace_seconds: number;
   /**
-   * Line changes a driver may make per Tashkent day.
-   */
-  line_changes_per_day: number;
-  /**
    * Seconds between durable GPS samples.
    */
   location_sample_seconds: number;
@@ -1099,10 +1095,6 @@ export interface DriverOnline {
    * Also takes loads on the way back.
    */
   bidirectional: boolean;
-  /**
-   * When the line ends, unix milliseconds.
-   */
-  expires_at: number;
 }
 /**
  * A driver's completed-haul count or rating changed. Counters only grow, so a late older event is recognisable.

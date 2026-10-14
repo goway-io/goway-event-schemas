@@ -33,10 +33,6 @@
     "bidirectional": {
       "type": "boolean",
       "description": "Also takes loads on the way back."
-    },
-    "expires_at": {
-      "type": "integer",
-      "description": "When the line ends, unix milliseconds."
     }
   },
   "required": [
@@ -46,7 +42,6 @@
     "from_region_id",
     "to_region_id",
     "vehicle_id",
-    "bidirectional",
-    "expires_at"
+    "bidirectional"
   ]
 }

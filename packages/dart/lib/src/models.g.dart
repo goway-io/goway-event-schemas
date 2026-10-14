@@ -787,10 +787,6 @@ ConnectionConfig _$ConnectionConfigFromJson(Map<String, dynamic> json) =>
       json,
       ($checkedConvert) {
         final val = ConnectionConfig(
-          lineChangesPerDay: $checkedConvert(
-            'line_changes_per_day',
-            (v) => (v as num).toInt(),
-          ),
           locationSampleSeconds: $checkedConvert(
             'location_sample_seconds',
             (v) => (v as num).toInt(),
@@ -807,7 +803,6 @@ ConnectionConfig _$ConnectionConfigFromJson(Map<String, dynamic> json) =>
         return val;
       },
       fieldKeyMap: const {
-        'lineChangesPerDay': 'line_changes_per_day',
         'locationSampleSeconds': 'location_sample_seconds',
         'offerGraceSeconds': 'offer_grace_seconds',
         'offerTtlSeconds': 'offer_ttl_seconds',
@@ -816,7 +811,6 @@ ConnectionConfig _$ConnectionConfigFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$ConnectionConfigToJson(ConnectionConfig instance) =>
     <String, dynamic>{
-      'line_changes_per_day': instance.lineChangesPerDay,
       'location_sample_seconds': instance.locationSampleSeconds,
       'offer_grace_seconds': instance.offerGraceSeconds,
       'offer_ttl_seconds': instance.offerTtlSeconds,
@@ -1246,6 +1240,7 @@ Map<String, dynamic> _$OfflineToJson(Offline instance) => <String, dynamic>{
 
 const _$OfflineReasonEnumMap = {
   OfflineReason.DOCUMENTS_EXPIRED: 'documents_expired',
+  OfflineReason.VEHICLE_UNAVAILABLE: 'vehicle_unavailable',
   OfflineReason.VERIFICATION_REJECTED: 'verification_rejected',
 };
 

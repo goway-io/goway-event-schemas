@@ -20,9 +20,10 @@
           "type": "string",
           "enum": [
             "documents_expired",
-            "verification_rejected"
+            "verification_rejected",
+            "vehicle_unavailable"
           ],
-          "description": "Why the server took the driver off the line; absent when the driver left by themselves."
+          "description": "Why the server took the driver off the line; absent when the driver left by themselves. `vehicle_unavailable`: the line's truck was removed, left the fleet, or the line has none."
         }
       }
     },

@@ -43,11 +43,6 @@
               "minimum": 0,
               "description": "Extra seconds after the deadline a late answer is still honoured."
             },
-            "line_changes_per_day": {
-              "type": "integer",
-              "minimum": 0,
-              "description": "Line changes a driver may make per Tashkent day."
-            },
             "location_sample_seconds": {
               "type": "integer",
               "minimum": 0,
@@ -57,7 +52,6 @@
           "required": [
             "offer_ttl_seconds",
             "offer_grace_seconds",
-            "line_changes_per_day",
             "location_sample_seconds"
           ]
         }
