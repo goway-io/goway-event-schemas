@@ -9,7 +9,22 @@
     "currency": "UZS",
     "weight_kg": 18000,
     "deadline_at": 1792055430123,
-    "server_time": "2026-10-14T09:30:00.123Z"
+    "server_time": "2026-10-14T09:30:00.123Z",
+    "pickup_address": "Andijon, Xonabod, Sanoat ko'chasi 14",
+    "dropoff_address": "Toshkent, Yunusobod, Ziyolilar ko'chasi 42",
+    "stops_count": 2,
+    "distance_km": 312.4,
+    "duration_min": 330,
+    "pickup_distance_km": 2.4,
+    "pickup_from": "2026-10-15T03:00:00.000Z",
+    "pickup_to": "2026-10-15T09:00:00.000Z",
+    "cargo_category": "food",
+    "volume_m3": 24.0,
+    "loaders_count": 2,
+    "loading_method": "rear",
+    "needs_refrigeration": false,
+    "payment_method": "cash",
+    "is_urgent": false
   },
   "ts": "2026-10-14T09:30:00.123Z"
 }

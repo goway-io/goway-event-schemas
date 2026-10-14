@@ -32,6 +32,10 @@ export function describe(frame: ServerFrame): string {
       return frame.data.status;
     case "offers_blocked":
       return frame.data.reason;
+    case "search_progress":
+      return `${frame.data.seen} saw it since ${frame.data.started_at}`;
+    case "search_exhausted":
+      return `nobody took it at ${frame.data.amount}; try ${frame.data.suggested_amount} ${frame.data.currency}`;
     case "notification":
       return frame.data.title ?? "";
     case "session_started":

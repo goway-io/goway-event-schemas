@@ -271,7 +271,7 @@ channels:
       bookingCancelled:
         $ref: '#/components/messages/bookingCancelled'
     x-publisher: goway-loads
-    x-consumers: [goway-notify, goway-realtime]
+    x-consumers: [goway-auth, goway-notify, goway-realtime]
   bookingAmountClaimed:
     address: booking.amount_claimed
     description: One side says a delivered haul settled at another sum.
@@ -392,6 +392,38 @@ channels:
         $ref: '#/components/messages/dispatchOffered'
     x-publisher: goway-realtime
     x-consumers: [goway-notify]
+  loadUpdated:
+    address: load.updated
+    description: "A load still on the board was edited: its price, pickup window or note."
+    messages:
+      loadUpdated:
+        $ref: '#/components/messages/loadUpdated'
+    x-publisher: goway-loads
+    x-consumers: [goway-realtime]
+  offerResolved:
+    address: offer.resolved
+    description: "One driver's instant offer ended: accepted, lost to another driver, declined, unanswered or withdrawn."
+    messages:
+      offerResolved:
+        $ref: '#/components/messages/offerResolved'
+    x-publisher: goway-realtime
+    x-consumers: [goway-auth]
+  dispatchExhausted:
+    address: dispatch.exhausted
+    description: An instant search ran its whole window with no driver taking the load.
+    messages:
+      dispatchExhausted:
+        $ref: '#/components/messages/dispatchExhausted'
+    x-publisher: goway-realtime
+    x-consumers: [goway-notify]
+  driverOfferFilterChanged:
+    address: driver.offer_filter_changed
+    description: A driver changed the farthest pickup and the lowest price they want offered.
+    messages:
+      driverOfferFilterChanged:
+        $ref: '#/components/messages/driverOfferFilterChanged'
+    x-publisher: goway-auth
+    x-consumers: [goway-realtime]
 operations:
   publishUserCreated:
     action: send
@@ -628,6 +660,26 @@ operations:
     channel:
       $ref: '#/channels/dispatchOffered'
     description: Published after every offer wave that reached at least one driver.
+  publishLoadUpdated:
+    action: send
+    channel:
+      $ref: '#/channels/loadUpdated'
+    description: Published when the shipper or an operator edits a posted load.
+  publishOfferResolved:
+    action: send
+    channel:
+      $ref: '#/channels/offerResolved'
+    description: Published once per driver per offer when its outcome is known.
+  publishDispatchExhausted:
+    action: send
+    channel:
+      $ref: '#/channels/dispatchExhausted'
+    description: Published once per search window that ends without a taker; the search itself goes on.
+  publishDriverOfferFilterChanged:
+    action: send
+    channel:
+      $ref: '#/channels/driverOfferFilterChanged'
+    description: Published when a driver saves their offer filter.
 components:
   messages:
     userCreated:
@@ -865,3 +917,23 @@ components:
       title: Offer wave sent
       payload:
         $ref: '../schemas/events/dispatch.offered.json'
+    loadUpdated:
+      name: load.updated
+      title: Load updated
+      payload:
+        $ref: '../schemas/events/load.updated.json'
+    offerResolved:
+      name: offer.resolved
+      title: Offer resolved
+      payload:
+        $ref: '../schemas/events/offer.resolved.json'
+    dispatchExhausted:
+      name: dispatch.exhausted
+      title: Search exhausted
+      payload:
+        $ref: '../schemas/events/dispatch.exhausted.json'
+    driverOfferFilterChanged:
+      name: driver.offer_filter_changed
+      title: Offer filter changed
+      payload:
+        $ref: '../schemas/events/driver.offer_filter_changed.json'

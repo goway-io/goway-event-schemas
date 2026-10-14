@@ -509,40 +509,52 @@ const _$BookingCreatedFrameTypeEnumMap = {
   BookingCreatedFrameType.BOOKING_CREATED: 'booking_created',
 };
 
-BookingCreated _$BookingCreatedFromJson(Map<String, dynamic> json) =>
-    $checkedCreate(
-      'BookingCreated',
-      json,
-      ($checkedConvert) {
-        final val = BookingCreated(
-          agreedAmount: $checkedConvert(
-            'agreed_amount',
-            (v) => (v as num).toInt(),
-          ),
-          bookingId: $checkedConvert('booking_id', (v) => v as String),
-          carrierOrgId: $checkedConvert('carrier_org_id', (v) => v as String),
-          currency: $checkedConvert('currency', (v) => v as String),
-          driverUserId: $checkedConvert('driver_user_id', (v) => v as String?),
-          eventId: $checkedConvert('event_id', (v) => v as String),
-          loadId: $checkedConvert('load_id', (v) => v as String),
-          shipperOrgId: $checkedConvert('shipper_org_id', (v) => v as String),
-          source: $checkedConvert(
-            'source',
-            (v) => $enumDecodeNullable(_$BookingSourceEnumMap, v),
-          ),
-        );
-        return val;
-      },
-      fieldKeyMap: const {
-        'agreedAmount': 'agreed_amount',
-        'bookingId': 'booking_id',
-        'carrierOrgId': 'carrier_org_id',
-        'driverUserId': 'driver_user_id',
-        'eventId': 'event_id',
-        'loadId': 'load_id',
-        'shipperOrgId': 'shipper_org_id',
-      },
+BookingCreated _$BookingCreatedFromJson(
+  Map<String, dynamic> json,
+) => $checkedCreate(
+  'BookingCreated',
+  json,
+  ($checkedConvert) {
+    final val = BookingCreated(
+      agreedAmount: $checkedConvert('agreed_amount', (v) => (v as num).toInt()),
+      bookingId: $checkedConvert('booking_id', (v) => v as String),
+      carrierOrgId: $checkedConvert('carrier_org_id', (v) => v as String),
+      currency: $checkedConvert('currency', (v) => v as String),
+      driverUserId: $checkedConvert('driver_user_id', (v) => v as String?),
+      durationMin: $checkedConvert('duration_min', (v) => (v as num?)?.toInt()),
+      eventId: $checkedConvert('event_id', (v) => v as String),
+      loadId: $checkedConvert('load_id', (v) => v as String),
+      pickupFrom: $checkedConvert(
+        'pickup_from',
+        (v) => v == null ? null : DateTime.parse(v as String),
+      ),
+      pickupTo: $checkedConvert(
+        'pickup_to',
+        (v) => v == null ? null : DateTime.parse(v as String),
+      ),
+      shipperOrgId: $checkedConvert('shipper_org_id', (v) => v as String),
+      shipperUserId: $checkedConvert('shipper_user_id', (v) => v as String),
+      source: $checkedConvert(
+        'source',
+        (v) => $enumDecodeNullable(_$BookingSourceEnumMap, v),
+      ),
     );
+    return val;
+  },
+  fieldKeyMap: const {
+    'agreedAmount': 'agreed_amount',
+    'bookingId': 'booking_id',
+    'carrierOrgId': 'carrier_org_id',
+    'driverUserId': 'driver_user_id',
+    'durationMin': 'duration_min',
+    'eventId': 'event_id',
+    'loadId': 'load_id',
+    'pickupFrom': 'pickup_from',
+    'pickupTo': 'pickup_to',
+    'shipperOrgId': 'shipper_org_id',
+    'shipperUserId': 'shipper_user_id',
+  },
+);
 
 Map<String, dynamic> _$BookingCreatedToJson(BookingCreated instance) =>
     <String, dynamic>{
@@ -551,9 +563,13 @@ Map<String, dynamic> _$BookingCreatedToJson(BookingCreated instance) =>
       'carrier_org_id': instance.carrierOrgId,
       'currency': instance.currency,
       'driver_user_id': ?instance.driverUserId,
+      'duration_min': ?instance.durationMin,
       'event_id': instance.eventId,
       'load_id': instance.loadId,
+      'pickup_from': ?instance.pickupFrom?.toIso8601String(),
+      'pickup_to': ?instance.pickupTo?.toIso8601String(),
       'shipper_org_id': instance.shipperOrgId,
+      'shipper_user_id': instance.shipperUserId,
       'source': ?_$BookingSourceEnumMap[instance.source],
     };
 
@@ -1026,50 +1042,129 @@ const _$OfferProposedFrameTypeEnumMap = {
   OfferProposedFrameType.OFFER_PROPOSED: 'offer_proposed',
 };
 
-OfferProposed _$OfferProposedFromJson(Map<String, dynamic> json) =>
-    $checkedCreate(
-      'OfferProposed',
-      json,
-      ($checkedConvert) {
-        final val = OfferProposed(
-          amount: $checkedConvert('amount', (v) => (v as num).toInt()),
-          currency: $checkedConvert('currency', (v) => v as String),
-          deadlineAt: $checkedConvert('deadline_at', (v) => (v as num).toInt()),
-          fromRegionId: $checkedConvert('from_region_id', (v) => v as String),
-          loadId: $checkedConvert('load_id', (v) => v as String),
-          serverTime: $checkedConvert(
-            'server_time',
-            (v) => DateTime.parse(v as String),
-          ),
-          toRegionId: $checkedConvert('to_region_id', (v) => v as String),
-          truckClass: $checkedConvert('truck_class', (v) => v as String),
-          weightKg: $checkedConvert('weight_kg', (v) => (v as num).toInt()),
-        );
-        return val;
-      },
-      fieldKeyMap: const {
-        'deadlineAt': 'deadline_at',
-        'fromRegionId': 'from_region_id',
-        'loadId': 'load_id',
-        'serverTime': 'server_time',
-        'toRegionId': 'to_region_id',
-        'truckClass': 'truck_class',
-        'weightKg': 'weight_kg',
-      },
+OfferProposed _$OfferProposedFromJson(
+  Map<String, dynamic> json,
+) => $checkedCreate(
+  'OfferProposed',
+  json,
+  ($checkedConvert) {
+    final val = OfferProposed(
+      amount: $checkedConvert('amount', (v) => (v as num).toInt()),
+      cargoCategory: $checkedConvert('cargo_category', (v) => v as String),
+      currency: $checkedConvert('currency', (v) => v as String),
+      deadlineAt: $checkedConvert('deadline_at', (v) => (v as num).toInt()),
+      distanceKm: $checkedConvert(
+        'distance_km',
+        (v) => (v as num?)?.toDouble(),
+      ),
+      dropoffAddress: $checkedConvert('dropoff_address', (v) => v as String?),
+      durationMin: $checkedConvert('duration_min', (v) => (v as num?)?.toInt()),
+      fromRegionId: $checkedConvert('from_region_id', (v) => v as String),
+      isUrgent: $checkedConvert('is_urgent', (v) => v as bool),
+      loadId: $checkedConvert('load_id', (v) => v as String),
+      loadersCount: $checkedConvert('loaders_count', (v) => (v as num).toInt()),
+      loadingMethod: $checkedConvert(
+        'loading_method',
+        (v) => $enumDecode(_$LoadingMethodEnumMap, v),
+      ),
+      needsRefrigeration: $checkedConvert(
+        'needs_refrigeration',
+        (v) => v as bool,
+      ),
+      paymentMethod: $checkedConvert(
+        'payment_method',
+        (v) => $enumDecode(_$PaymentMethodEnumMap, v),
+      ),
+      pickupAddress: $checkedConvert('pickup_address', (v) => v as String?),
+      pickupDistanceKm: $checkedConvert(
+        'pickup_distance_km',
+        (v) => (v as num?)?.toDouble(),
+      ),
+      pickupFrom: $checkedConvert(
+        'pickup_from',
+        (v) => v == null ? null : DateTime.parse(v as String),
+      ),
+      pickupTo: $checkedConvert(
+        'pickup_to',
+        (v) => v == null ? null : DateTime.parse(v as String),
+      ),
+      serverTime: $checkedConvert(
+        'server_time',
+        (v) => DateTime.parse(v as String),
+      ),
+      stopsCount: $checkedConvert('stops_count', (v) => (v as num).toInt()),
+      toRegionId: $checkedConvert('to_region_id', (v) => v as String),
+      truckClass: $checkedConvert('truck_class', (v) => v as String),
+      volumeM3: $checkedConvert('volume_m3', (v) => (v as num?)?.toDouble()),
+      weightKg: $checkedConvert('weight_kg', (v) => (v as num).toInt()),
     );
+    return val;
+  },
+  fieldKeyMap: const {
+    'cargoCategory': 'cargo_category',
+    'deadlineAt': 'deadline_at',
+    'distanceKm': 'distance_km',
+    'dropoffAddress': 'dropoff_address',
+    'durationMin': 'duration_min',
+    'fromRegionId': 'from_region_id',
+    'isUrgent': 'is_urgent',
+    'loadId': 'load_id',
+    'loadersCount': 'loaders_count',
+    'loadingMethod': 'loading_method',
+    'needsRefrigeration': 'needs_refrigeration',
+    'paymentMethod': 'payment_method',
+    'pickupAddress': 'pickup_address',
+    'pickupDistanceKm': 'pickup_distance_km',
+    'pickupFrom': 'pickup_from',
+    'pickupTo': 'pickup_to',
+    'serverTime': 'server_time',
+    'stopsCount': 'stops_count',
+    'toRegionId': 'to_region_id',
+    'truckClass': 'truck_class',
+    'volumeM3': 'volume_m3',
+    'weightKg': 'weight_kg',
+  },
+);
 
 Map<String, dynamic> _$OfferProposedToJson(OfferProposed instance) =>
     <String, dynamic>{
       'amount': instance.amount,
+      'cargo_category': instance.cargoCategory,
       'currency': instance.currency,
       'deadline_at': instance.deadlineAt,
+      'distance_km': ?instance.distanceKm,
+      'dropoff_address': ?instance.dropoffAddress,
+      'duration_min': ?instance.durationMin,
       'from_region_id': instance.fromRegionId,
+      'is_urgent': instance.isUrgent,
       'load_id': instance.loadId,
+      'loaders_count': instance.loadersCount,
+      'loading_method': _$LoadingMethodEnumMap[instance.loadingMethod]!,
+      'needs_refrigeration': instance.needsRefrigeration,
+      'payment_method': _$PaymentMethodEnumMap[instance.paymentMethod]!,
+      'pickup_address': ?instance.pickupAddress,
+      'pickup_distance_km': ?instance.pickupDistanceKm,
+      'pickup_from': ?instance.pickupFrom?.toIso8601String(),
+      'pickup_to': ?instance.pickupTo?.toIso8601String(),
       'server_time': instance.serverTime.toIso8601String(),
+      'stops_count': instance.stopsCount,
       'to_region_id': instance.toRegionId,
       'truck_class': instance.truckClass,
+      'volume_m3': ?instance.volumeM3,
       'weight_kg': instance.weightKg,
     };
+
+const _$LoadingMethodEnumMap = {
+  LoadingMethod.REAR: 'rear',
+  LoadingMethod.TOP: 'top',
+};
+
+const _$PaymentMethodEnumMap = {
+  PaymentMethod.CARD: 'card',
+  PaymentMethod.CASH: 'cash',
+  PaymentMethod.MIXED: 'mixed',
+  PaymentMethod.TRANSFER: 'transfer',
+};
 
 OfferResultFrame _$OfferResultFrameFromJson(Map<String, dynamic> json) =>
     $checkedCreate('OfferResultFrame', json, ($checkedConvert) {
@@ -1327,6 +1422,115 @@ Map<String, dynamic> _$PongFrameToJson(PongFrame instance) => <String, dynamic>{
 };
 
 const _$PongFrameTypeEnumMap = {PongFrameType.PONG: 'pong'};
+
+SearchExhaustedFrame _$SearchExhaustedFrameFromJson(
+  Map<String, dynamic> json,
+) => $checkedCreate('SearchExhaustedFrame', json, ($checkedConvert) {
+  final val = SearchExhaustedFrame(
+    data: $checkedConvert(
+      'data',
+      (v) => SearchExhausted.fromJson(v as Map<String, dynamic>),
+    ),
+    ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
+    type: $checkedConvert(
+      'type',
+      (v) => $enumDecode(_$SearchExhaustedFrameTypeEnumMap, v),
+    ),
+  );
+  return val;
+});
+
+Map<String, dynamic> _$SearchExhaustedFrameToJson(
+  SearchExhaustedFrame instance,
+) => <String, dynamic>{
+  'data': instance.data,
+  'ts': instance.ts.toIso8601String(),
+  'type': _$SearchExhaustedFrameTypeEnumMap[instance.type]!,
+};
+
+const _$SearchExhaustedFrameTypeEnumMap = {
+  SearchExhaustedFrameType.SEARCH_EXHAUSTED: 'search_exhausted',
+};
+
+SearchExhausted _$SearchExhaustedFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'SearchExhausted',
+      json,
+      ($checkedConvert) {
+        final val = SearchExhausted(
+          amount: $checkedConvert('amount', (v) => (v as num).toInt()),
+          currency: $checkedConvert('currency', (v) => v as String),
+          loadId: $checkedConvert('load_id', (v) => v as String),
+          seen: $checkedConvert('seen', (v) => (v as num).toInt()),
+          suggestedAmount: $checkedConvert(
+            'suggested_amount',
+            (v) => (v as num).toInt(),
+          ),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'loadId': 'load_id',
+        'suggestedAmount': 'suggested_amount',
+      },
+    );
+
+Map<String, dynamic> _$SearchExhaustedToJson(SearchExhausted instance) =>
+    <String, dynamic>{
+      'amount': instance.amount,
+      'currency': instance.currency,
+      'load_id': instance.loadId,
+      'seen': instance.seen,
+      'suggested_amount': instance.suggestedAmount,
+    };
+
+SearchProgressFrame _$SearchProgressFrameFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('SearchProgressFrame', json, ($checkedConvert) {
+      final val = SearchProgressFrame(
+        data: $checkedConvert(
+          'data',
+          (v) => SearchProgress.fromJson(v as Map<String, dynamic>),
+        ),
+        ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
+        type: $checkedConvert(
+          'type',
+          (v) => $enumDecode(_$SearchProgressFrameTypeEnumMap, v),
+        ),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$SearchProgressFrameToJson(
+  SearchProgressFrame instance,
+) => <String, dynamic>{
+  'data': instance.data,
+  'ts': instance.ts.toIso8601String(),
+  'type': _$SearchProgressFrameTypeEnumMap[instance.type]!,
+};
+
+const _$SearchProgressFrameTypeEnumMap = {
+  SearchProgressFrameType.SEARCH_PROGRESS: 'search_progress',
+};
+
+SearchProgress _$SearchProgressFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('SearchProgress', json, ($checkedConvert) {
+      final val = SearchProgress(
+        loadId: $checkedConvert('load_id', (v) => v as String),
+        seen: $checkedConvert('seen', (v) => (v as num).toInt()),
+        startedAt: $checkedConvert(
+          'started_at',
+          (v) => DateTime.parse(v as String),
+        ),
+      );
+      return val;
+    }, fieldKeyMap: const {'loadId': 'load_id', 'startedAt': 'started_at'});
+
+Map<String, dynamic> _$SearchProgressToJson(SearchProgress instance) =>
+    <String, dynamic>{
+      'load_id': instance.loadId,
+      'seen': instance.seen,
+      'started_at': instance.startedAt.toIso8601String(),
+    };
 
 SessionStartedFrame _$SessionStartedFrameFromJson(Map<String, dynamic> json) =>
     $checkedCreate('SessionStartedFrame', json, ($checkedConvert) {

@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DispatchExhausted",
+  "description": "An instant search ran for the whole search window and no driver took the load. The search goes on; the shipper is told so they can raise the price, move the pickup or cancel.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it."
+    },
+    "load_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The shipper's organization."
+    },
+    "created_by": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person who posted the load."
+    },
+    "from_region_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "to_region_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "seen": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Drivers the load was offered to so far."
+    },
+    "amount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Current price, whole so'm."
+    },
+    "suggested_amount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The price GoWay suggests trying next: the current one raised by the configured step."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3
+    },
+    "searched_seconds": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "event_id",
+    "load_id",
+    "org_id",
+    "created_by",
+    "from_region_id",
+    "to_region_id",
+    "seen",
+    "amount",
+    "suggested_amount",
+    "currency",
+    "searched_seconds"
+  ]
+}

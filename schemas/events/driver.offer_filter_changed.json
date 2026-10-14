@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DriverOfferFilterChanged",
+  "description": "A driver changed which instant offers they want: how far to the pickup at most and the lowest price.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "max_pickup_km": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Farthest pickup from the driver's last position; null for no limit. Not applied while the position is unknown."
+    },
+    "min_amount": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Lowest price the driver wants offered, whole so'm; null for no limit."
+    },
+    "changed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When it was saved; consumers ignore a change older than the one they hold."
+    }
+  },
+  "required": [
+    "event_id",
+    "user_id",
+    "max_pickup_km",
+    "min_amount",
+    "changed_at"
+  ]
+}

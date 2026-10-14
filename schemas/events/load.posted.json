@@ -151,6 +151,62 @@
     "reposted": {
       "type": "boolean",
       "description": "Present, and true, only when a cancelled booking put the load back."
+    },
+    "created_by": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person who posted the load; dispatch tells them how the search goes."
+    },
+    "pickup_address": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "First pickup stop's address as the shipper wrote it; null only when the load has no stops."
+    },
+    "dropoff_address": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Last drop-off stop's address; null only when the load has no stops."
+    },
+    "stops_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Pickup and drop-off stops together."
+    },
+    "distance_km": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Driving distance through the stops; null when routing was unavailable at posting."
+    },
+    "duration_min": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Driving time for the same route in minutes; null together with the distance."
+    },
+    "cargo_category": {
+      "type": "string",
+      "description": "Cargo type code from the reference catalogue."
+    },
+    "volume_m3": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "loaders_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Loaders the shipper ordered with the truck."
     }
   },
   "required": [
@@ -175,6 +231,15 @@
     "pickup_lng",
     "group_id",
     "is_urgent",
-    "payment_method"
+    "payment_method",
+    "created_by",
+    "pickup_address",
+    "dropoff_address",
+    "stops_count",
+    "distance_km",
+    "duration_min",
+    "cargo_category",
+    "volume_m3",
+    "loaders_count"
   ]
 }

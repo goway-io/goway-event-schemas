@@ -92,6 +92,12 @@
     "offersUnblocked": {
      "$ref": "#/components/messages/offersUnblocked"
     },
+    "searchProgress": {
+     "$ref": "#/components/messages/searchProgress"
+    },
+    "searchExhausted": {
+     "$ref": "#/components/messages/searchExhausted"
+    },
     "notification": {
      "$ref": "#/components/messages/notification"
     },
@@ -203,6 +209,12 @@
     },
     {
      "$ref": "#/channels/socket/messages/offersUnblocked"
+    },
+    {
+     "$ref": "#/channels/socket/messages/searchProgress"
+    },
+    {
+     "$ref": "#/channels/socket/messages/searchExhausted"
     },
     {
      "$ref": "#/channels/socket/messages/notification"
@@ -1009,6 +1021,106 @@
         "server_time": {
          "type": "string",
          "format": "date-time"
+        },
+        "pickup_address": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "description": "First pickup stop's address as the shipper wrote it; null only when the load has no stops."
+        },
+        "dropoff_address": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "description": "Last drop-off stop's address; null only when the load has no stops."
+        },
+        "stops_count": {
+         "type": "integer",
+         "minimum": 0,
+         "description": "Pickup and drop-off stops together."
+        },
+        "distance_km": {
+         "type": [
+          "number",
+          "null"
+         ],
+         "minimum": 0,
+         "description": "Driving distance through the stops; null when routing was unavailable at posting."
+        },
+        "duration_min": {
+         "type": [
+          "integer",
+          "null"
+         ],
+         "minimum": 0,
+         "description": "Driving time for the same route in minutes; null together with the distance."
+        },
+        "pickup_distance_km": {
+         "type": [
+          "number",
+          "null"
+         ],
+         "minimum": 0,
+         "description": "Straight-line distance from the driver's last position to the pickup; null while the position is unknown."
+        },
+        "pickup_from": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "format": "date-time",
+         "description": "Earliest pickup; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        },
+        "pickup_to": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "format": "date-time",
+         "description": "Latest pickup, also the posting's expiry; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        },
+        "cargo_category": {
+         "type": "string",
+         "description": "Cargo type code from the reference catalogue."
+        },
+        "volume_m3": {
+         "type": [
+          "number",
+          "null"
+         ],
+         "minimum": 0
+        },
+        "loaders_count": {
+         "type": "integer",
+         "minimum": 0,
+         "description": "Loaders the shipper ordered with the truck."
+        },
+        "loading_method": {
+         "title": "LoadingMethod",
+         "type": "string",
+         "enum": [
+          "top",
+          "rear"
+         ],
+         "description": "How the cargo goes in."
+        },
+        "needs_refrigeration": {
+         "type": "boolean"
+        },
+        "payment_method": {
+         "title": "PaymentMethod",
+         "type": "string",
+         "enum": [
+          "cash",
+          "transfer",
+          "card",
+          "mixed"
+         ]
+        },
+        "is_urgent": {
+         "type": "boolean"
         }
        },
        "required": [
@@ -1020,7 +1132,22 @@
         "currency",
         "weight_kg",
         "deadline_at",
-        "server_time"
+        "server_time",
+        "pickup_address",
+        "dropoff_address",
+        "stops_count",
+        "distance_km",
+        "duration_min",
+        "pickup_distance_km",
+        "pickup_from",
+        "pickup_to",
+        "cargo_category",
+        "volume_m3",
+        "loaders_count",
+        "loading_method",
+        "needs_refrigeration",
+        "payment_method",
+        "is_urgent"
        ]
       },
       "ts": {
@@ -1049,7 +1176,22 @@
         "currency": "UZS",
         "weight_kg": 18000,
         "deadline_at": 1792055430123,
-        "server_time": "2026-10-14T09:30:00.123Z"
+        "server_time": "2026-10-14T09:30:00.123Z",
+        "pickup_address": "Andijon, Xonabod, Sanoat ko'chasi 14",
+        "dropoff_address": "Toshkent, Yunusobod, Ziyolilar ko'chasi 42",
+        "stops_count": 2,
+        "distance_km": 312.4,
+        "duration_min": 330,
+        "pickup_distance_km": 2.4,
+        "pickup_from": "2026-10-15T03:00:00+00:00",
+        "pickup_to": "2026-10-15T09:00:00+00:00",
+        "cargo_category": "food",
+        "volume_m3": 24.0,
+        "loaders_count": 2,
+        "loading_method": "rear",
+        "needs_refrigeration": false,
+        "payment_method": "cash",
+        "is_urgent": false
        },
        "ts": "2026-10-14T09:30:00.123Z"
       }
@@ -1261,6 +1403,35 @@
           "instant"
          ],
          "description": "Present only for an instant claim from dispatch; an accepted offer leaves it out."
+        },
+        "shipper_user_id": {
+         "type": "string",
+         "format": "uuid",
+         "description": "The person who posted the load; they hear `booking_created` on the socket too."
+        },
+        "pickup_from": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "format": "date-time",
+         "description": "Earliest pickup; null when not given. A pickup well ahead makes this booking a plan rather than a trip under way."
+        },
+        "pickup_to": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "format": "date-time",
+         "description": "Latest pickup; null when not given."
+        },
+        "duration_min": {
+         "type": [
+          "integer",
+          "null"
+         ],
+         "minimum": 0,
+         "description": "Driving time of the haul in minutes; null when routing was unavailable."
         }
        },
        "required": [
@@ -1271,7 +1442,11 @@
         "carrier_org_id",
         "driver_user_id",
         "agreed_amount",
-        "currency"
+        "currency",
+        "shipper_user_id",
+        "pickup_from",
+        "pickup_to",
+        "duration_min"
        ]
       },
       "ts": {
@@ -1300,7 +1475,11 @@
         "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
         "agreed_amount": 4500000,
         "currency": "UZS",
-        "source": "instant"
+        "source": "instant",
+        "shipper_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+        "pickup_from": "2026-10-15T03:00:00+00:00",
+        "pickup_to": "2026-10-15T09:00:00+00:00",
+        "duration_min": 330
        },
        "ts": "2026-10-14T09:30:00.123Z"
       }
@@ -2487,6 +2666,153 @@
         "key": "dispatch.not_pending"
        },
        "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "searchProgress": {
+    "name": "search_progress",
+    "title": "Search progress",
+    "payload": {
+     "title": "SearchProgressFrame",
+     "description": "Frame `search_progress` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "search_progress"
+      },
+      "data": {
+       "title": "SearchProgress",
+       "description": "To the shipper while their instant load is being offered: how many drivers have seen it.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "load_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "seen": {
+         "type": "integer",
+         "minimum": 0,
+         "description": "Drivers the load was offered to so far."
+        },
+        "started_at": {
+         "type": "string",
+         "format": "date-time",
+         "description": "When the search began; the app counts the waiting time from it."
+        }
+       },
+       "required": [
+        "load_id",
+        "seen",
+        "started_at"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Search progress",
+      "payload": {
+       "type": "search_progress",
+       "data": {
+        "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+        "seen": 12,
+        "started_at": "2026-10-15T07:12:00.000Z"
+       },
+       "ts": "2026-10-15T07:12:38.512Z"
+      }
+     }
+    ]
+   },
+   "searchExhausted": {
+    "name": "search_exhausted",
+    "title": "Search exhausted",
+    "payload": {
+     "title": "SearchExhaustedFrame",
+     "description": "Frame `search_exhausted` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "search_exhausted"
+      },
+      "data": {
+       "title": "SearchExhausted",
+       "description": "To the shipper: no driver took the load within the search window. The search goes on; the app offers to raise the price, move the pickup to a plan or cancel.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "load_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "seen": {
+         "type": "integer",
+         "minimum": 0
+        },
+        "amount": {
+         "type": "integer",
+         "minimum": 0,
+         "description": "Current price, whole so'm."
+        },
+        "suggested_amount": {
+         "type": "integer",
+         "minimum": 0,
+         "description": "The raised price GoWay suggests."
+        },
+        "currency": {
+         "type": "string",
+         "minLength": 3,
+         "maxLength": 3
+        }
+       },
+       "required": [
+        "load_id",
+        "seen",
+        "amount",
+        "suggested_amount",
+        "currency"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Search exhausted",
+      "payload": {
+       "type": "search_exhausted",
+       "data": {
+        "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+        "seen": 12,
+        "amount": 875500,
+        "suggested_amount": 963000,
+        "currency": "UZS"
+       },
+       "ts": "2026-10-15T07:17:00.104Z"
       }
      }
     ]

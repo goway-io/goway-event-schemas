@@ -108,6 +108,11 @@ export type DisplayCurrency = "UZS" | "USD" | "RUB" | "KZT";
  */
 export type IneligibleReason = "debt" | "subscription";
 /**
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "LoadChangedField".
+ */
+export type LoadChangedField = "asking_amount" | "pickup_from" | "pickup_to" | "note";
+/**
  * How the cargo goes in.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -136,6 +141,13 @@ export type OfferKind = "carrier_request" | "carrier_counter" | "shipper_counter
  * via the `definition` "OfferOutcome".
  */
 export type OfferOutcome = "won" | "lost" | "declined" | "expired" | "withdrawn";
+/**
+ * `accepted`: the driver took it. `lost`: they accepted but another driver was first. `declined`: they skipped it. `expired`: no answer in time. `withdrawn`: the load was taken by someone else, cancelled or edited before they answered.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "OfferResolution".
+ */
+export type OfferResolution = "accepted" | "lost" | "declined" | "expired" | "withdrawn";
 /**
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "OffersBlockedReason".
@@ -181,7 +193,9 @@ export type ServerFrame =
   | SessionStartedFrame
   | KickedFrame
   | ErrorFrame
-  | VerificationChangedFrame;
+  | VerificationChangedFrame
+  | SearchProgressFrame
+  | SearchExhaustedFrame;
 /**
  * Why every session of the user was closed. An operator's own note on a block stays with staff.
  *
@@ -491,6 +505,22 @@ export interface BookingCreated {
    */
   currency: string;
   source?: BookingSource;
+  /**
+   * The person who posted the load; they hear `booking_created` on the socket too.
+   */
+  shipper_user_id: string;
+  /**
+   * Earliest pickup; null when not given. A pickup well ahead makes this booking a plan rather than a trip under way.
+   */
+  pickup_from: string | null;
+  /**
+   * Latest pickup; null when not given.
+   */
+  pickup_to: string | null;
+  /**
+   * Driving time of the haul in minutes; null when routing was unavailable.
+   */
+  duration_min: number | null;
 }
 /**
  * Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
@@ -988,6 +1018,43 @@ export interface DeviceUpserted {
   push_token: string | null;
 }
 /**
+ * An instant search ran for the whole search window and no driver took the load. The search goes on; the shipper is told so they can raise the price, move the pickup or cancel.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "DispatchExhausted".
+ */
+export interface DispatchExhausted {
+  /**
+   * Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it.
+   */
+  event_id: string;
+  load_id: string;
+  /**
+   * The shipper's organization.
+   */
+  org_id: string;
+  /**
+   * The person who posted the load.
+   */
+  created_by: string;
+  from_region_id: string;
+  to_region_id: string;
+  /**
+   * Drivers the load was offered to so far.
+   */
+  seen: number;
+  /**
+   * Current price, whole so'm.
+   */
+  amount: number;
+  /**
+   * The price GoWay suggests trying next: the current one raised by the configured step.
+   */
+  suggested_amount: number;
+  currency: string;
+  searched_seconds: number;
+}
+/**
  * An instant load was offered to a wave of drivers on its line, so a driver whose app is in the background still sees it. Loss-tolerant: the socket frame is the offer itself.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -1057,6 +1124,31 @@ export interface DriverLocationFrame {
    * When the server sent the frame, RFC 3339 UTC.
    */
   ts: string;
+}
+/**
+ * A driver changed which instant offers they want: how far to the pickup at most and the lowest price.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "DriverOfferFilterChanged".
+ */
+export interface DriverOfferFilterChanged {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  user_id: string;
+  /**
+   * Farthest pickup from the driver's last position; null for no limit. Not applied while the position is unknown.
+   */
+  max_pickup_km: number | null;
+  /**
+   * Lowest price the driver wants offered, whole so'm; null for no limit.
+   */
+  min_amount: number | null;
+  /**
+   * When it was saved; consumers ignore a change older than the one they hold.
+   */
+  changed_at: string;
 }
 /**
  * A driver left the line: went offline, the line expired, the grace after a disconnect ran out, or the sessions were revoked.
@@ -1299,6 +1391,157 @@ export interface LoadPosted {
    * Present, and true, only when a cancelled booking put the load back.
    */
   reposted?: boolean;
+  /**
+   * The person who posted the load; dispatch tells them how the search goes.
+   */
+  created_by: string;
+  /**
+   * First pickup stop's address as the shipper wrote it; null only when the load has no stops.
+   */
+  pickup_address: string | null;
+  /**
+   * Last drop-off stop's address; null only when the load has no stops.
+   */
+  dropoff_address: string | null;
+  /**
+   * Pickup and drop-off stops together.
+   */
+  stops_count: number;
+  /**
+   * Driving distance through the stops; null when routing was unavailable at posting.
+   */
+  distance_km: number | null;
+  /**
+   * Driving time for the same route in minutes; null together with the distance.
+   */
+  duration_min: number | null;
+  /**
+   * Cargo type code from the reference catalogue.
+   */
+  cargo_category: string;
+  volume_m3: number | null;
+  /**
+   * Loaders the shipper ordered with the truck.
+   */
+  loaders_count: number;
+}
+/**
+ * A load still open on the board was edited by its shipper or an operator: the price, the pickup window or the note. Carries the whole load as `load.posted` does, plus what changed.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "LoadUpdated".
+ */
+export interface LoadUpdated {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  load_id: string;
+  /**
+   * The shipper organization.
+   */
+  org_id: string;
+  /**
+   * Pickup region; null when the address resolved to none.
+   */
+  from_region_id: string | null;
+  /**
+   * Drop-off region; null when the address resolved to none.
+   */
+  to_region_id: string | null;
+  /**
+   * Truck class code from the reference list.
+   */
+  truck_class: string;
+  loading_method: LoadingMethod;
+  needs_refrigeration: boolean;
+  /**
+   * Whether instant dispatch may offer the load.
+   */
+  allow_instant: boolean;
+  price_mode: PriceMode;
+  /**
+   * The shipper's price, whole so'm (a bare integer; `currency` is UZS today); null when it asks for offers.
+   */
+  asking_amount: number | null;
+  /**
+   * Shipper bonus set aside for this truck, whole so'm (a bare integer; `currency` is UZS today); null when none.
+   */
+  bonus_amount: number | null;
+  /**
+   * Market price GoWay suggested, whole so'm (a bare integer; `currency` is UZS today); null when there was none.
+   */
+  suggested_amount: number | null;
+  /**
+   * ISO 4217 code; `UZS` today.
+   */
+  currency: string;
+  weight_kg: number;
+  /**
+   * Earliest pickup; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it.
+   */
+  pickup_from: string | null;
+  /**
+   * Latest pickup, also the posting's expiry; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it.
+   */
+  pickup_to: string | null;
+  /**
+   * Pickup point latitude; null only when the load has no stops.
+   */
+  pickup_lat: number | null;
+  /**
+   * Pickup point longitude; null only when the load has no stops.
+   */
+  pickup_lng: number | null;
+  /**
+   * Shared by the sibling loads of one multi-truck post; null for a single truck.
+   */
+  group_id: string | null;
+  is_urgent: boolean;
+  payment_method: PaymentMethod;
+  /**
+   * The person who posted the load; dispatch tells them how the search goes.
+   */
+  created_by: string;
+  /**
+   * First pickup stop's address as the shipper wrote it; null only when the load has no stops.
+   */
+  pickup_address: string | null;
+  /**
+   * Last drop-off stop's address; null only when the load has no stops.
+   */
+  dropoff_address: string | null;
+  /**
+   * Pickup and drop-off stops together.
+   */
+  stops_count: number;
+  /**
+   * Driving distance through the stops; null when routing was unavailable at posting.
+   */
+  distance_km: number | null;
+  /**
+   * Driving time for the same route in minutes; null together with the distance.
+   */
+  duration_min: number | null;
+  /**
+   * Cargo type code from the reference catalogue.
+   */
+  cargo_category: string;
+  volume_m3: number | null;
+  /**
+   * Loaders the shipper ordered with the truck.
+   */
+  loaders_count: number;
+  /**
+   * Fields this edit changed. A changed price or pickup window restarts the instant search, so every fitting driver is offered it again.
+   *
+   * @minItems 1
+   */
+  changed: [LoadChangedField, ...LoadChangedField[]];
+  /**
+   * When the edit was saved; consumers ignore an edit older than the one they hold.
+   */
+  updated_at: string;
 }
 /**
  * A driver's GPS position during an active booking, sampled every `location_sample_seconds` as evidence of the haul.
@@ -1473,6 +1716,51 @@ export interface OfferProposed {
    */
   deadline_at: number;
   server_time: string;
+  /**
+   * First pickup stop's address as the shipper wrote it; null only when the load has no stops.
+   */
+  pickup_address: string | null;
+  /**
+   * Last drop-off stop's address; null only when the load has no stops.
+   */
+  dropoff_address: string | null;
+  /**
+   * Pickup and drop-off stops together.
+   */
+  stops_count: number;
+  /**
+   * Driving distance through the stops; null when routing was unavailable at posting.
+   */
+  distance_km: number | null;
+  /**
+   * Driving time for the same route in minutes; null together with the distance.
+   */
+  duration_min: number | null;
+  /**
+   * Straight-line distance from the driver's last position to the pickup; null while the position is unknown.
+   */
+  pickup_distance_km: number | null;
+  /**
+   * Earliest pickup; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it.
+   */
+  pickup_from: string | null;
+  /**
+   * Latest pickup, also the posting's expiry; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it.
+   */
+  pickup_to: string | null;
+  /**
+   * Cargo type code from the reference catalogue.
+   */
+  cargo_category: string;
+  volume_m3: number | null;
+  /**
+   * Loaders the shipper ordered with the truck.
+   */
+  loaders_count: number;
+  loading_method: LoadingMethod;
+  needs_refrigeration: boolean;
+  payment_method: PaymentMethod;
+  is_urgent: boolean;
 }
 /**
  * Frame `offer_proposed` goway-realtime sends to an app.
@@ -1487,6 +1775,27 @@ export interface OfferProposedFrame {
    * When the server sent the frame, RFC 3339 UTC.
    */
   ts: string;
+}
+/**
+ * One driver's instant offer ended. One event per driver per offer; it feeds the driver's acceptance rate.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "OfferResolved".
+ */
+export interface OfferResolved {
+  /**
+   * Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it.
+   */
+  event_id: string;
+  load_id: string;
+  driver_user_id: string;
+  /**
+   * The driver's organization.
+   */
+  org_id: string;
+  outcome: OfferResolution;
+  offered_at: string;
+  resolved_at: string;
 }
 /**
  * How an offer ended for this driver.
@@ -1727,6 +2036,70 @@ export interface RegionChanged {
   event_id: string;
   region_id: string;
   is_active: boolean;
+}
+/**
+ * To the shipper: no driver took the load within the search window. The search goes on; the app offers to raise the price, move the pickup to a plan or cancel.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "SearchExhausted".
+ */
+export interface SearchExhausted {
+  load_id: string;
+  seen: number;
+  /**
+   * Current price, whole so'm.
+   */
+  amount: number;
+  /**
+   * The raised price GoWay suggests.
+   */
+  suggested_amount: number;
+  currency: string;
+}
+/**
+ * Frame `search_exhausted` goway-realtime sends to an app.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "SearchExhaustedFrame".
+ */
+export interface SearchExhaustedFrame {
+  type: "search_exhausted";
+  data: SearchExhausted;
+  /**
+   * When the server sent the frame, RFC 3339 UTC.
+   */
+  ts: string;
+}
+/**
+ * To the shipper while their instant load is being offered: how many drivers have seen it.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "SearchProgress".
+ */
+export interface SearchProgress {
+  load_id: string;
+  /**
+   * Drivers the load was offered to so far.
+   */
+  seen: number;
+  /**
+   * When the search began; the app counts the waiting time from it.
+   */
+  started_at: string;
+}
+/**
+ * Frame `search_progress` goway-realtime sends to an app.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "SearchProgressFrame".
+ */
+export interface SearchProgressFrame {
+  type: "search_progress";
+  data: SearchProgress;
+  /**
+   * When the server sent the frame, RFC 3339 UTC.
+   */
+  ts: string;
 }
 /**
  * Frame `subscribed` goway-realtime sends to an app.

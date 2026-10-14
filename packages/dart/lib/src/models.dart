@@ -26,6 +26,8 @@
 //     final offlineFrame = offlineFrameFromJson(jsonString);
 //     final onlineFrame = onlineFrameFromJson(jsonString);
 //     final pongFrame = pongFrameFromJson(jsonString);
+//     final searchExhaustedFrame = searchExhaustedFrameFromJson(jsonString);
+//     final searchProgressFrame = searchProgressFrameFromJson(jsonString);
 //     final sessionStartedFrame = sessionStartedFrameFromJson(jsonString);
 //     final subscribedFrame = subscribedFrameFromJson(jsonString);
 //     final verificationChangedFrame = verificationChangedFrameFromJson(jsonString);
@@ -134,6 +136,14 @@ String onlineFrameToJson(OnlineFrame data) => json.encode(data.toJson());
 PongFrame pongFrameFromJson(String str) => PongFrame.fromJson(json.decode(str));
 
 String pongFrameToJson(PongFrame data) => json.encode(data.toJson());
+
+SearchExhaustedFrame searchExhaustedFrameFromJson(String str) => SearchExhaustedFrame.fromJson(json.decode(str));
+
+String searchExhaustedFrameToJson(SearchExhaustedFrame data) => json.encode(data.toJson());
+
+SearchProgressFrame searchProgressFrameFromJson(String str) => SearchProgressFrame.fromJson(json.decode(str));
+
+String searchProgressFrameToJson(SearchProgressFrame data) => json.encode(data.toJson());
 
 SessionStartedFrame sessionStartedFrameFromJson(String str) => SessionStartedFrame.fromJson(json.decode(str));
 
@@ -797,13 +807,30 @@ class BookingCreated {
     @JsonKey(name: "driver_user_id")
     final String? driverUserId;
     
+    ///Driving time of the haul in minutes; null when routing was unavailable.
+    @JsonKey(name: "duration_min")
+    final int? durationMin;
+    
     ///Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
     @JsonKey(name: "event_id")
     final String eventId;
     @JsonKey(name: "load_id")
     final String loadId;
+    
+    ///Earliest pickup; null when not given. A pickup well ahead makes this booking a plan
+    ///rather than a trip under way.
+    @JsonKey(name: "pickup_from")
+    final DateTime? pickupFrom;
+    
+    ///Latest pickup; null when not given.
+    @JsonKey(name: "pickup_to")
+    final DateTime? pickupTo;
     @JsonKey(name: "shipper_org_id")
     final String shipperOrgId;
+    
+    ///The person who posted the load; they hear `booking_created` on the socket too.
+    @JsonKey(name: "shipper_user_id")
+    final String shipperUserId;
     @JsonKey(name: "source")
     final BookingSource? source;
 
@@ -813,9 +840,13 @@ class BookingCreated {
         required this.carrierOrgId,
         required this.currency,
         required this.driverUserId,
+        required this.durationMin,
         required this.eventId,
         required this.loadId,
+        required this.pickupFrom,
+        required this.pickupTo,
         required this.shipperOrgId,
+        required this.shipperUserId,
         this.source,
     });
 
@@ -1446,34 +1477,102 @@ class OfferProposed {
     ///Price in minor units of `currency`.
     @JsonKey(name: "amount")
     final int amount;
+    
+    ///Cargo type code from the reference catalogue.
+    @JsonKey(name: "cargo_category")
+    final String cargoCategory;
     @JsonKey(name: "currency")
     final String currency;
     
     ///Answer deadline, unix milliseconds in server time.
     @JsonKey(name: "deadline_at")
     final int deadlineAt;
+    
+    ///Driving distance through the stops; null when routing was unavailable at posting.
+    @JsonKey(name: "distance_km")
+    final double? distanceKm;
+    
+    ///Last drop-off stop's address; null only when the load has no stops.
+    @JsonKey(name: "dropoff_address")
+    final String? dropoffAddress;
+    
+    ///Driving time for the same route in minutes; null together with the distance.
+    @JsonKey(name: "duration_min")
+    final int? durationMin;
     @JsonKey(name: "from_region_id")
     final String fromRegionId;
+    @JsonKey(name: "is_urgent")
+    final bool isUrgent;
     @JsonKey(name: "load_id")
     final String loadId;
+    
+    ///Loaders the shipper ordered with the truck.
+    @JsonKey(name: "loaders_count")
+    final int loadersCount;
+    @JsonKey(name: "loading_method")
+    final LoadingMethod loadingMethod;
+    @JsonKey(name: "needs_refrigeration")
+    final bool needsRefrigeration;
+    @JsonKey(name: "payment_method")
+    final PaymentMethod paymentMethod;
+    
+    ///First pickup stop's address as the shipper wrote it; null only when the load has no stops.
+    @JsonKey(name: "pickup_address")
+    final String? pickupAddress;
+    
+    ///Straight-line distance from the driver's last position to the pickup; null while the
+    ///position is unknown.
+    @JsonKey(name: "pickup_distance_km")
+    final double? pickupDistanceKm;
+    
+    ///Earliest pickup; null when not given. ISO 8601 with offset, as Python's `isoformat()`
+    ///writes it.
+    @JsonKey(name: "pickup_from")
+    final DateTime? pickupFrom;
+    
+    ///Latest pickup, also the posting's expiry; null when not given. ISO 8601 with offset, as
+    ///Python's `isoformat()` writes it.
+    @JsonKey(name: "pickup_to")
+    final DateTime? pickupTo;
     @JsonKey(name: "server_time")
     final DateTime serverTime;
+    
+    ///Pickup and drop-off stops together.
+    @JsonKey(name: "stops_count")
+    final int stopsCount;
     @JsonKey(name: "to_region_id")
     final String toRegionId;
     @JsonKey(name: "truck_class")
     final String truckClass;
+    @JsonKey(name: "volume_m3")
+    final double? volumeM3;
     @JsonKey(name: "weight_kg")
     final int weightKg;
 
     OfferProposed({
         required this.amount,
+        required this.cargoCategory,
         required this.currency,
         required this.deadlineAt,
+        required this.distanceKm,
+        required this.dropoffAddress,
+        required this.durationMin,
         required this.fromRegionId,
+        required this.isUrgent,
         required this.loadId,
+        required this.loadersCount,
+        required this.loadingMethod,
+        required this.needsRefrigeration,
+        required this.paymentMethod,
+        required this.pickupAddress,
+        required this.pickupDistanceKm,
+        required this.pickupFrom,
+        required this.pickupTo,
         required this.serverTime,
+        required this.stopsCount,
         required this.toRegionId,
         required this.truckClass,
+        required this.volumeM3,
         required this.weightKg,
     });
 
@@ -1481,6 +1580,38 @@ class OfferProposed {
 
     Map<String, dynamic> toJson() => _$OfferProposedToJson(this);
 }
+
+
+///How the cargo goes in.
+enum LoadingMethod {
+    @JsonValue("rear")
+    REAR,
+    @JsonValue("top")
+    TOP
+}
+
+final loadingMethodValues = EnumValues({
+    "rear": LoadingMethod.REAR,
+    "top": LoadingMethod.TOP
+});
+
+enum PaymentMethod {
+    @JsonValue("card")
+    CARD,
+    @JsonValue("cash")
+    CASH,
+    @JsonValue("mixed")
+    MIXED,
+    @JsonValue("transfer")
+    TRANSFER
+}
+
+final paymentMethodValues = EnumValues({
+    "card": PaymentMethod.CARD,
+    "cash": PaymentMethod.CASH,
+    "mixed": PaymentMethod.MIXED,
+    "transfer": PaymentMethod.TRANSFER
+});
 
 enum OfferProposedFrameType {
     @JsonValue("offer_proposed")
@@ -1838,6 +1969,131 @@ enum PongFrameType {
 
 final pongFrameTypeValues = EnumValues({
     "pong": PongFrameType.PONG
+});
+
+
+///Frame `search_exhausted` goway-realtime sends to an app.
+@JsonSerializable()
+class SearchExhaustedFrame {
+    @JsonKey(name: "data")
+    final SearchExhausted data;
+    
+    ///When the server sent the frame, RFC 3339 UTC.
+    @JsonKey(name: "ts")
+    final DateTime ts;
+    @JsonKey(name: "type")
+    final SearchExhaustedFrameType type;
+
+    SearchExhaustedFrame({
+        required this.data,
+        required this.ts,
+        required this.type,
+    });
+
+    factory SearchExhaustedFrame.fromJson(Map<String, dynamic> json) => _$SearchExhaustedFrameFromJson(json);
+
+    Map<String, dynamic> toJson() => _$SearchExhaustedFrameToJson(this);
+}
+
+
+///To the shipper: no driver took the load within the search window. The search goes on; the
+///app offers to raise the price, move the pickup to a plan or cancel.
+@JsonSerializable()
+class SearchExhausted {
+    
+    ///Current price, whole so'm.
+    @JsonKey(name: "amount")
+    final int amount;
+    @JsonKey(name: "currency")
+    final String currency;
+    @JsonKey(name: "load_id")
+    final String loadId;
+    @JsonKey(name: "seen")
+    final int seen;
+    
+    ///The raised price GoWay suggests.
+    @JsonKey(name: "suggested_amount")
+    final int suggestedAmount;
+
+    SearchExhausted({
+        required this.amount,
+        required this.currency,
+        required this.loadId,
+        required this.seen,
+        required this.suggestedAmount,
+    });
+
+    factory SearchExhausted.fromJson(Map<String, dynamic> json) => _$SearchExhaustedFromJson(json);
+
+    Map<String, dynamic> toJson() => _$SearchExhaustedToJson(this);
+}
+
+enum SearchExhaustedFrameType {
+    @JsonValue("search_exhausted")
+    SEARCH_EXHAUSTED
+}
+
+final searchExhaustedFrameTypeValues = EnumValues({
+    "search_exhausted": SearchExhaustedFrameType.SEARCH_EXHAUSTED
+});
+
+
+///Frame `search_progress` goway-realtime sends to an app.
+@JsonSerializable()
+class SearchProgressFrame {
+    @JsonKey(name: "data")
+    final SearchProgress data;
+    
+    ///When the server sent the frame, RFC 3339 UTC.
+    @JsonKey(name: "ts")
+    final DateTime ts;
+    @JsonKey(name: "type")
+    final SearchProgressFrameType type;
+
+    SearchProgressFrame({
+        required this.data,
+        required this.ts,
+        required this.type,
+    });
+
+    factory SearchProgressFrame.fromJson(Map<String, dynamic> json) => _$SearchProgressFrameFromJson(json);
+
+    Map<String, dynamic> toJson() => _$SearchProgressFrameToJson(this);
+}
+
+
+///To the shipper while their instant load is being offered: how many drivers have seen it.
+@JsonSerializable()
+class SearchProgress {
+    @JsonKey(name: "load_id")
+    final String loadId;
+    
+    ///Drivers the load was offered to so far.
+    @JsonKey(name: "seen")
+    final int seen;
+    
+    ///When the search began; the app counts the waiting time from it.
+    @JsonKey(name: "started_at")
+    final DateTime startedAt;
+
+    SearchProgress({
+        required this.loadId,
+        required this.seen,
+        required this.startedAt,
+    });
+
+    factory SearchProgress.fromJson(Map<String, dynamic> json) => _$SearchProgressFromJson(json);
+
+    Map<String, dynamic> toJson() => _$SearchProgressToJson(this);
+}
+
+enum SearchProgressFrameType {
+    @JsonValue("search_progress")
+    SEARCH_PROGRESS
+}
+
+final searchProgressFrameTypeValues = EnumValues({
+    "search_progress": SearchProgressFrameType.SEARCH_PROGRESS
 });
 
 

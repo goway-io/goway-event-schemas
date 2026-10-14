@@ -1,0 +1,264 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LoadUpdated",
+  "description": "A load still open on the board was edited by its shipper or an operator: the price, the pickup window or the note. Carries the whole load as `load.posted` does, plus what changed.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "load_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The shipper organization."
+    },
+    "from_region_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "Pickup region; null when the address resolved to none."
+    },
+    "to_region_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "Drop-off region; null when the address resolved to none."
+    },
+    "truck_class": {
+      "type": "string",
+      "description": "Truck class code from the reference list."
+    },
+    "loading_method": {
+      "title": "LoadingMethod",
+      "type": "string",
+      "enum": [
+        "top",
+        "rear"
+      ],
+      "description": "How the cargo goes in."
+    },
+    "needs_refrigeration": {
+      "type": "boolean"
+    },
+    "allow_instant": {
+      "type": "boolean",
+      "description": "Whether instant dispatch may offer the load."
+    },
+    "price_mode": {
+      "title": "PriceMode",
+      "type": "string",
+      "enum": [
+        "fixed",
+        "negotiable"
+      ]
+    },
+    "asking_amount": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "The shipper's price, whole so'm (a bare integer; `currency` is UZS today); null when it asks for offers."
+    },
+    "bonus_amount": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Shipper bonus set aside for this truck, whole so'm (a bare integer; `currency` is UZS today); null when none."
+    },
+    "suggested_amount": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Market price GoWay suggested, whole so'm (a bare integer; `currency` is UZS today); null when there was none."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3,
+      "description": "ISO 4217 code; `UZS` today."
+    },
+    "weight_kg": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "pickup_from": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "Earliest pickup; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it."
+    },
+    "pickup_to": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "Latest pickup, also the posting's expiry; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it."
+    },
+    "pickup_lat": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Pickup point latitude; null only when the load has no stops."
+    },
+    "pickup_lng": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Pickup point longitude; null only when the load has no stops."
+    },
+    "group_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "Shared by the sibling loads of one multi-truck post; null for a single truck."
+    },
+    "is_urgent": {
+      "type": "boolean"
+    },
+    "payment_method": {
+      "title": "PaymentMethod",
+      "type": "string",
+      "enum": [
+        "cash",
+        "transfer",
+        "card",
+        "mixed"
+      ]
+    },
+    "created_by": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person who posted the load; dispatch tells them how the search goes."
+    },
+    "pickup_address": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "First pickup stop's address as the shipper wrote it; null only when the load has no stops."
+    },
+    "dropoff_address": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Last drop-off stop's address; null only when the load has no stops."
+    },
+    "stops_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Pickup and drop-off stops together."
+    },
+    "distance_km": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Driving distance through the stops; null when routing was unavailable at posting."
+    },
+    "duration_min": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Driving time for the same route in minutes; null together with the distance."
+    },
+    "cargo_category": {
+      "type": "string",
+      "description": "Cargo type code from the reference catalogue."
+    },
+    "volume_m3": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "loaders_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Loaders the shipper ordered with the truck."
+    },
+    "changed": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "title": "LoadChangedField",
+        "type": "string",
+        "enum": [
+          "asking_amount",
+          "pickup_from",
+          "pickup_to",
+          "note"
+        ]
+      },
+      "description": "Fields this edit changed. A changed price or pickup window restarts the instant search, so every fitting driver is offered it again."
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the edit was saved; consumers ignore an edit older than the one they hold."
+    }
+  },
+  "required": [
+    "event_id",
+    "load_id",
+    "org_id",
+    "from_region_id",
+    "to_region_id",
+    "truck_class",
+    "loading_method",
+    "needs_refrigeration",
+    "allow_instant",
+    "price_mode",
+    "asking_amount",
+    "bonus_amount",
+    "suggested_amount",
+    "currency",
+    "weight_kg",
+    "pickup_from",
+    "pickup_to",
+    "pickup_lat",
+    "pickup_lng",
+    "group_id",
+    "is_urgent",
+    "payment_method",
+    "created_by",
+    "pickup_address",
+    "dropoff_address",
+    "stops_count",
+    "distance_km",
+    "duration_min",
+    "cargo_category",
+    "volume_m3",
+    "loaders_count",
+    "changed",
+    "updated_at"
+  ]
+}

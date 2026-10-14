@@ -97,6 +97,10 @@ channels:
         $ref: '#/components/messages/offersBlocked'
       offersUnblocked:
         $ref: '#/components/messages/offersUnblocked'
+      searchProgress:
+        $ref: '#/components/messages/searchProgress'
+      searchExhausted:
+        $ref: '#/components/messages/searchExhausted'
       notification:
         $ref: '#/components/messages/notification'
       sessionStarted:
@@ -148,6 +152,8 @@ operations:
       - $ref: '#/channels/socket/messages/verificationChanged'
       - $ref: '#/channels/socket/messages/offersBlocked'
       - $ref: '#/channels/socket/messages/offersUnblocked'
+      - $ref: '#/channels/socket/messages/searchProgress'
+      - $ref: '#/channels/socket/messages/searchExhausted'
       - $ref: '#/channels/socket/messages/notification'
       - $ref: '#/channels/socket/messages/sessionStarted'
       - $ref: '#/channels/socket/messages/kicked'
@@ -294,3 +300,13 @@ components:
       title: Frame refused
       payload:
         $ref: '../schemas/frames/server/error.json'
+    searchProgress:
+      name: search_progress
+      title: Search progress
+      payload:
+        $ref: '../schemas/frames/server/search_progress.json'
+    searchExhausted:
+      name: search_exhausted
+      title: Search exhausted
+      payload:
+        $ref: '../schemas/frames/server/search_exhausted.json'

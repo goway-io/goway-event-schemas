@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SearchProgressFrame",
+  "description": "Frame `search_progress` goway-realtime sends to an app.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "search_progress"
+    },
+    "data": {
+      "title": "SearchProgress",
+      "description": "To the shipper while their instant load is being offered: how many drivers have seen it.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "seen": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Drivers the load was offered to so far."
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the search began; the app counts the waiting time from it."
+        }
+      },
+      "required": [
+        "load_id",
+        "seen",
+        "started_at"
+      ]
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the server sent the frame, RFC 3339 UTC."
+    }
+  },
+  "required": [
+    "type",
+    "data",
+    "ts"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "event_id": "6f1c2a9e-3b7d-4e8f-9a0b-1c2d3e4f5a6b",
+  "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+  "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+  "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+  "outcome": "declined",
+  "offered_at": "2026-10-15T07:12:40.512Z",
+  "resolved_at": "2026-10-15T07:12:46.031Z"
+}

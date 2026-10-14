@@ -19,5 +19,14 @@
   "pickup_lng": 69.240562,
   "group_id": null,
   "is_urgent": false,
-  "payment_method": "cash"
+  "payment_method": "cash",
+  "created_by": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+  "pickup_address": "Andijon, Xonabod, Sanoat ko'chasi 14",
+  "dropoff_address": "Toshkent, Yunusobod, Ziyolilar ko'chasi 42",
+  "stops_count": 2,
+  "distance_km": 312.4,
+  "duration_min": 330,
+  "cargo_category": "food",
+  "volume_m3": 24.0,
+  "loaders_count": 2
 }

@@ -52,6 +52,35 @@
         "instant"
       ],
       "description": "Present only for an instant claim from dispatch; an accepted offer leaves it out."
+    },
+    "shipper_user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person who posted the load; they hear `booking_created` on the socket too."
+    },
+    "pickup_from": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "Earliest pickup; null when not given. A pickup well ahead makes this booking a plan rather than a trip under way."
+    },
+    "pickup_to": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "Latest pickup; null when not given."
+    },
+    "duration_min": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Driving time of the haul in minutes; null when routing was unavailable."
     }
   },
   "required": [
@@ -62,6 +91,10 @@
     "carrier_org_id",
     "driver_user_id",
     "agreed_amount",
-    "currency"
+    "currency",
+    "shipper_user_id",
+    "pickup_from",
+    "pickup_to",
+    "duration_min"
   ]
 }

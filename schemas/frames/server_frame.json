@@ -63,6 +63,12 @@
     },
     {
       "$ref": "./server/verification_changed.json"
+    },
+    {
+      "$ref": "./server/search_progress.json"
+    },
+    {
+      "$ref": "./server/search_exhausted.json"
     }
   ]
 }

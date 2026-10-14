@@ -105,6 +105,8 @@ sealed class ServerFrame {
         'offers_blocked' => OffersBlockedMessage(OffersBlockedFrame.fromJson(json)),
         'offers_unblocked' => OffersUnblockedMessage(OffersUnblockedFrame.fromJson(json)),
         'verification_changed' => VerificationChangedMessage(VerificationChangedFrame.fromJson(json)),
+        'search_progress' => SearchProgressMessage(SearchProgressFrame.fromJson(json)),
+        'search_exhausted' => SearchExhaustedMessage(SearchExhaustedFrame.fromJson(json)),
         'notification' => NotificationMessage(NotificationFrame.fromJson(json)),
         'session_started' => SessionStartedMessage(SessionStartedFrame.fromJson(json)),
         'kicked' => KickedMessage(KickedFrame.fromJson(json)),
@@ -232,6 +234,20 @@ final class OffersBlockedMessage extends ServerFrame {
 final class OffersUnblockedMessage extends ServerFrame {
   const OffersUnblockedMessage(this.frame);
   final OffersUnblockedFrame frame;
+  @override
+  Map<String, dynamic> toJson() => frame.toJson();
+}
+
+final class SearchProgressMessage extends ServerFrame {
+  const SearchProgressMessage(this.frame);
+  final SearchProgressFrame frame;
+  @override
+  Map<String, dynamic> toJson() => frame.toJson();
+}
+
+final class SearchExhaustedMessage extends ServerFrame {
+  const SearchExhaustedMessage(this.frame);
+  final SearchExhaustedFrame frame;
   @override
   Map<String, dynamic> toJson() => frame.toJson();
 }

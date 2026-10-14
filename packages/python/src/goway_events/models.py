@@ -300,6 +300,45 @@ class DeviceUpserted(BaseModel):
     """
 
 
+class DispatchExhausted(BaseModel):
+    """
+    An instant search ran for the whole search window and no driver took the load. The search goes on; the shipper is told so they can raise the price, move the pickup or cancel.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it.
+    """
+    load_id: UUID
+    org_id: UUID
+    """
+    The shipper's organization.
+    """
+    created_by: UUID
+    """
+    The person who posted the load.
+    """
+    from_region_id: UUID
+    to_region_id: UUID
+    seen: Annotated[int, Field(ge=0)]
+    """
+    Drivers the load was offered to so far.
+    """
+    amount: Annotated[int, Field(ge=0)]
+    """
+    Current price, whole so'm.
+    """
+    suggested_amount: Annotated[int, Field(ge=0)]
+    """
+    The price GoWay suggests trying next: the current one raised by the configured step.
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    searched_seconds: Annotated[int, Field(ge=0)]
+
+
 class DispatchOffered(BaseModel):
     """
     An instant load was offered to a wave of drivers on its line, so a driver whose app is in the background still sees it. Loss-tolerant: the socket frame is the offer itself.
@@ -391,6 +430,33 @@ class DriverLocationFrame(BaseModel):
     ts: AwareDatetime
     """
     When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class DriverOfferFilterChanged(BaseModel):
+    """
+    A driver changed which instant offers they want: how far to the pickup at most and the lowest price.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    user_id: UUID
+    max_pickup_km: Annotated[float | None, Field(ge=0.0)]
+    """
+    Farthest pickup from the driver's last position; null for no limit. Not applied while the position is unknown.
+    """
+    min_amount: Annotated[int | None, Field(ge=0)]
+    """
+    Lowest price the driver wants offered, whole so'm; null for no limit.
+    """
+    changed_at: AwareDatetime
+    """
+    When it was saved; consumers ignore a change older than the one they hold.
     """
 
 
@@ -590,6 +656,13 @@ class LoadCancelled(BaseModel):
     """
     The shipper organization.
     """
+
+
+class LoadChangedField(StrEnum):
+    ASKING_AMOUNT = "asking_amount"
+    PICKUP_FROM = "pickup_from"
+    PICKUP_TO = "pickup_to"
+    NOTE = "note"
 
 
 class LoadExpired(BaseModel):
@@ -813,45 +886,39 @@ class OfferOutcome(StrEnum):
     WITHDRAWN = "withdrawn"
 
 
-class OfferProposed(BaseModel):
+class OfferResolution(StrEnum):
     """
-    An instant load offered to this driver; answer before `deadline_at`.
+    `accepted`: the driver took it. `lost`: they accepted but another driver was first. `declined`: they skipped it. `expired`: no answer in time. `withdrawn`: the load was taken by someone else, cancelled or edited before they answered.
+    """
+
+    ACCEPTED = "accepted"
+    LOST = "lost"
+    DECLINED = "declined"
+    EXPIRED = "expired"
+    WITHDRAWN = "withdrawn"
+
+
+class OfferResolved(BaseModel):
+    """
+    One driver's instant offer ended. One event per driver per offer; it feeds the driver's acceptance rate.
     """
 
     model_config = ConfigDict(
         extra="ignore",
     )
+    event_id: UUID
+    """
+    Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it.
+    """
     load_id: UUID
-    from_region_id: UUID
-    to_region_id: UUID
-    truck_class: str
-    amount: Annotated[int, Field(ge=0)]
+    driver_user_id: UUID
+    org_id: UUID
     """
-    Price in minor units of `currency`.
+    The driver's organization.
     """
-    currency: Annotated[str, Field(max_length=3, min_length=3)]
-    weight_kg: Annotated[int, Field(ge=0)]
-    deadline_at: int
-    """
-    Answer deadline, unix milliseconds in server time.
-    """
-    server_time: AwareDatetime
-
-
-class OfferProposedFrame(BaseModel):
-    """
-    Frame `offer_proposed` goway-realtime sends to an app.
-    """
-
-    model_config = ConfigDict(
-        extra="ignore",
-    )
-    type: Literal["offer_proposed"]
-    data: OfferProposed
-    ts: AwareDatetime
-    """
-    When the server sent the frame, RFC 3339 UTC.
-    """
+    outcome: OfferResolution
+    offered_at: AwareDatetime
+    resolved_at: AwareDatetime
 
 
 class OfferResponse(BaseModel):
@@ -1133,6 +1200,78 @@ class ReviewDecision(StrEnum):
 
     APPROVED = "approved"
     REJECTED = "rejected"
+
+
+class SearchExhausted(BaseModel):
+    """
+    To the shipper: no driver took the load within the search window. The search goes on; the app offers to raise the price, move the pickup to a plan or cancel.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    load_id: UUID
+    seen: Annotated[int, Field(ge=0)]
+    amount: Annotated[int, Field(ge=0)]
+    """
+    Current price, whole so'm.
+    """
+    suggested_amount: Annotated[int, Field(ge=0)]
+    """
+    The raised price GoWay suggests.
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+
+
+class SearchExhaustedFrame(BaseModel):
+    """
+    Frame `search_exhausted` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["search_exhausted"]
+    data: SearchExhausted
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class SearchProgress(BaseModel):
+    """
+    To the shipper while their instant load is being offered: how many drivers have seen it.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    load_id: UUID
+    seen: Annotated[int, Field(ge=0)]
+    """
+    Drivers the load was offered to so far.
+    """
+    started_at: AwareDatetime
+    """
+    When the search began; the app counts the waiting time from it.
+    """
+
+
+class SearchProgressFrame(BaseModel):
+    """
+    Frame `search_progress` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["search_progress"]
+    data: SearchProgress
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
 
 
 class SessionRevokedReason(StrEnum):
@@ -1996,6 +2135,22 @@ class BookingCreated(BaseModel):
     ISO 4217 code; `UZS` today.
     """
     source: BookingSource | None = None
+    shipper_user_id: UUID
+    """
+    The person who posted the load; they hear `booking_created` on the socket too.
+    """
+    pickup_from: AwareDatetime | None
+    """
+    Earliest pickup; null when not given. A pickup well ahead makes this booking a plan rather than a trip under way.
+    """
+    pickup_to: AwareDatetime | None
+    """
+    Latest pickup; null when not given.
+    """
+    duration_min: Annotated[int | None, Field(ge=0)]
+    """
+    Driving time of the haul in minutes; null when routing was unavailable.
+    """
 
 
 class BookingCreatedFrame(BaseModel):
@@ -2319,6 +2474,157 @@ class LoadPosted(BaseModel):
     """
     Present, and true, only when a cancelled booking put the load back.
     """
+    created_by: UUID
+    """
+    The person who posted the load; dispatch tells them how the search goes.
+    """
+    pickup_address: str | None
+    """
+    First pickup stop's address as the shipper wrote it; null only when the load has no stops.
+    """
+    dropoff_address: str | None
+    """
+    Last drop-off stop's address; null only when the load has no stops.
+    """
+    stops_count: Annotated[int, Field(ge=0)]
+    """
+    Pickup and drop-off stops together.
+    """
+    distance_km: Annotated[float | None, Field(ge=0.0)]
+    """
+    Driving distance through the stops; null when routing was unavailable at posting.
+    """
+    duration_min: Annotated[int | None, Field(ge=0)]
+    """
+    Driving time for the same route in minutes; null together with the distance.
+    """
+    cargo_category: str
+    """
+    Cargo type code from the reference catalogue.
+    """
+    volume_m3: Annotated[float | None, Field(ge=0.0)]
+    loaders_count: Annotated[int, Field(ge=0)]
+    """
+    Loaders the shipper ordered with the truck.
+    """
+
+
+class LoadUpdated(BaseModel):
+    """
+    A load still open on the board was edited by its shipper or an operator: the price, the pickup window or the note. Carries the whole load as `load.posted` does, plus what changed.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    load_id: UUID
+    org_id: UUID
+    """
+    The shipper organization.
+    """
+    from_region_id: UUID | None
+    """
+    Pickup region; null when the address resolved to none.
+    """
+    to_region_id: UUID | None
+    """
+    Drop-off region; null when the address resolved to none.
+    """
+    truck_class: str
+    """
+    Truck class code from the reference list.
+    """
+    loading_method: LoadingMethod
+    needs_refrigeration: bool
+    allow_instant: bool
+    """
+    Whether instant dispatch may offer the load.
+    """
+    price_mode: PriceMode
+    asking_amount: Annotated[int | None, Field(ge=0)]
+    """
+    The shipper's price, whole so'm (a bare integer; `currency` is UZS today); null when it asks for offers.
+    """
+    bonus_amount: Annotated[int | None, Field(ge=0)]
+    """
+    Shipper bonus set aside for this truck, whole so'm (a bare integer; `currency` is UZS today); null when none.
+    """
+    suggested_amount: Annotated[int | None, Field(ge=0)]
+    """
+    Market price GoWay suggested, whole so'm (a bare integer; `currency` is UZS today); null when there was none.
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    """
+    ISO 4217 code; `UZS` today.
+    """
+    weight_kg: Annotated[int, Field(ge=0)]
+    pickup_from: AwareDatetime | None
+    """
+    Earliest pickup; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+    pickup_to: AwareDatetime | None
+    """
+    Latest pickup, also the posting's expiry; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+    pickup_lat: float | None
+    """
+    Pickup point latitude; null only when the load has no stops.
+    """
+    pickup_lng: float | None
+    """
+    Pickup point longitude; null only when the load has no stops.
+    """
+    group_id: UUID | None
+    """
+    Shared by the sibling loads of one multi-truck post; null for a single truck.
+    """
+    is_urgent: bool
+    payment_method: PaymentMethod
+    created_by: UUID
+    """
+    The person who posted the load; dispatch tells them how the search goes.
+    """
+    pickup_address: str | None
+    """
+    First pickup stop's address as the shipper wrote it; null only when the load has no stops.
+    """
+    dropoff_address: str | None
+    """
+    Last drop-off stop's address; null only when the load has no stops.
+    """
+    stops_count: Annotated[int, Field(ge=0)]
+    """
+    Pickup and drop-off stops together.
+    """
+    distance_km: Annotated[float | None, Field(ge=0.0)]
+    """
+    Driving distance through the stops; null when routing was unavailable at posting.
+    """
+    duration_min: Annotated[int | None, Field(ge=0)]
+    """
+    Driving time for the same route in minutes; null together with the distance.
+    """
+    cargo_category: str
+    """
+    Cargo type code from the reference catalogue.
+    """
+    volume_m3: Annotated[float | None, Field(ge=0.0)]
+    loaders_count: Annotated[int, Field(ge=0)]
+    """
+    Loaders the shipper ordered with the truck.
+    """
+    changed: Annotated[list[LoadChangedField], Field(min_length=1)]
+    """
+    Fields this edit changed. A changed price or pickup window restarts the instant search, so every fitting driver is offered it again.
+    """
+    updated_at: AwareDatetime
+    """
+    When the edit was saved; consumers ignore an edit older than the one they hold.
+    """
 
 
 class OfferCreated(BaseModel):
@@ -2345,6 +2651,92 @@ class OfferCreated(BaseModel):
     currency: Annotated[str, Field(max_length=3, min_length=3)]
     """
     ISO 4217 code; `UZS` today.
+    """
+
+
+class OfferProposed(BaseModel):
+    """
+    An instant load offered to this driver; answer before `deadline_at`.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    load_id: UUID
+    from_region_id: UUID
+    to_region_id: UUID
+    truck_class: str
+    amount: Annotated[int, Field(ge=0)]
+    """
+    Price in minor units of `currency`.
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    weight_kg: Annotated[int, Field(ge=0)]
+    deadline_at: int
+    """
+    Answer deadline, unix milliseconds in server time.
+    """
+    server_time: AwareDatetime
+    pickup_address: str | None
+    """
+    First pickup stop's address as the shipper wrote it; null only when the load has no stops.
+    """
+    dropoff_address: str | None
+    """
+    Last drop-off stop's address; null only when the load has no stops.
+    """
+    stops_count: Annotated[int, Field(ge=0)]
+    """
+    Pickup and drop-off stops together.
+    """
+    distance_km: Annotated[float | None, Field(ge=0.0)]
+    """
+    Driving distance through the stops; null when routing was unavailable at posting.
+    """
+    duration_min: Annotated[int | None, Field(ge=0)]
+    """
+    Driving time for the same route in minutes; null together with the distance.
+    """
+    pickup_distance_km: Annotated[float | None, Field(ge=0.0)]
+    """
+    Straight-line distance from the driver's last position to the pickup; null while the position is unknown.
+    """
+    pickup_from: AwareDatetime | None
+    """
+    Earliest pickup; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+    pickup_to: AwareDatetime | None
+    """
+    Latest pickup, also the posting's expiry; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+    cargo_category: str
+    """
+    Cargo type code from the reference catalogue.
+    """
+    volume_m3: Annotated[float | None, Field(ge=0.0)]
+    loaders_count: Annotated[int, Field(ge=0)]
+    """
+    Loaders the shipper ordered with the truck.
+    """
+    loading_method: LoadingMethod
+    needs_refrigeration: bool
+    payment_method: PaymentMethod
+    is_urgent: bool
+
+
+class OfferProposedFrame(BaseModel):
+    """
+    Frame `offer_proposed` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["offer_proposed"]
+    data: OfferProposed
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
     """
 
 
@@ -2543,6 +2935,8 @@ class ServerFrame(
         | KickedFrame
         | ErrorFrame
         | VerificationChangedFrame
+        | SearchProgressFrame
+        | SearchExhaustedFrame
     ]
 ):
     root: Annotated[
@@ -2565,7 +2959,9 @@ class ServerFrame(
         | SessionStartedFrame
         | KickedFrame
         | ErrorFrame
-        | VerificationChangedFrame,
+        | VerificationChangedFrame
+        | SearchProgressFrame
+        | SearchExhaustedFrame,
         Field(discriminator="type", title="ServerFrame"),
     ]
     """

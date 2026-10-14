@@ -51,6 +51,106 @@
         "server_time": {
           "type": "string",
           "format": "date-time"
+        },
+        "pickup_address": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "First pickup stop's address as the shipper wrote it; null only when the load has no stops."
+        },
+        "dropoff_address": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Last drop-off stop's address; null only when the load has no stops."
+        },
+        "stops_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Pickup and drop-off stops together."
+        },
+        "distance_km": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Driving distance through the stops; null when routing was unavailable at posting."
+        },
+        "duration_min": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Driving time for the same route in minutes; null together with the distance."
+        },
+        "pickup_distance_km": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Straight-line distance from the driver's last position to the pickup; null while the position is unknown."
+        },
+        "pickup_from": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "Earliest pickup; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        },
+        "pickup_to": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "Latest pickup, also the posting's expiry; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        },
+        "cargo_category": {
+          "type": "string",
+          "description": "Cargo type code from the reference catalogue."
+        },
+        "volume_m3": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "loaders_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Loaders the shipper ordered with the truck."
+        },
+        "loading_method": {
+          "title": "LoadingMethod",
+          "type": "string",
+          "enum": [
+            "top",
+            "rear"
+          ],
+          "description": "How the cargo goes in."
+        },
+        "needs_refrigeration": {
+          "type": "boolean"
+        },
+        "payment_method": {
+          "title": "PaymentMethod",
+          "type": "string",
+          "enum": [
+            "cash",
+            "transfer",
+            "card",
+            "mixed"
+          ]
+        },
+        "is_urgent": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -62,7 +162,22 @@
         "currency",
         "weight_kg",
         "deadline_at",
-        "server_time"
+        "server_time",
+        "pickup_address",
+        "dropoff_address",
+        "stops_count",
+        "distance_km",
+        "duration_min",
+        "pickup_distance_km",
+        "pickup_from",
+        "pickup_to",
+        "cargo_category",
+        "volume_m3",
+        "loaders_count",
+        "loading_method",
+        "needs_refrigeration",
+        "payment_method",
+        "is_urgent"
       ]
     },
     "ts": {

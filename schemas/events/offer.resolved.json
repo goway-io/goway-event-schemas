@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OfferResolved",
+  "description": "One driver's instant offer ended. One event per driver per offer; it feeds the driver's acceptance rate.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it."
+    },
+    "load_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "driver_user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The driver's organization."
+    },
+    "outcome": {
+      "title": "OfferResolution",
+      "type": "string",
+      "enum": [
+        "accepted",
+        "lost",
+        "declined",
+        "expired",
+        "withdrawn"
+      ],
+      "description": "`accepted`: the driver took it. `lost`: they accepted but another driver was first. `declined`: they skipped it. `expired`: no answer in time. `withdrawn`: the load was taken by someone else, cancelled or edited before they answered."
+    },
+    "offered_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "event_id",
+    "load_id",
+    "driver_user_id",
+    "org_id",
+    "outcome",
+    "offered_at",
+    "resolved_at"
+  ]
+}
