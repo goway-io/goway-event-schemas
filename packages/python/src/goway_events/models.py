@@ -2151,6 +2151,14 @@ class BookingCreated(BaseModel):
     """
     Driving time of the haul in minutes; null when routing was unavailable.
     """
+    busy_from: AwareDatetime
+    """
+    Start of the span this booking keeps the driver busy, goway-loads' plan buffer included. Dispatch offers the driver nothing whose trip overlaps it.
+    """
+    busy_until: AwareDatetime | None
+    """
+    End of that span; null when the haul's duration is unknown, which keeps the driver busy until the booking ends.
+    """
 
 
 class BookingCreatedFrame(BaseModel):

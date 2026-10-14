@@ -796,6 +796,16 @@ class BookingCreated {
     final int agreedAmount;
     @JsonKey(name: "booking_id")
     final String bookingId;
+    
+    ///Start of the span this booking keeps the driver busy, goway-loads' plan buffer included.
+    ///Dispatch offers the driver nothing whose trip overlaps it.
+    @JsonKey(name: "busy_from")
+    final DateTime busyFrom;
+    
+    ///End of that span; null when the haul's duration is unknown, which keeps the driver busy
+    ///until the booking ends.
+    @JsonKey(name: "busy_until")
+    final DateTime? busyUntil;
     @JsonKey(name: "carrier_org_id")
     final String carrierOrgId;
     
@@ -837,6 +847,8 @@ class BookingCreated {
     BookingCreated({
         required this.agreedAmount,
         required this.bookingId,
+        required this.busyFrom,
+        required this.busyUntil,
         required this.carrierOrgId,
         required this.currency,
         required this.driverUserId,

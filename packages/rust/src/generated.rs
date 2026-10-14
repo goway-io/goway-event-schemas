@@ -311,6 +311,11 @@ pub struct BookingCreated {
     #[doc = "Agreed price, whole so'm (a bare integer; `currency` is UZS today)."]
     pub agreed_amount: u64,
     pub booking_id: ::uuid::Uuid,
+    #[doc = "Start of the span this booking keeps the driver busy, goway-loads' plan buffer included. Dispatch offers the driver nothing whose trip overlaps it."]
+    pub busy_from: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[doc = "End of that span; null when the haul's duration is unknown, which keeps the driver busy until the booking ends."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub busy_until: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
     pub carrier_org_id: ::uuid::Uuid,
     #[doc = "ISO 4217 code; `UZS` today."]
     pub currency: BookingCreatedCurrency,

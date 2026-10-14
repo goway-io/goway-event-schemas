@@ -518,6 +518,14 @@ BookingCreated _$BookingCreatedFromJson(
     final val = BookingCreated(
       agreedAmount: $checkedConvert('agreed_amount', (v) => (v as num).toInt()),
       bookingId: $checkedConvert('booking_id', (v) => v as String),
+      busyFrom: $checkedConvert(
+        'busy_from',
+        (v) => DateTime.parse(v as String),
+      ),
+      busyUntil: $checkedConvert(
+        'busy_until',
+        (v) => v == null ? null : DateTime.parse(v as String),
+      ),
       carrierOrgId: $checkedConvert('carrier_org_id', (v) => v as String),
       currency: $checkedConvert('currency', (v) => v as String),
       driverUserId: $checkedConvert('driver_user_id', (v) => v as String?),
@@ -544,6 +552,8 @@ BookingCreated _$BookingCreatedFromJson(
   fieldKeyMap: const {
     'agreedAmount': 'agreed_amount',
     'bookingId': 'booking_id',
+    'busyFrom': 'busy_from',
+    'busyUntil': 'busy_until',
     'carrierOrgId': 'carrier_org_id',
     'driverUserId': 'driver_user_id',
     'durationMin': 'duration_min',
@@ -560,6 +570,8 @@ Map<String, dynamic> _$BookingCreatedToJson(BookingCreated instance) =>
     <String, dynamic>{
       'agreed_amount': instance.agreedAmount,
       'booking_id': instance.bookingId,
+      'busy_from': instance.busyFrom.toIso8601String(),
+      'busy_until': ?instance.busyUntil?.toIso8601String(),
       'carrier_org_id': instance.carrierOrgId,
       'currency': instance.currency,
       'driver_user_id': ?instance.driverUserId,

@@ -521,6 +521,14 @@ export interface BookingCreated {
    * Driving time of the haul in minutes; null when routing was unavailable.
    */
   duration_min: number | null;
+  /**
+   * Start of the span this booking keeps the driver busy, goway-loads' plan buffer included. Dispatch offers the driver nothing whose trip overlaps it.
+   */
+  busy_from: string;
+  /**
+   * End of that span; null when the haul's duration is unknown, which keeps the driver busy until the booking ends.
+   */
+  busy_until: string | null;
 }
 /**
  * Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
