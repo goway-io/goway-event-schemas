@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LocationSampled",
+  "description": "A driver's GPS position during an active booking, sampled every `location_sample_seconds` as evidence of the haul.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it."
+    },
+    "booking_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "driver_user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "lat": {
+      "type": "number",
+      "minimum": -90,
+      "maximum": 90
+    },
+    "lng": {
+      "type": "number",
+      "minimum": -180,
+      "maximum": 180
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the position was sampled, RFC 3339 UTC with milliseconds."
+    }
+  },
+  "required": [
+    "event_id",
+    "booking_id",
+    "driver_user_id",
+    "lat",
+    "lng",
+    "recorded_at"
+  ]
+}

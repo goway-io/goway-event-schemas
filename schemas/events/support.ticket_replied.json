@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SupportTicketReplied",
+  "description": "Support answered or closed a ticket.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "ticket_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "number": {
+      "type": "string",
+      "description": "Reference the user sees: `T-` and six characters, for example `T-7KQ2MZ`."
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Who opened the ticket."
+    },
+    "status": {
+      "title": "TicketReplyStatus",
+      "type": "string",
+      "enum": [
+        "answered",
+        "closed"
+      ],
+      "description": "The ticket's status after the reply."
+    }
+  },
+  "required": [
+    "event_id",
+    "ticket_id",
+    "number",
+    "user_id",
+    "status"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CarrierDocumentExpiring",
+  "description": "A carrier's document expires within the warning window; sent once per document.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "kind": {
+      "title": "DocumentKind",
+      "type": "string",
+      "enum": [
+        "passport",
+        "driver_license",
+        "tech_passport",
+        "vehicle_photo",
+        "power_of_attorney"
+      ]
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "The document's expiry date. ISO 8601 with offset, as Python's `isoformat()` writes it."
+    }
+  },
+  "required": [
+    "event_id",
+    "org_id",
+    "kind",
+    "expires_at"
+  ]
+}

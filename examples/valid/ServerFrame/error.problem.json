@@ -1,0 +1,12 @@
+{
+  "type": "error",
+  "data": {
+    "type": "https://api.goway.uz/problems/offer-not-pending",
+    "title": "Conflict",
+    "status": 409,
+    "code": "OFFER_NOT_PENDING",
+    "detail": "No pending offer for this load",
+    "key": "dispatch.not_pending"
+  },
+  "ts": "2026-10-14T09:30:00.123Z"
+}

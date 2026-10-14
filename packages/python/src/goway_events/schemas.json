@@ -2,25 +2,256 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "GowayEventSchemas",
   "x-subjects": {
+    "booking.amount_claimed": "BookingAmountClaimed",
+    "booking.amount_settled": "BookingAmountSettled",
     "booking.cancelled": "BookingCancelled",
+    "booking.completed": "BookingCompleted",
+    "booking.created": "BookingCreated",
+    "booking.eta_updated": "BookingEtaUpdated",
+    "booking.return_loads": "BookingReturnLoads",
+    "booking.status_changed": "BookingStatusChanged",
+    "carrier.document_expired": "CarrierDocumentExpired",
+    "carrier.document_expiring": "CarrierDocumentExpiring",
+    "carrier.document_reviewed": "CarrierDocumentReviewed",
+    "carrier.document_updated": "CarrierDocumentUpdated",
+    "carrier.verification_changed": "CarrierVerificationChanged",
+    "device.push_failed": "DevicePushFailed",
+    "device.removed": "DeviceRemoved",
+    "device.upserted": "DeviceUpserted",
+    "dispatch.offered": "DispatchOffered",
+    "driver.offline": "DriverOffline",
+    "driver.online": "DriverOnline",
     "driver.stats_changed": "DriverStatsChanged",
-    "wallet.eligibility_changed": "WalletEligibilityChanged"
+    "load.cancelled": "LoadCancelled",
+    "load.expired": "LoadExpired",
+    "load.posted": "LoadPosted",
+    "location.sampled": "LocationSampled",
+    "notification.created": "NotificationCreated",
+    "offer.accepted": "OfferAccepted",
+    "offer.created": "OfferCreated",
+    "org.updated": "OrgUpdated",
+    "rating.created": "RatingCreated",
+    "region.changed": "RegionChanged",
+    "settings.changed": "SettingsChanged",
+    "support.ticket_created": "SupportTicketCreated",
+    "support.ticket_replied": "SupportTicketReplied",
+    "user.created": "UserCreated",
+    "user.deleted": "UserDeleted",
+    "user.login": "UserLogin",
+    "user.session_revoked": "UserSessionRevoked",
+    "user.sessions_closed": "UserSessionsClosed",
+    "user.updated": "UserUpdated",
+    "vehicle.removed": "VehicleRemoved",
+    "vehicle.upserted": "VehicleUpserted",
+    "wallet.eligibility_changed": "WalletEligibilityChanged",
+    "wallet.entry_posted": "WalletEntryPosted",
+    "wallet.topped_up": "WalletToppedUp"
   },
   "x-frames": {
     "client": {
+      "auth": "AuthFrame",
+      "go_offline": "GoOfflineFrame",
       "go_online": "GoOnlineFrame",
-      "offer_response": "OfferResponseFrame"
+      "location": "LocationFrame",
+      "offer_response": "OfferResponseFrame",
+      "ping": "PingFrame",
+      "subscribe_booking": "SubscribeBookingFrame",
+      "unsubscribe_booking": "UnsubscribeBookingFrame"
     },
     "server": {
+      "booking_cancelled": "BookingCancelledFrame",
+      "booking_completed": "BookingCompletedFrame",
+      "booking_created": "BookingCreatedFrame",
+      "booking_eta": "BookingEtaFrame",
+      "booking_status": "BookingStatusFrame",
+      "connected": "ConnectedFrame",
+      "driver_location": "DriverLocationFrame",
       "error": "ErrorFrame",
+      "kicked": "KickedFrame",
+      "line_expired": "LineExpiredFrame",
+      "line_expiring": "LineExpiringFrame",
+      "notification": "NotificationFrame",
       "offer_proposed": "OfferProposedFrame",
-      "offer_result": "OfferResultFrame"
+      "offer_result": "OfferResultFrame",
+      "offers_blocked": "OffersBlockedFrame",
+      "offers_unblocked": "OffersUnblockedFrame",
+      "offline": "OfflineFrame",
+      "online": "OnlineFrame",
+      "pong": "PongFrame",
+      "session_started": "SessionStartedFrame",
+      "subscribed": "SubscribedFrame"
     }
   },
   "definitions": {
+    "AccountType": {
+      "title": "AccountType",
+      "type": "string",
+      "enum": [
+        "individual",
+        "business"
+      ]
+    },
+    "Auth": {
+      "title": "Auth",
+      "description": "The first frame on a new socket, within five seconds: the access token.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "token": {
+          "type": "string",
+          "description": "Access token (JWT)."
+        },
+        "installation_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The app install's id, the one the device was registered under; lets this socket be signed out on its own when the device is removed."
+        }
+      },
+      "required": [
+        "token"
+      ]
+    },
+    "AuthFrame": {
+      "title": "AuthFrame",
+      "description": "Frame `auth` an app sends to goway-realtime.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "auth"
+        },
+        "data": {
+          "$ref": "#/definitions/Auth"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    "BookingAmountClaimed": {
+      "title": "BookingAmountClaimed",
+      "description": "One side of a delivered haul says it settled at another sum; nothing changes until an operator decides.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "claim_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "side": {
+          "$ref": "#/definitions/BookingSide"
+        },
+        "amount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The claimed sum, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "recorded_amount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The sum on record now, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3,
+          "description": "ISO 4217 code; `UZS` today."
+        }
+      },
+      "required": [
+        "event_id",
+        "claim_id",
+        "booking_id",
+        "side",
+        "amount",
+        "recorded_amount",
+        "currency"
+      ]
+    },
+    "BookingAmountSettled": {
+      "title": "BookingAmountSettled",
+      "description": "An operator accepted an amount claim; the haul now settles at `settled_amount` and billing adjusts its commission.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "carrier_org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "shipper_org_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "Null only when the load could not be read."
+        },
+        "driver_user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "status": {
+          "$ref": "#/definitions/BookingStatus"
+        },
+        "previous_amount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The sum on record before, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "settled_amount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The sum the operator settled on, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3,
+          "description": "ISO 4217 code; `UZS` today."
+        }
+      },
+      "required": [
+        "event_id",
+        "booking_id",
+        "load_id",
+        "carrier_org_id",
+        "shipper_org_id",
+        "driver_user_id",
+        "status",
+        "previous_amount",
+        "settled_amount",
+        "currency"
+      ]
+    },
     "BookingCancelled": {
       "title": "BookingCancelled",
-      "description": "A booking ended before the cargo was loaded. The load goes back to the board.",
+      "description": "A booking ended before the cargo was loaded. The load goes back to the board. Two paths send the same fields: either side cancelling (`by` is `shipper` or `carrier`) and an operator (`by` is `operator`).",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -72,6 +303,539 @@
         "driver_user_id"
       ]
     },
+    "BookingCancelledFrame": {
+      "title": "BookingCancelledFrame",
+      "description": "Frame `booking_cancelled` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.cancelled` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "booking_cancelled"
+        },
+        "data": {
+          "$ref": "#/definitions/BookingCancelled"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
+    "BookingCompleted": {
+      "title": "BookingCompleted",
+      "description": "A delivered haul was closed: by the shipper, by an operator, or by the auto-complete sweep. All three send the same fields. Billing charges its commission from this event.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "carrier_org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "shipper_org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "driver_user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "agreed_amount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Price agreed at booking, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "settled_amount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "What the haul actually settled at: the agreed price unless another sum was confirmed, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "completed_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "When the haul was closed; the code allows null, it is always set. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        },
+        "completed_by": {
+          "$ref": "#/definitions/CompletedBy"
+        },
+        "charges": {
+          "type": "array",
+          "items": {
+            "title": "ChargeLine",
+            "description": "One priced line of the haul.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "`tariff`, `loaders` or `req:<requirement code>`."
+              },
+              "amount": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Line total, whole so'm (a bare integer; `currency` is UZS today)."
+              },
+              "qty": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "code",
+              "amount",
+              "qty"
+            ]
+          },
+          "description": "Price lines; the first is always the agreed tariff."
+        },
+        "waiting_minutes": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Billable minutes the driver waited at pickup."
+        },
+        "waiting_amount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "What the waiting costs, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "waiting_billable": {
+          "type": "boolean",
+          "description": "Whether the waiting is charged to the shipper."
+        },
+        "total_amount": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Charges plus waiting, whole so'm (a bare integer; `currency` is UZS today); the code allows null."
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3,
+          "description": "ISO 4217 code; `UZS` today."
+        }
+      },
+      "required": [
+        "event_id",
+        "booking_id",
+        "load_id",
+        "carrier_org_id",
+        "shipper_org_id",
+        "driver_user_id",
+        "agreed_amount",
+        "settled_amount",
+        "completed_at",
+        "completed_by",
+        "charges",
+        "waiting_minutes",
+        "waiting_amount",
+        "waiting_billable",
+        "total_amount",
+        "currency"
+      ]
+    },
+    "BookingCompletedFrame": {
+      "title": "BookingCompletedFrame",
+      "description": "Frame `booking_completed` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.completed` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "booking_completed"
+        },
+        "data": {
+          "$ref": "#/definitions/BookingCompleted"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
+    "BookingCreated": {
+      "title": "BookingCreated",
+      "description": "A load was booked. Two paths: an accepted offer, or an instant claim from dispatch, which adds `source: instant`.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "shipper_org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "carrier_org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "driver_user_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "The driver; the offer path allows null, a booking always has one."
+        },
+        "agreed_amount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Agreed price, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3,
+          "description": "ISO 4217 code; `UZS` today."
+        },
+        "source": {
+          "type": "string",
+          "description": "Present only for an instant claim, and then always `instant`."
+        }
+      },
+      "required": [
+        "event_id",
+        "booking_id",
+        "load_id",
+        "shipper_org_id",
+        "carrier_org_id",
+        "driver_user_id",
+        "agreed_amount",
+        "currency"
+      ]
+    },
+    "BookingCreatedFrame": {
+      "title": "BookingCreatedFrame",
+      "description": "Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "booking_created"
+        },
+        "data": {
+          "$ref": "#/definitions/BookingCreated"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
+    "BookingEtaFrame": {
+      "title": "BookingEtaFrame",
+      "description": "Frame `booking_eta` goway-realtime sends to an app. Sent to the booking's viewers only, and dropped when a socket is slow. It currently forwards the internal `booking.eta_updated` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "booking_eta"
+        },
+        "data": {
+          "$ref": "#/definitions/BookingEtaUpdated"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
+    "BookingEtaUpdated": {
+      "title": "BookingEtaUpdated",
+      "description": "The arrival window or the time the truck is free again moved: when the haul is booked (`confirmed`), at every carrier step, and on fresh GPS while `en_route` or `in_transit`.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "carrier_org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "driver_user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "shipper_org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "status": {
+          "$ref": "#/definitions/BookingStatus"
+        },
+        "eta_stop": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/EtaStop"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Which stop the window is for; null when no arrival is expected any more."
+        },
+        "eta_from": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "Earliest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        },
+        "eta_to": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "Latest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        },
+        "free_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "When the truck is expected to be empty again. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        },
+        "free_region_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "Where the truck will be free: the drop-off region; null when unknown."
+        },
+        "truck_class": {
+          "type": "string",
+          "description": "The booked vehicle's truck class code."
+        }
+      },
+      "required": [
+        "event_id",
+        "booking_id",
+        "load_id",
+        "carrier_org_id",
+        "driver_user_id",
+        "shipper_org_id",
+        "status",
+        "eta_stop",
+        "eta_from",
+        "eta_to",
+        "free_at",
+        "free_region_id",
+        "truck_class"
+      ]
+    },
+    "BookingReturnLoads": {
+      "title": "BookingReturnLoads",
+      "description": "Hours before a truck is empty: loads are waiting in the region where it unloads. Sent once per haul.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "driver_user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "carrier_org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "region_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The drop-off region, where the truck will be free."
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Matching loads waiting there."
+        },
+        "heads_home": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How many of them go back to the haul's pickup region."
+        },
+        "free_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the truck is expected to be empty. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        }
+      },
+      "required": [
+        "event_id",
+        "booking_id",
+        "driver_user_id",
+        "carrier_org_id",
+        "region_id",
+        "count",
+        "heads_home",
+        "free_at"
+      ]
+    },
+    "BookingSide": {
+      "title": "BookingSide",
+      "type": "string",
+      "enum": [
+        "shipper",
+        "carrier"
+      ],
+      "description": "Which side claims."
+    },
+    "BookingStatus": {
+      "title": "BookingStatus",
+      "type": "string",
+      "enum": [
+        "confirmed",
+        "en_route",
+        "at_pickup",
+        "loading",
+        "in_transit",
+        "delivered",
+        "completed",
+        "cancelled"
+      ]
+    },
+    "BookingStatusChanged": {
+      "title": "BookingStatusChanged",
+      "description": "The carrier moved the haul one step on: `en_route`, `at_pickup`, `loading`, `in_transit` or `delivered`. Completion and cancellation have their own subjects.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "status": {
+          "$ref": "#/definitions/BookingStatus"
+        },
+        "shipper_org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "carrier_org_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "event_id",
+        "booking_id",
+        "load_id",
+        "status",
+        "shipper_org_id",
+        "carrier_org_id"
+      ]
+    },
+    "BookingStatusFrame": {
+      "title": "BookingStatusFrame",
+      "description": "Frame `booking_status` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.status_changed` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "booking_status"
+        },
+        "data": {
+          "$ref": "#/definitions/BookingStatusChanged"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
     "CancelledBy": {
       "title": "CancelledBy",
       "type": "string",
@@ -82,17 +846,634 @@
       ],
       "description": "Who cancelled."
     },
+    "CarrierDocumentExpired": {
+      "title": "CarrierDocumentExpired",
+      "description": "A carrier's document passed its expiry date; the hourly sweep marked it expired.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "kind": {
+          "$ref": "#/definitions/DocumentKind"
+        },
+        "expired_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The document's expiry date. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        }
+      },
+      "required": [
+        "event_id",
+        "org_id",
+        "kind",
+        "expired_at"
+      ]
+    },
+    "CarrierDocumentExpiring": {
+      "title": "CarrierDocumentExpiring",
+      "description": "A carrier's document expires within the warning window; sent once per document.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "kind": {
+          "$ref": "#/definitions/DocumentKind"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The document's expiry date. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        }
+      },
+      "required": [
+        "event_id",
+        "org_id",
+        "kind",
+        "expires_at"
+      ]
+    },
+    "CarrierDocumentReviewed": {
+      "title": "CarrierDocumentReviewed",
+      "description": "An operator approved or rejected a carrier's document.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "kind": {
+          "$ref": "#/definitions/DocumentKind"
+        },
+        "status": {
+          "$ref": "#/definitions/ReviewDecision"
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "What the operator wrote; a rejection always has one."
+        }
+      },
+      "required": [
+        "event_id",
+        "org_id",
+        "kind",
+        "status",
+        "note"
+      ]
+    },
+    "CarrierDocumentUpdated": {
+      "title": "CarrierDocumentUpdated",
+      "description": "A carrier submitted a new version of a document; it waits for review.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "kind": {
+          "$ref": "#/definitions/DocumentKind"
+        },
+        "status": {
+          "type": "string",
+          "description": "Always `pending` today."
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Version of this document kind, from 1."
+        }
+      },
+      "required": [
+        "event_id",
+        "org_id",
+        "kind",
+        "status",
+        "version"
+      ]
+    },
+    "CarrierVerificationChanged": {
+      "title": "CarrierVerificationChanged",
+      "description": "A carrier organization's verification moved: submitted or reopened by a replaced document (`pending`), or decided by an operator.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "status": {
+          "$ref": "#/definitions/VerificationStatus"
+        }
+      },
+      "required": [
+        "event_id",
+        "org_id",
+        "status"
+      ]
+    },
     "ClientFrame": {
       "title": "ClientFrame",
       "description": "Any frame an app may send; `type` tells which.",
       "discriminator": "type",
       "oneOf": [
         {
+          "$ref": "#/definitions/AuthFrame"
+        },
+        {
+          "$ref": "#/definitions/PingFrame"
+        },
+        {
           "$ref": "#/definitions/GoOnlineFrame"
         },
         {
+          "$ref": "#/definitions/GoOfflineFrame"
+        },
+        {
+          "$ref": "#/definitions/LocationFrame"
+        },
+        {
           "$ref": "#/definitions/OfferResponseFrame"
+        },
+        {
+          "$ref": "#/definitions/SubscribeBookingFrame"
+        },
+        {
+          "$ref": "#/definitions/UnsubscribeBookingFrame"
         }
+      ]
+    },
+    "CompletedBy": {
+      "title": "CompletedBy",
+      "type": "string",
+      "enum": [
+        "shipper",
+        "operator",
+        "system"
+      ],
+      "description": "Who closed the haul; `system` is the auto-complete sweep."
+    },
+    "Connected": {
+      "title": "Connected",
+      "description": "The `auth` frame was accepted; the socket is live.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "conn_id": {
+          "type": "string",
+          "description": "This socket's id, 32 hex characters."
+        },
+        "worker": {
+          "type": "string",
+          "description": "The goway-realtime worker holding the socket, `<host>-<pid>-<suffix>`; for logs."
+        },
+        "config": {
+          "$ref": "#/definitions/ConnectionConfig"
+        }
+      },
+      "required": [
+        "user_id",
+        "conn_id",
+        "worker",
+        "config"
+      ]
+    },
+    "ConnectedFrame": {
+      "title": "ConnectedFrame",
+      "description": "Frame `connected` goway-realtime sends to an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "connected"
+        },
+        "data": {
+          "$ref": "#/definitions/Connected"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
+    "ConnectionConfig": {
+      "title": "ConnectionConfig",
+      "description": "Current realtime settings the app plays by.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "offer_ttl_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Seconds a driver has to answer an offer."
+        },
+        "offer_grace_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Extra seconds after the deadline a late answer is still honoured."
+        },
+        "line_changes_per_day": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Line changes a driver may make per Tashkent day."
+        },
+        "location_sample_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Seconds between durable GPS samples."
+        }
+      },
+      "required": [
+        "offer_ttl_seconds",
+        "offer_grace_seconds",
+        "line_changes_per_day",
+        "location_sample_seconds"
+      ]
+    },
+    "DevicePlatform": {
+      "title": "DevicePlatform",
+      "type": "string",
+      "enum": [
+        "android",
+        "ios",
+        "web"
+      ]
+    },
+    "DevicePushFailed": {
+      "title": "DevicePushFailed",
+      "description": "The push provider rejected a device's token as dead; the device should be shown as unreachable.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "device_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "event_id",
+        "device_id",
+        "user_id"
+      ]
+    },
+    "DeviceRemoved": {
+      "title": "DeviceRemoved",
+      "description": "The owner removed a device; its sessions are closed and it is pushed no more.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "device_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "installation_id": {
+          "type": "string",
+          "description": "The app install's own id."
+        }
+      },
+      "required": [
+        "event_id",
+        "device_id",
+        "user_id",
+        "installation_id"
+      ]
+    },
+    "DeviceUpserted": {
+      "title": "DeviceUpserted",
+      "description": "A device was registered or came back after removal, or its push token changed or was cleared (signing out clears it).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "device_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "platform": {
+          "$ref": "#/definitions/DevicePlatform"
+        },
+        "push_token": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "FCM registration token; null when the device can no longer be pushed."
+        }
+      },
+      "required": [
+        "event_id",
+        "device_id",
+        "user_id",
+        "platform",
+        "push_token"
+      ]
+    },
+    "DispatchOffered": {
+      "title": "DispatchOffered",
+      "description": "An instant load was offered to a wave of drivers on its line, so a driver whose app is in the background still sees it. Loss-tolerant: the socket frame is the offer itself.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it."
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "drivers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "minItems": 1,
+          "description": "Drivers the wave reached."
+        },
+        "from_region_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "to_region_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "truck_class": {
+          "type": "string",
+          "description": "Truck class code from the reference list."
+        },
+        "amount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The load's fixed price, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3,
+          "description": "ISO 4217 code; `UZS` today."
+        },
+        "weight_kg": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "deadline_at": {
+          "type": "integer",
+          "description": "Answer deadline, unix milliseconds in server time."
+        }
+      },
+      "required": [
+        "event_id",
+        "load_id",
+        "drivers",
+        "from_region_id",
+        "to_region_id",
+        "truck_class",
+        "amount",
+        "currency",
+        "weight_kg",
+        "deadline_at"
+      ]
+    },
+    "DisplayCurrency": {
+      "title": "DisplayCurrency",
+      "type": "string",
+      "enum": [
+        "UZS",
+        "USD",
+        "RUB",
+        "KZT"
+      ],
+      "description": "Display currency; charges stay in UZS."
+    },
+    "DocumentKind": {
+      "title": "DocumentKind",
+      "type": "string",
+      "enum": [
+        "passport",
+        "driver_license",
+        "tech_passport",
+        "vehicle_photo",
+        "power_of_attorney"
+      ]
+    },
+    "DriverLocation": {
+      "title": "DriverLocation",
+      "description": "The booked driver's live position, relayed to the booking's viewers as it arrives; dropped when a socket is slow.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "lat": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "lng": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "heading": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Degrees from north; null when the driver's device did not send it."
+        },
+        "speed": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Null when the driver's device did not send it."
+        }
+      },
+      "required": [
+        "booking_id",
+        "lat",
+        "lng",
+        "heading",
+        "speed"
+      ]
+    },
+    "DriverLocationFrame": {
+      "title": "DriverLocationFrame",
+      "description": "Frame `driver_location` goway-realtime sends to an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "driver_location"
+        },
+        "data": {
+          "$ref": "#/definitions/DriverLocation"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
+    "DriverOffline": {
+      "title": "DriverOffline",
+      "description": "A driver left the line: went offline, the line expired, the grace after a disconnect ran out, or the sessions were revoked.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it."
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "From the presence record, which always has it."
+        }
+      },
+      "required": [
+        "event_id",
+        "user_id",
+        "org_id"
+      ]
+    },
+    "DriverOnline": {
+      "title": "DriverOnline",
+      "description": "A driver opened or changed a line and waits for instant offers.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it."
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "from_region_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "to_region_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "vehicle_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "bidirectional": {
+          "type": "boolean",
+          "description": "Also takes loads on the way back."
+        },
+        "expires_at": {
+          "type": "integer",
+          "description": "When the line ends, unix milliseconds."
+        }
+      },
+      "required": [
+        "event_id",
+        "user_id",
+        "org_id",
+        "from_region_id",
+        "to_region_id",
+        "vehicle_id",
+        "bidirectional",
+        "expires_at"
       ]
     },
     "DriverStatsChanged": {
@@ -161,12 +1542,28 @@
         "ts"
       ]
     },
+    "EtaStop": {
+      "title": "EtaStop",
+      "type": "string",
+      "enum": [
+        "pickup",
+        "dropoff"
+      ]
+    },
     "FrameError": {
       "title": "FrameError",
-      "description": "A frame was refused; the same problem shape as REST errors.",
+      "description": "A frame was refused; the same problem shape as REST errors. Two forms are sent: a first frame that is not `auth`, an unreadable frame and a refused booking subscription send only `code` and `key`; every other refusal sends the full problem body with `type`, `title`, `status` and `code`, plus `detail`, `key` and `params` when set.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "type": {
+          "type": "string",
+          "description": "Problem type URI, `https://api.goway.uz/problems/<code>`."
+        },
+        "title": {
+          "type": "string",
+          "description": "HTTP status phrase, for example `Conflict`."
+        },
         "code": {
           "type": "string",
           "description": "Stable code the app branches on."
@@ -189,6 +1586,31 @@
       },
       "required": [
         "code"
+      ]
+    },
+    "GoOffline": {
+      "title": "GoOffline",
+      "description": "Leave the line. Nothing to send: an empty object, or no `data` at all.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {}
+    },
+    "GoOfflineFrame": {
+      "title": "GoOfflineFrame",
+      "description": "Frame `go_offline` an app sends to goway-realtime.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "go_offline"
+        },
+        "data": {
+          "$ref": "#/definitions/GoOffline"
+        }
+      },
+      "required": [
+        "type"
       ]
     },
     "GoOnline": {
@@ -255,6 +1677,632 @@
         "subscription"
       ]
     },
+    "Kicked": {
+      "title": "Kicked",
+      "description": "This socket is being closed by the server; sign in again.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "`device_removed`, `logout` (closed from another device), the `user.session_revoked` reason, or what a service passed to `/internal/kick`; null when none was given."
+        }
+      },
+      "required": [
+        "reason"
+      ]
+    },
+    "KickedFrame": {
+      "title": "KickedFrame",
+      "description": "Frame `kicked` goway-realtime sends to an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "kicked"
+        },
+        "data": {
+          "$ref": "#/definitions/Kicked"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
+    "LineExpired": {
+      "title": "LineExpired",
+      "description": "The driver's line ended and the driver is offline; open a line again to get offers.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expired_at": {
+          "type": "integer",
+          "description": "When the line ended, unix milliseconds."
+        }
+      },
+      "required": [
+        "expired_at"
+      ]
+    },
+    "LineExpiredFrame": {
+      "title": "LineExpiredFrame",
+      "description": "Frame `line_expired` goway-realtime sends to an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "line_expired"
+        },
+        "data": {
+          "$ref": "#/definitions/LineExpired"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
+    "LineExpiring": {
+      "title": "LineExpiring",
+      "description": "The driver's line ends soon (`line_expiry_warning_minutes` before).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expires_at": {
+          "type": "integer",
+          "description": "When the line ends, unix milliseconds."
+        }
+      },
+      "required": [
+        "expires_at"
+      ]
+    },
+    "LineExpiringFrame": {
+      "title": "LineExpiringFrame",
+      "description": "Frame `line_expiring` goway-realtime sends to an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "line_expiring"
+        },
+        "data": {
+          "$ref": "#/definitions/LineExpiring"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
+    "LoadCancelled": {
+      "title": "LoadCancelled",
+      "description": "The shipper withdrew an open load.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The shipper organization."
+        }
+      },
+      "required": [
+        "event_id",
+        "load_id",
+        "org_id"
+      ]
+    },
+    "LoadExpired": {
+      "title": "LoadExpired",
+      "description": "An open load passed its expiry unbooked; the sweep closed it.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The shipper organization."
+        }
+      },
+      "required": [
+        "event_id",
+        "load_id",
+        "org_id"
+      ]
+    },
+    "LoadPosted": {
+      "title": "LoadPosted",
+      "description": "A load is open on the board: just posted (one event per truck of a multi-truck post), or back on the board after its booking was cancelled, which adds `reposted: true`.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The shipper organization."
+        },
+        "from_region_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "Pickup region; null when the address resolved to none."
+        },
+        "to_region_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "Drop-off region; null when the address resolved to none."
+        },
+        "truck_class": {
+          "type": "string",
+          "description": "Truck class code from the reference list."
+        },
+        "loading_method": {
+          "type": "string",
+          "description": "How the cargo goes in: `top` or `rear`."
+        },
+        "needs_refrigeration": {
+          "type": "boolean"
+        },
+        "allow_instant": {
+          "type": "boolean",
+          "description": "Whether instant dispatch may offer the load."
+        },
+        "price_mode": {
+          "$ref": "#/definitions/PriceMode"
+        },
+        "asking_amount": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "The shipper's price, whole so'm (a bare integer; `currency` is UZS today); null when it asks for offers."
+        },
+        "bonus_amount": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Shipper bonus set aside for this truck, whole so'm (a bare integer; `currency` is UZS today); null when none."
+        },
+        "suggested_amount": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Market price GoWay suggested, whole so'm (a bare integer; `currency` is UZS today); null when there was none."
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3,
+          "description": "ISO 4217 code; `UZS` today."
+        },
+        "weight_kg": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pickup_from": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "Earliest pickup; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        },
+        "pickup_to": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "Latest pickup, also the posting's expiry; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        },
+        "pickup_lat": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Pickup point latitude; null only when the load has no stops."
+        },
+        "pickup_lng": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Pickup point longitude; null only when the load has no stops."
+        },
+        "group_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "Shared by the sibling loads of one multi-truck post; null for a single truck."
+        },
+        "is_urgent": {
+          "type": "boolean"
+        },
+        "payment_method": {
+          "$ref": "#/definitions/PaymentMethod"
+        },
+        "reposted": {
+          "type": "boolean",
+          "description": "Present, and true, only when a cancelled booking put the load back."
+        }
+      },
+      "required": [
+        "event_id",
+        "load_id",
+        "org_id",
+        "from_region_id",
+        "to_region_id",
+        "truck_class",
+        "loading_method",
+        "needs_refrigeration",
+        "allow_instant",
+        "price_mode",
+        "asking_amount",
+        "bonus_amount",
+        "suggested_amount",
+        "currency",
+        "weight_kg",
+        "pickup_from",
+        "pickup_to",
+        "pickup_lat",
+        "pickup_lng",
+        "group_id",
+        "is_urgent",
+        "payment_method"
+      ]
+    },
+    "Location": {
+      "title": "Location",
+      "description": "The driver's position. Relayed to booking viewers and sampled as evidence only while a booking is active.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lat": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "lng": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "heading": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Degrees from north, when the device knows it."
+        },
+        "speed": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Speed the device reports, when it knows it."
+        }
+      },
+      "required": [
+        "lat",
+        "lng"
+      ]
+    },
+    "LocationFrame": {
+      "title": "LocationFrame",
+      "description": "Frame `location` an app sends to goway-realtime.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "location"
+        },
+        "data": {
+          "$ref": "#/definitions/Location"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    "LocationSampled": {
+      "title": "LocationSampled",
+      "description": "A driver's GPS position during an active booking, sampled every `location_sample_seconds` as evidence of the haul.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it."
+        },
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "driver_user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "lat": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "lng": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "recorded_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the position was sampled, RFC 3339 UTC with milliseconds."
+        }
+      },
+      "required": [
+        "event_id",
+        "booking_id",
+        "driver_user_id",
+        "lat",
+        "lng",
+        "recorded_at"
+      ]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "Something landed in the user's notification feed; refresh the badge. Copied from `notification.created`; a field that event lacked or sent empty arrives as null.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "notification_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid"
+        },
+        "kind": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Template kind, for example `driver_found` or `announcement`."
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Title in the user's language."
+        },
+        "body": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Text in the user's language."
+        }
+      },
+      "required": [
+        "notification_id",
+        "kind",
+        "title",
+        "body"
+      ]
+    },
+    "NotificationCreated": {
+      "title": "NotificationCreated",
+      "description": "A message landed in a user's notification feed: from an event, or from an admin announcement (`kind: announcement`).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "notification_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Template kind, for example `driver_found`, `booking_status` or `announcement`."
+        },
+        "title": {
+          "type": "string",
+          "description": "Title in the user's language."
+        },
+        "body": {
+          "type": "string",
+          "description": "Text in the user's language."
+        }
+      },
+      "required": [
+        "event_id",
+        "notification_id",
+        "user_id",
+        "kind",
+        "title",
+        "body"
+      ]
+    },
+    "NotificationFrame": {
+      "title": "NotificationFrame",
+      "description": "Frame `notification` goway-realtime sends to an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "notification"
+        },
+        "data": {
+          "$ref": "#/definitions/Notification"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
+    "NotificationPrefs": {
+      "title": "NotificationPrefs",
+      "description": "Every switch, sent whole whenever one of them changed.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "offers": {
+          "type": "boolean",
+          "description": "Push for new offers and dispatch results."
+        },
+        "orders": {
+          "type": "boolean",
+          "description": "Push for booking status changes."
+        },
+        "marketing": {
+          "type": "boolean",
+          "description": "Promotions and news."
+        },
+        "sms": {
+          "type": "boolean",
+          "description": "SMS fallback for critical events."
+        }
+      },
+      "required": [
+        "offers",
+        "orders",
+        "marketing",
+        "sms"
+      ]
+    },
+    "OfferAccepted": {
+      "title": "OfferAccepted",
+      "description": "An offer was accepted and became a booking; published together with `booking.created`.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "offer_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "shipper_org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "carrier_org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "driver_user_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "The driver who made the offer; the code allows null, an offer always has one."
+        }
+      },
+      "required": [
+        "event_id",
+        "offer_id",
+        "load_id",
+        "booking_id",
+        "shipper_org_id",
+        "carrier_org_id",
+        "driver_user_id"
+      ]
+    },
     "OfferAction": {
       "title": "OfferAction",
       "type": "string",
@@ -262,6 +2310,69 @@
         "accept",
         "decline"
       ]
+    },
+    "OfferCreated": {
+      "title": "OfferCreated",
+      "description": "A carrier asked for a load, or either side countered the other's price.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "offer_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "kind": {
+          "$ref": "#/definitions/OfferKind"
+        },
+        "carrier_org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "shipper_org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "amount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Offered price, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3,
+          "description": "ISO 4217 code; `UZS` today."
+        }
+      },
+      "required": [
+        "event_id",
+        "offer_id",
+        "load_id",
+        "kind",
+        "carrier_org_id",
+        "shipper_org_id",
+        "amount",
+        "currency"
+      ]
+    },
+    "OfferKind": {
+      "title": "OfferKind",
+      "type": "string",
+      "enum": [
+        "carrier_request",
+        "carrier_counter",
+        "shipper_counter"
+      ],
+      "description": "Who made the offer and how."
     },
     "OfferOutcome": {
       "title": "OfferOutcome",
@@ -407,9 +2518,12 @@
           "$ref": "#/definitions/OfferOutcome"
         },
         "booking_id": {
-          "type": "string",
+          "type": [
+            "string",
+            "null"
+          ],
           "format": "uuid",
-          "description": "Set when the outcome is `won`."
+          "description": "Sent only when the outcome is `won`; null when goway-loads' answer could not be read."
         }
       },
       "required": [
@@ -442,11 +2556,410 @@
         "ts"
       ]
     },
+    "OffersBlocked": {
+      "title": "OffersBlocked",
+      "description": "The wallet stopped being eligible; no offers until it is settled.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "$ref": "#/definitions/OffersBlockedReason"
+        }
+      },
+      "required": [
+        "reason"
+      ]
+    },
+    "OffersBlockedFrame": {
+      "title": "OffersBlockedFrame",
+      "description": "Frame `offers_blocked` goway-realtime sends to an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "offers_blocked"
+        },
+        "data": {
+          "$ref": "#/definitions/OffersBlocked"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
+    "OffersBlockedReason": {
+      "title": "OffersBlockedReason",
+      "type": "string",
+      "enum": [
+        "BALANCE_INSUFFICIENT",
+        "SUBSCRIPTION_REQUIRED"
+      ]
+    },
+    "OffersUnblocked": {
+      "title": "OffersUnblocked",
+      "description": "The wallet is eligible again after being blocked; nothing in it.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {}
+    },
+    "OffersUnblockedFrame": {
+      "title": "OffersUnblockedFrame",
+      "description": "Frame `offers_unblocked` goway-realtime sends to an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "offers_unblocked"
+        },
+        "data": {
+          "$ref": "#/definitions/OffersUnblocked"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
+    "Offline": {
+      "title": "Offline",
+      "description": "The driver left the line after `go_offline`.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {}
+    },
+    "OfflineFrame": {
+      "title": "OfflineFrame",
+      "description": "Frame `offline` goway-realtime sends to an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "offline"
+        },
+        "data": {
+          "$ref": "#/definitions/Offline"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
+    "Online": {
+      "title": "Online",
+      "description": "The driver is on the line after `go_online`.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "queue_position": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Place in the outbound line's queue, from 1."
+        },
+        "expires_at": {
+          "type": "integer",
+          "description": "When the line ends, unix milliseconds."
+        },
+        "offers_blocked": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/OffersBlockedReason"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Set when the wallet blocks offers, null otherwise; this frame only ever sends `BALANCE_INSUFFICIENT`."
+        }
+      },
+      "required": [
+        "queue_position",
+        "expires_at",
+        "offers_blocked"
+      ]
+    },
+    "OnlineFrame": {
+      "title": "OnlineFrame",
+      "description": "Frame `online` goway-realtime sends to an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "online"
+        },
+        "data": {
+          "$ref": "#/definitions/Online"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
+    "OrgUpdated": {
+      "title": "OrgUpdated",
+      "description": "An organization's details changed. Only what changed is sent, besides `org_id` and `updated_at`: a role switch sends `kind` and `account_type`; the organization screen any of `name`, `legal_name`, `inn`, `contact_phone`, `address`.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Market side: `shipper` or `carrier`."
+        },
+        "account_type": {
+          "$ref": "#/definitions/AccountType"
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name."
+        },
+        "legal_name": {
+          "type": "string",
+          "description": "Registered company name."
+        },
+        "inn": {
+          "type": "string",
+          "description": "Tax id (STIR/INN), 9 digits."
+        },
+        "contact_phone": {
+          "type": "string",
+          "description": "E.164 number, `+998…`."
+        },
+        "address": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the change was made. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        }
+      },
+      "required": [
+        "event_id",
+        "org_id",
+        "updated_at"
+      ]
+    },
+    "PaymentMethod": {
+      "title": "PaymentMethod",
+      "type": "string",
+      "enum": [
+        "cash",
+        "transfer",
+        "card",
+        "mixed"
+      ]
+    },
+    "Ping": {
+      "title": "Ping",
+      "description": "Nothing: an empty object, or no `data` at all.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {}
+    },
+    "PingFrame": {
+      "title": "PingFrame",
+      "description": "Frame `ping` an app sends to goway-realtime.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "ping"
+        },
+        "data": {
+          "$ref": "#/definitions/Ping"
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "Pong": {
+      "title": "Pong",
+      "description": "The answer to `ping`; nothing in it.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {}
+    },
+    "PongFrame": {
+      "title": "PongFrame",
+      "description": "Frame `pong` goway-realtime sends to an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "pong"
+        },
+        "data": {
+          "$ref": "#/definitions/Pong"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
+    "PriceMode": {
+      "title": "PriceMode",
+      "type": "string",
+      "enum": [
+        "fixed",
+        "negotiable"
+      ]
+    },
+    "RatingCreated": {
+      "title": "RatingCreated",
+      "description": "The shipper rated a completed haul; sent once per haul.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "target": {
+          "type": "string",
+          "description": "Who was rated; always `driver` today."
+        },
+        "driver_user_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "The rated driver; the code allows null, a booking always has one."
+        },
+        "carrier_org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "shipper_org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "stars": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "1 to 5."
+        }
+      },
+      "required": [
+        "event_id",
+        "booking_id",
+        "load_id",
+        "target",
+        "driver_user_id",
+        "carrier_org_id",
+        "shipper_org_id",
+        "stars"
+      ]
+    },
+    "RegionChanged": {
+      "title": "RegionChanged",
+      "description": "An admin opened or closed a region for the marketplace.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "region_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "is_active": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "event_id",
+        "region_id",
+        "is_active"
+      ]
+    },
+    "ReviewDecision": {
+      "title": "ReviewDecision",
+      "type": "string",
+      "enum": [
+        "approved",
+        "rejected"
+      ],
+      "description": "The decision."
+    },
     "ServerFrame": {
       "title": "ServerFrame",
       "description": "Any frame goway-realtime may send; `type` tells which.",
       "discriminator": "type",
       "oneOf": [
+        {
+          "$ref": "#/definitions/ConnectedFrame"
+        },
+        {
+          "$ref": "#/definitions/PongFrame"
+        },
+        {
+          "$ref": "#/definitions/OnlineFrame"
+        },
+        {
+          "$ref": "#/definitions/OfflineFrame"
+        },
         {
           "$ref": "#/definitions/OfferProposedFrame"
         },
@@ -454,13 +2967,807 @@
           "$ref": "#/definitions/OfferResultFrame"
         },
         {
+          "$ref": "#/definitions/SubscribedFrame"
+        },
+        {
+          "$ref": "#/definitions/BookingCreatedFrame"
+        },
+        {
+          "$ref": "#/definitions/BookingStatusFrame"
+        },
+        {
+          "$ref": "#/definitions/BookingEtaFrame"
+        },
+        {
+          "$ref": "#/definitions/BookingCompletedFrame"
+        },
+        {
+          "$ref": "#/definitions/BookingCancelledFrame"
+        },
+        {
+          "$ref": "#/definitions/DriverLocationFrame"
+        },
+        {
+          "$ref": "#/definitions/LineExpiringFrame"
+        },
+        {
+          "$ref": "#/definitions/LineExpiredFrame"
+        },
+        {
+          "$ref": "#/definitions/OffersBlockedFrame"
+        },
+        {
+          "$ref": "#/definitions/OffersUnblockedFrame"
+        },
+        {
+          "$ref": "#/definitions/NotificationFrame"
+        },
+        {
+          "$ref": "#/definitions/SessionStartedFrame"
+        },
+        {
+          "$ref": "#/definitions/KickedFrame"
+        },
+        {
           "$ref": "#/definitions/ErrorFrame"
         }
       ]
     },
+    "SessionStarted": {
+      "title": "SessionStarted",
+      "description": "Somebody signed in to this account; ignore it when `installation_id` is this app's own. Copied from `user.login`; a field that event lacked or sent empty arrives as null.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "device_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid"
+        },
+        "installation_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "platform": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/DevicePlatform"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Device platform."
+        },
+        "model": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Device model."
+        },
+        "new_device": {
+          "type": "boolean"
+        },
+        "at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "When the sign-in happened, as `user.login` wrote it."
+        }
+      },
+      "required": [
+        "device_id",
+        "installation_id",
+        "platform",
+        "model",
+        "new_device",
+        "at"
+      ]
+    },
+    "SessionStartedFrame": {
+      "title": "SessionStartedFrame",
+      "description": "Frame `session_started` goway-realtime sends to an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "session_started"
+        },
+        "data": {
+          "$ref": "#/definitions/SessionStarted"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
+    "SettingsChanged": {
+      "title": "SettingsChanged",
+      "description": "An admin changed or reset runtime settings of one service. Published by goway-lib for goway-auth, goway-loads, goway-billing and goway-notify, and by goway-realtime itself, with the same fields.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event: the outbox row id from a Python service, a random UUID from goway-realtime. Consumers dedupe on it."
+        },
+        "service": {
+          "type": "string",
+          "description": "The service whose settings changed, for example `goway-loads`."
+        },
+        "keys": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Setting keys that changed."
+        },
+        "by": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "The admin who changed them; null when not known."
+        }
+      },
+      "required": [
+        "event_id",
+        "service",
+        "keys",
+        "by"
+      ]
+    },
+    "SubscribeBooking": {
+      "title": "SubscribeBooking",
+      "description": "Watch a booking of the caller's organization: status, arrival window and the driver's position.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "booking_id"
+      ]
+    },
+    "SubscribeBookingFrame": {
+      "title": "SubscribeBookingFrame",
+      "description": "Frame `subscribe_booking` an app sends to goway-realtime.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "subscribe_booking"
+        },
+        "data": {
+          "$ref": "#/definitions/SubscribeBooking"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    "Subscribed": {
+      "title": "Subscribed",
+      "description": "`subscribe_booking` was accepted.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "booking_id"
+      ]
+    },
+    "SubscribedFrame": {
+      "title": "SubscribedFrame",
+      "description": "Frame `subscribed` goway-realtime sends to an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "subscribed"
+        },
+        "data": {
+          "$ref": "#/definitions/Subscribed"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
+    "SupportTicketCreated": {
+      "title": "SupportTicketCreated",
+      "description": "A user opened a support ticket.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "ticket_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "number": {
+          "type": "string",
+          "description": "Reference the user sees: `T-` and six characters, for example `T-7KQ2MZ`."
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "topic": {
+          "$ref": "#/definitions/SupportTopic"
+        },
+        "order_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "The haul the ticket is about; null when none was named."
+        }
+      },
+      "required": [
+        "event_id",
+        "ticket_id",
+        "number",
+        "user_id",
+        "topic",
+        "order_id"
+      ]
+    },
+    "SupportTicketReplied": {
+      "title": "SupportTicketReplied",
+      "description": "Support answered or closed a ticket.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "ticket_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "number": {
+          "type": "string",
+          "description": "Reference the user sees: `T-` and six characters, for example `T-7KQ2MZ`."
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Who opened the ticket."
+        },
+        "status": {
+          "$ref": "#/definitions/TicketReplyStatus"
+        }
+      },
+      "required": [
+        "event_id",
+        "ticket_id",
+        "number",
+        "user_id",
+        "status"
+      ]
+    },
+    "SupportTopic": {
+      "title": "SupportTopic",
+      "type": "string",
+      "enum": [
+        "suggestion",
+        "complaint",
+        "bug",
+        "payment",
+        "order",
+        "driver",
+        "app",
+        "documents",
+        "other"
+      ],
+      "description": "What the ticket is about."
+    },
+    "Theme": {
+      "title": "Theme",
+      "type": "string",
+      "enum": [
+        "light",
+        "dark",
+        "system"
+      ],
+      "description": "App theme."
+    },
+    "TicketReplyStatus": {
+      "title": "TicketReplyStatus",
+      "type": "string",
+      "enum": [
+        "answered",
+        "closed"
+      ],
+      "description": "The ticket's status after the reply."
+    },
+    "UnsubscribeBooking": {
+      "title": "UnsubscribeBooking",
+      "description": "Stop watching a booking.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "booking_id"
+      ]
+    },
+    "UnsubscribeBookingFrame": {
+      "title": "UnsubscribeBookingFrame",
+      "description": "Frame `unsubscribe_booking` an app sends to goway-realtime.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "unsubscribe_booking"
+        },
+        "data": {
+          "$ref": "#/definitions/UnsubscribeBooking"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    "UserCreated": {
+      "title": "UserCreated",
+      "description": "An account came into being. Three paths publish it with different fields: self-signup sends `account_type`; an admin create sends `first_name` and `last_name`, either of which may be null; an admin restore of a soft-deleted account sends `updated_at`. `user_id`, `org_id`, `role`, `phone` and `language` are always sent.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "role": {
+          "type": "string",
+          "description": "Role name. Self-signup sends `shipper` or `carrier`, an admin create the role it picked, a restore the stored role or an empty string when the user has none."
+        },
+        "account_type": {
+          "$ref": "#/definitions/AccountType"
+        },
+        "phone": {
+          "type": "string",
+          "description": "E.164 number, `+998…`. A restore sends the stored value, which is `del:…` for an account its owner deleted."
+        },
+        "language": {
+          "type": "string",
+          "description": "App language code: uz, uzc, ru, en, kaa or zh."
+        },
+        "first_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Admin create only; null when the admin gave none."
+        },
+        "last_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Admin create only; null when the admin gave none."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Admin restore only: when the account came back. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        }
+      },
+      "required": [
+        "event_id",
+        "user_id",
+        "org_id",
+        "role",
+        "phone",
+        "language"
+      ]
+    },
+    "UserDeleted": {
+      "title": "UserDeleted",
+      "description": "An account was deleted: by its owner, without `updated_at`, or by an admin, soft or hard, with `updated_at`.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Admin deletes only: when the account was deleted. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        }
+      },
+      "required": [
+        "event_id",
+        "user_id",
+        "org_id"
+      ]
+    },
+    "UserLogin": {
+      "title": "UserLogin",
+      "description": "Somebody signed in to the account: by code, password, password reset or phone change. The device fields are null when the app sent no device.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "device_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "Device row the session belongs to."
+        },
+        "installation_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The app install's own id."
+        },
+        "platform": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/DevicePlatform"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Device platform."
+        },
+        "model": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Device model as the app reported it."
+        },
+        "new_device": {
+          "type": "boolean",
+          "description": "True the first time this install signs in, or when a removed device comes back."
+        },
+        "ip": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Client address."
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the sign-in happened. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        }
+      },
+      "required": [
+        "event_id",
+        "user_id",
+        "device_id",
+        "installation_id",
+        "platform",
+        "model",
+        "new_device",
+        "ip",
+        "at"
+      ]
+    },
+    "UserSessionRevoked": {
+      "title": "UserSessionRevoked",
+      "description": "Every session of the account was closed; each app must sign in again.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why: `password_change`, `password_reset`, `phone_change`, `deleted`, `blocked`, or the free text an admin wrote when blocking the account."
+        }
+      },
+      "required": [
+        "event_id",
+        "user_id",
+        "reason"
+      ]
+    },
+    "UserSessionsClosed": {
+      "title": "UserSessionsClosed",
+      "description": "Some of the account's sessions were closed from another device; those installs must sign in again.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "installation_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Installs whose sessions were closed; never empty."
+        },
+        "reason": {
+          "type": "string",
+          "description": "Always `logout` today."
+        }
+      },
+      "required": [
+        "event_id",
+        "user_id",
+        "installation_ids",
+        "reason"
+      ]
+    },
+    "UserUpdated": {
+      "title": "UserUpdated",
+      "description": "Something about an account changed. Only what changed is sent, besides `user_id` and `updated_at`, and five paths send five field sets: a confirmed phone change sends `phone`; the account settings screen any of `language`, `currency`, `theme`, `notification_prefs`; a role switch `role`; an admin edit any of `phone`, `language`, `first_name`, `last_name`, plus `role` whenever the admin named one; a profile edit `first_name`, `last_name`, `email` and `avatar_url` together, each of them possibly null.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "phone": {
+          "type": "string",
+          "description": "New E.164 number, `+998…`."
+        },
+        "language": {
+          "type": "string",
+          "description": "App language code: uz, uzc, ru, en, kaa or zh."
+        },
+        "currency": {
+          "$ref": "#/definitions/DisplayCurrency"
+        },
+        "theme": {
+          "$ref": "#/definitions/Theme"
+        },
+        "notification_prefs": {
+          "$ref": "#/definitions/NotificationPrefs"
+        },
+        "role": {
+          "type": "string",
+          "description": "Role name: `shipper` or `carrier` from a role switch, any role from an admin edit."
+        },
+        "first_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Null only from a profile edit, when the profile has no first name."
+        },
+        "last_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Null only from a profile edit, when the profile has no last name."
+        },
+        "email": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Profile edit only; null when the profile has no email."
+        },
+        "avatar_url": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Profile edit only. Public avatar address; null when there is none or it would expire."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the change was made. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        }
+      },
+      "required": [
+        "event_id",
+        "user_id",
+        "updated_at"
+      ]
+    },
+    "VehicleRemoved": {
+      "title": "VehicleRemoved",
+      "description": "A fleet vehicle was removed.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "vehicle_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "event_id",
+        "vehicle_id",
+        "org_id"
+      ]
+    },
+    "VehicleUpserted": {
+      "title": "VehicleUpserted",
+      "description": "A fleet vehicle was added or changed; the whole vehicle is sent every time.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "vehicle_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "plate_number": {
+          "type": "string",
+          "description": "Normalized plate: no spaces, upper case."
+        },
+        "truck_class": {
+          "type": "string",
+          "description": "Truck class code from the reference list."
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Capability codes: rear_ramp, open_top, side_curtain, tail_lift, refrigerated."
+        },
+        "loading_method": {
+          "type": "string",
+          "description": "How the vehicle is loaded: `top`, `rear` or `both`."
+        },
+        "capacity_kg": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Payload in kilograms; null when not given."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the vehicle was saved. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        }
+      },
+      "required": [
+        "event_id",
+        "vehicle_id",
+        "org_id",
+        "plate_number",
+        "truck_class",
+        "capabilities",
+        "loading_method",
+        "capacity_kg",
+        "updated_at"
+      ]
+    },
+    "VerificationStatus": {
+      "title": "VerificationStatus",
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "description": "The new verification status."
+    },
     "WalletEligibilityChanged": {
       "title": "WalletEligibilityChanged",
-      "description": "An organization's wallet started or stopped being allowed to receive offers. One event per user of the organization.",
+      "description": "An organization's wallet started or stopped being allowed to receive offers. One event per user of the organization, or a single event with a null `user_id` when billing knows no user of it yet.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -474,8 +3781,12 @@
           "format": "uuid"
         },
         "user_id": {
-          "type": "string",
-          "format": "uuid"
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "Null when billing's replica holds no user of the organization."
         },
         "eligible": {
           "type": "boolean"
@@ -509,6 +3820,112 @@
         "balance",
         "debt_limit",
         "reason"
+      ]
+    },
+    "WalletEntryPosted": {
+      "title": "WalletEntryPosted",
+      "description": "A line was written to an organization's wallet ledger.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "entry_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "kind": {
+          "type": "string",
+          "description": "Ledger line kind: commission, commission_adjustment, cash_topup, cash_void, adjustment, subscription_fee, promo, referral, bonus_hold, bonus_release or bonus_discount."
+        },
+        "amount": {
+          "type": "integer",
+          "description": "Signed change of the balance, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "balance": {
+          "type": "integer",
+          "description": "Balance after the line, whole so'm (a bare integer; `currency` is UZS today); negative means debt."
+        },
+        "booking_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "The haul the line is for; null for lines not tied to a haul."
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3,
+          "description": "ISO 4217 code; `UZS` today."
+        }
+      },
+      "required": [
+        "event_id",
+        "org_id",
+        "entry_id",
+        "kind",
+        "amount",
+        "balance",
+        "booking_id",
+        "currency"
+      ]
+    },
+    "WalletToppedUp": {
+      "title": "WalletToppedUp",
+      "description": "An operator took cash for an organization's wallet and issued a receipt.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "payment_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "receipt_no": {
+          "type": "string",
+          "description": "Receipt number, `GW-<year>-<6 digits>`, for example `GW-2026-000123`."
+        },
+        "amount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Cash received, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "balance": {
+          "type": "integer",
+          "description": "Balance after the top-up, whole so'm (a bare integer; `currency` is UZS today); negative means debt."
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3,
+          "description": "ISO 4217 code; `UZS` today."
+        }
+      },
+      "required": [
+        "event_id",
+        "org_id",
+        "payment_id",
+        "receipt_no",
+        "amount",
+        "balance",
+        "currency"
       ]
     }
   }

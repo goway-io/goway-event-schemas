@@ -31,9 +31,12 @@
           ]
         },
         "booking_id": {
-          "type": "string",
+          "type": [
+            "string",
+            "null"
+          ],
           "format": "uuid",
-          "description": "Set when the outcome is `won`."
+          "description": "Sent only when the outcome is `won`; null when goway-loads' answer could not be read."
         }
       },
       "required": [

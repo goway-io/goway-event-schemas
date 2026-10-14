@@ -1,0 +1,8 @@
+{
+  "type": "error",
+  "data": {
+    "code": "BAD_FRAME",
+    "key": "ws.bad_frame"
+  },
+  "ts": "2026-10-14T09:30:00.123Z"
+}

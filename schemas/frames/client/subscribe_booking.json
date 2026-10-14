@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SubscribeBookingFrame",
+  "description": "Frame `subscribe_booking` an app sends to goway-realtime.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "subscribe_booking"
+    },
+    "data": {
+      "title": "SubscribeBooking",
+      "description": "Watch a booking of the caller's organization: status, arrival window and the driver's position.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "booking_id"
+      ]
+    }
+  },
+  "required": [
+    "type",
+    "data"
+  ]
+}

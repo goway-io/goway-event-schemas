@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BookingReturnLoads",
+  "description": "Hours before a truck is empty: loads are waiting in the region where it unloads. Sent once per haul.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "booking_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "driver_user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "carrier_org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "region_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The drop-off region, where the truck will be free."
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Matching loads waiting there."
+    },
+    "heads_home": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "How many of them go back to the haul's pickup region."
+    },
+    "free_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the truck is expected to be empty. ISO 8601 with offset, as Python's `isoformat()` writes it."
+    }
+  },
+  "required": [
+    "event_id",
+    "booking_id",
+    "driver_user_id",
+    "carrier_org_id",
+    "region_id",
+    "count",
+    "heads_home",
+    "free_at"
+  ]
+}

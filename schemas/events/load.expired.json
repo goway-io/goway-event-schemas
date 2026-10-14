@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LoadExpired",
+  "description": "An open load passed its expiry unbooked; the sweep closed it.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "load_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The shipper organization."
+    }
+  },
+  "required": [
+    "event_id",
+    "load_id",
+    "org_id"
+  ]
+}

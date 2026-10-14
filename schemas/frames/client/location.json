@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LocationFrame",
+  "description": "Frame `location` an app sends to goway-realtime.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "location"
+    },
+    "data": {
+      "title": "Location",
+      "description": "The driver's position. Relayed to booking viewers and sampled as evidence only while a booking is active.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lat": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "lng": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "heading": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Degrees from north, when the device knows it."
+        },
+        "speed": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Speed the device reports, when it knows it."
+        }
+      },
+      "required": [
+        "lat",
+        "lng"
+      ]
+    }
+  },
+  "required": [
+    "type",
+    "data"
+  ]
+}

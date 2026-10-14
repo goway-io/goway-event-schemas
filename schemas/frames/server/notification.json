@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NotificationFrame",
+  "description": "Frame `notification` goway-realtime sends to an app.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "notification"
+    },
+    "data": {
+      "title": "Notification",
+      "description": "Something landed in the user's notification feed; refresh the badge. Copied from `notification.created`; a field that event lacked or sent empty arrives as null.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "notification_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid"
+        },
+        "kind": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Template kind, for example `driver_found` or `announcement`."
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Title in the user's language."
+        },
+        "body": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Text in the user's language."
+        }
+      },
+      "required": [
+        "notification_id",
+        "kind",
+        "title",
+        "body"
+      ]
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the server sent the frame, RFC 3339 UTC."
+    }
+  },
+  "required": [
+    "type",
+    "data",
+    "ts"
+  ]
+}

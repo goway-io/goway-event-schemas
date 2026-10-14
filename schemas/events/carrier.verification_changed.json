@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CarrierVerificationChanged",
+  "description": "A carrier organization's verification moved: submitted or reopened by a replaced document (`pending`), or decided by an operator.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "status": {
+      "title": "VerificationStatus",
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "description": "The new verification status."
+    }
+  },
+  "required": [
+    "event_id",
+    "org_id",
+    "status"
+  ]
+}

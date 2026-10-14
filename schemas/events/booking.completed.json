@@ -1,0 +1,138 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BookingCompleted",
+  "description": "A delivered haul was closed: by the shipper, by an operator, or by the auto-complete sweep. All three send the same fields. Billing charges its commission from this event.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "booking_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "load_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "carrier_org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "shipper_org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "driver_user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "agreed_amount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Price agreed at booking, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "settled_amount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "What the haul actually settled at: the agreed price unless another sum was confirmed, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "completed_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "When the haul was closed; the code allows null, it is always set. ISO 8601 with offset, as Python's `isoformat()` writes it."
+    },
+    "completed_by": {
+      "title": "CompletedBy",
+      "type": "string",
+      "enum": [
+        "shipper",
+        "operator",
+        "system"
+      ],
+      "description": "Who closed the haul; `system` is the auto-complete sweep."
+    },
+    "charges": {
+      "type": "array",
+      "items": {
+        "title": "ChargeLine",
+        "description": "One priced line of the haul.",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "`tariff`, `loaders` or `req:<requirement code>`."
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Line total, whole so'm (a bare integer; `currency` is UZS today)."
+          },
+          "qty": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "code",
+          "amount",
+          "qty"
+        ]
+      },
+      "description": "Price lines; the first is always the agreed tariff."
+    },
+    "waiting_minutes": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Billable minutes the driver waited at pickup."
+    },
+    "waiting_amount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "What the waiting costs, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "waiting_billable": {
+      "type": "boolean",
+      "description": "Whether the waiting is charged to the shipper."
+    },
+    "total_amount": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Charges plus waiting, whole so'm (a bare integer; `currency` is UZS today); the code allows null."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3,
+      "description": "ISO 4217 code; `UZS` today."
+    }
+  },
+  "required": [
+    "event_id",
+    "booking_id",
+    "load_id",
+    "carrier_org_id",
+    "shipper_org_id",
+    "driver_user_id",
+    "agreed_amount",
+    "settled_amount",
+    "completed_at",
+    "completed_by",
+    "charges",
+    "waiting_minutes",
+    "waiting_amount",
+    "waiting_billable",
+    "total_amount",
+    "currency"
+  ]
+}

@@ -3,10 +3,12 @@ info:
   title: GoWay events
   version: 0.1.0
   description: |
-    Domain events the GoWay services publish to NATS JetStream (stream `GOWAY`). A service writes the event into
-    its outbox inside the same transaction as the change, and a relay publishes it; `event_id` is stamped then.
-    Delivery is at least once, so every consumer dedupes on `event_id`. Payloads only grow within a version:
-    a field is never renamed, retyped or removed, and a breaking change gets a new subject ending in `.v2`.
+    Domain events the GoWay services publish to NATS JetStream (stream `GOWAY`). A Python service writes the event
+    into its outbox inside the same transaction as the change, and a relay publishes it with the outbox row id as
+    `event_id`; goway-realtime publishes straight to JetStream and stamps a random `event_id` itself. Delivery is at
+    least once, so every consumer dedupes on `event_id`. Payloads only grow within a version: a field is never
+    renamed, retyped or removed, and a breaking change gets a new subject ending in `.v2`. `x-consumers` lists the
+    services whose handlers act on a subject; a wildcard subscription that only passes it by is not listed.
 defaultContentType: application/json
 servers:
   nats:
@@ -14,22 +16,150 @@ servers:
     protocol: nats
     description: NATS JetStream inside the GoWay network.
 channels:
-  bookingCancelled:
-    address: booking.cancelled
-    description: A booking ended before loading. The load returns to the board in the same transaction.
+  userCreated:
+    address: user.created
+    description: 'An account came into being: self-signup, admin create, or admin restore.'
     messages:
-      bookingCancelled:
-        $ref: '#/components/messages/bookingCancelled'
-    x-publisher: goway-loads
+      userCreated:
+        $ref: '#/components/messages/userCreated'
+    x-publisher: goway-auth
+    x-consumers: [goway-loads, goway-billing, goway-notify, goway-realtime]
+  userUpdated:
+    address: user.updated
+    description: Something about an account changed; only what changed is sent.
+    messages:
+      userUpdated:
+        $ref: '#/components/messages/userUpdated'
+    x-publisher: goway-auth
+    x-consumers: [goway-loads, goway-billing, goway-notify]
+  userDeleted:
+    address: user.deleted
+    description: An account was deleted by its owner or by an admin.
+    messages:
+      userDeleted:
+        $ref: '#/components/messages/userDeleted'
+    x-publisher: goway-auth
+    x-consumers: [goway-loads, goway-billing, goway-notify]
+  userLogin:
+    address: user.login
+    description: Somebody signed in to the account.
+    messages:
+      userLogin:
+        $ref: '#/components/messages/userLogin'
+    x-publisher: goway-auth
     x-consumers: [goway-notify, goway-realtime]
-  walletEligibilityChanged:
-    address: wallet.eligibility_changed
-    description: An organization's wallet started or stopped being allowed to receive offers.
+  userSessionRevoked:
+    address: user.session_revoked
+    description: Every session of the account was closed.
     messages:
-      walletEligibilityChanged:
-        $ref: '#/components/messages/walletEligibilityChanged'
-    x-publisher: goway-billing
+      userSessionRevoked:
+        $ref: '#/components/messages/userSessionRevoked'
+    x-publisher: goway-auth
+    x-consumers: [goway-notify, goway-realtime]
+  userSessionsClosed:
+    address: user.sessions_closed
+    description: Some of the account's sessions were closed from another device.
+    messages:
+      userSessionsClosed:
+        $ref: '#/components/messages/userSessionsClosed'
+    x-publisher: goway-auth
+    x-consumers: [goway-realtime]
+  deviceUpserted:
+    address: device.upserted
+    description: A device was registered, came back, or its push token changed or was cleared.
+    messages:
+      deviceUpserted:
+        $ref: '#/components/messages/deviceUpserted'
+    x-publisher: goway-auth
+    x-consumers: [goway-notify]
+  deviceRemoved:
+    address: device.removed
+    description: The owner removed a device.
+    messages:
+      deviceRemoved:
+        $ref: '#/components/messages/deviceRemoved'
+    x-publisher: goway-auth
+    x-consumers: [goway-notify, goway-realtime]
+  orgUpdated:
+    address: org.updated
+    description: An organization's details changed; only what changed is sent.
+    messages:
+      orgUpdated:
+        $ref: '#/components/messages/orgUpdated'
+    x-publisher: goway-auth
+    x-consumers: []
+  vehicleUpserted:
+    address: vehicle.upserted
+    description: A fleet vehicle was added or changed; the whole vehicle is sent.
+    messages:
+      vehicleUpserted:
+        $ref: '#/components/messages/vehicleUpserted'
+    x-publisher: goway-auth
+    x-consumers: [goway-loads, goway-realtime]
+  vehicleRemoved:
+    address: vehicle.removed
+    description: A fleet vehicle was removed.
+    messages:
+      vehicleRemoved:
+        $ref: '#/components/messages/vehicleRemoved'
+    x-publisher: goway-auth
+    x-consumers: [goway-loads, goway-realtime]
+  carrierDocumentUpdated:
+    address: carrier.document_updated
+    description: A carrier submitted a new version of a document.
+    messages:
+      carrierDocumentUpdated:
+        $ref: '#/components/messages/carrierDocumentUpdated'
+    x-publisher: goway-auth
+    x-consumers: []
+  carrierDocumentReviewed:
+    address: carrier.document_reviewed
+    description: An operator approved or rejected a carrier's document.
+    messages:
+      carrierDocumentReviewed:
+        $ref: '#/components/messages/carrierDocumentReviewed'
+    x-publisher: goway-auth
+    x-consumers: [goway-notify]
+  carrierDocumentExpired:
+    address: carrier.document_expired
+    description: A carrier's document passed its expiry date.
+    messages:
+      carrierDocumentExpired:
+        $ref: '#/components/messages/carrierDocumentExpired'
+    x-publisher: goway-auth
+    x-consumers: [goway-notify]
+  carrierDocumentExpiring:
+    address: carrier.document_expiring
+    description: A carrier's document expires soon.
+    messages:
+      carrierDocumentExpiring:
+        $ref: '#/components/messages/carrierDocumentExpiring'
+    x-publisher: goway-auth
+    x-consumers: [goway-notify]
+  carrierVerificationChanged:
+    address: carrier.verification_changed
+    description: A carrier organization's verification status moved.
+    messages:
+      carrierVerificationChanged:
+        $ref: '#/components/messages/carrierVerificationChanged'
+    x-publisher: goway-auth
     x-consumers: [goway-loads, goway-notify, goway-realtime]
+  supportTicketCreated:
+    address: support.ticket_created
+    description: A user opened a support ticket.
+    messages:
+      supportTicketCreated:
+        $ref: '#/components/messages/supportTicketCreated'
+    x-publisher: goway-auth
+    x-consumers: []
+  supportTicketReplied:
+    address: support.ticket_replied
+    description: Support answered or closed a ticket.
+    messages:
+      supportTicketReplied:
+        $ref: '#/components/messages/supportTicketReplied'
+    x-publisher: goway-auth
+    x-consumers: [goway-notify]
   driverStatsChanged:
     address: driver.stats_changed
     description: A driver's completed-haul count or rating changed.
@@ -38,36 +168,646 @@ channels:
         $ref: '#/components/messages/driverStatsChanged'
     x-publisher: goway-auth
     x-consumers: [goway-loads]
+  loadPosted:
+    address: load.posted
+    description: 'A load is open on the board: newly posted, or back after a cancelled booking.'
+    messages:
+      loadPosted:
+        $ref: '#/components/messages/loadPosted'
+    x-publisher: goway-loads
+    x-consumers: [goway-realtime]
+  loadCancelled:
+    address: load.cancelled
+    description: The shipper withdrew an open load.
+    messages:
+      loadCancelled:
+        $ref: '#/components/messages/loadCancelled'
+    x-publisher: goway-loads
+    x-consumers: [goway-billing, goway-realtime]
+  loadExpired:
+    address: load.expired
+    description: An open load passed its expiry unbooked.
+    messages:
+      loadExpired:
+        $ref: '#/components/messages/loadExpired'
+    x-publisher: goway-loads
+    x-consumers: [goway-billing, goway-realtime]
+  offerCreated:
+    address: offer.created
+    description: A carrier asked for a load, or either side countered.
+    messages:
+      offerCreated:
+        $ref: '#/components/messages/offerCreated'
+    x-publisher: goway-loads
+    x-consumers: [goway-notify]
+  offerAccepted:
+    address: offer.accepted
+    description: An offer was accepted and became a booking.
+    messages:
+      offerAccepted:
+        $ref: '#/components/messages/offerAccepted'
+    x-publisher: goway-loads
+    x-consumers: [goway-notify]
+  bookingCreated:
+    address: booking.created
+    description: A load was booked, from an accepted offer or an instant claim.
+    messages:
+      bookingCreated:
+        $ref: '#/components/messages/bookingCreated'
+    x-publisher: goway-loads
+    x-consumers: [goway-notify, goway-realtime]
+  bookingStatusChanged:
+    address: booking.status_changed
+    description: The carrier moved the haul one step on.
+    messages:
+      bookingStatusChanged:
+        $ref: '#/components/messages/bookingStatusChanged'
+    x-publisher: goway-loads
+    x-consumers: [goway-notify, goway-realtime]
+  bookingEtaUpdated:
+    address: booking.eta_updated
+    description: The arrival window or the time the truck is free again moved.
+    messages:
+      bookingEtaUpdated:
+        $ref: '#/components/messages/bookingEtaUpdated'
+    x-publisher: goway-loads
+    x-consumers: [goway-realtime]
+  bookingCompleted:
+    address: booking.completed
+    description: A delivered haul was closed; billing charges its commission from it.
+    messages:
+      bookingCompleted:
+        $ref: '#/components/messages/bookingCompleted'
+    x-publisher: goway-loads
+    x-consumers: [goway-auth, goway-billing, goway-notify, goway-realtime]
+  bookingCancelled:
+    address: booking.cancelled
+    description: A booking ended before loading. The load returns to the board in the same transaction.
+    messages:
+      bookingCancelled:
+        $ref: '#/components/messages/bookingCancelled'
+    x-publisher: goway-loads
+    x-consumers: [goway-notify, goway-realtime]
+  bookingAmountClaimed:
+    address: booking.amount_claimed
+    description: One side says a delivered haul settled at another sum.
+    messages:
+      bookingAmountClaimed:
+        $ref: '#/components/messages/bookingAmountClaimed'
+    x-publisher: goway-loads
+    x-consumers: []
+  bookingAmountSettled:
+    address: booking.amount_settled
+    description: An operator accepted an amount claim.
+    messages:
+      bookingAmountSettled:
+        $ref: '#/components/messages/bookingAmountSettled'
+    x-publisher: goway-loads
+    x-consumers: [goway-billing, goway-notify]
+  bookingReturnLoads:
+    address: booking.return_loads
+    description: Loads wait in the region where a truck will soon be empty.
+    messages:
+      bookingReturnLoads:
+        $ref: '#/components/messages/bookingReturnLoads'
+    x-publisher: goway-loads
+    x-consumers: [goway-notify]
+  ratingCreated:
+    address: rating.created
+    description: The shipper rated a completed haul.
+    messages:
+      ratingCreated:
+        $ref: '#/components/messages/ratingCreated'
+    x-publisher: goway-loads
+    x-consumers: [goway-auth]
+  walletEntryPosted:
+    address: wallet.entry_posted
+    description: A line was written to an organization's wallet ledger.
+    messages:
+      walletEntryPosted:
+        $ref: '#/components/messages/walletEntryPosted'
+    x-publisher: goway-billing
+    x-consumers: []
+  walletEligibilityChanged:
+    address: wallet.eligibility_changed
+    description: An organization's wallet started or stopped being allowed to receive offers.
+    messages:
+      walletEligibilityChanged:
+        $ref: '#/components/messages/walletEligibilityChanged'
+    x-publisher: goway-billing
+    x-consumers: [goway-loads, goway-notify, goway-realtime]
+  walletToppedUp:
+    address: wallet.topped_up
+    description: An operator took cash for a wallet.
+    messages:
+      walletToppedUp:
+        $ref: '#/components/messages/walletToppedUp'
+    x-publisher: goway-billing
+    x-consumers: [goway-notify]
+  notificationCreated:
+    address: notification.created
+    description: A message landed in a user's notification feed.
+    messages:
+      notificationCreated:
+        $ref: '#/components/messages/notificationCreated'
+    x-publisher: goway-notify
+    x-consumers: [goway-realtime]
+  devicePushFailed:
+    address: device.push_failed
+    description: The push provider rejected a device's token as dead.
+    messages:
+      devicePushFailed:
+        $ref: '#/components/messages/devicePushFailed'
+    x-publisher: goway-notify
+    x-consumers: [goway-auth]
+  regionChanged:
+    address: region.changed
+    description: An admin opened or closed a region for the marketplace.
+    messages:
+      regionChanged:
+        $ref: '#/components/messages/regionChanged'
+    x-publisher: goway-geo
+    x-consumers: []
+  settingsChanged:
+    address: settings.changed
+    description: An admin changed or reset runtime settings of one service.
+    messages:
+      settingsChanged:
+        $ref: '#/components/messages/settingsChanged'
+    x-publisher: [goway-auth, goway-loads, goway-billing, goway-notify, goway-realtime]
+    x-consumers: []
+  driverOnline:
+    address: driver.online
+    description: A driver opened or changed a line.
+    messages:
+      driverOnline:
+        $ref: '#/components/messages/driverOnline'
+    x-publisher: goway-realtime
+    x-consumers: []
+  driverOffline:
+    address: driver.offline
+    description: A driver left the line.
+    messages:
+      driverOffline:
+        $ref: '#/components/messages/driverOffline'
+    x-publisher: goway-realtime
+    x-consumers: []
+  locationSampled:
+    address: location.sampled
+    description: A driver's GPS position during an active booking, kept as evidence.
+    messages:
+      locationSampled:
+        $ref: '#/components/messages/locationSampled'
+    x-publisher: goway-realtime
+    x-consumers: [goway-loads]
+  dispatchOffered:
+    address: dispatch.offered
+    description: An instant load was offered to a wave of drivers.
+    messages:
+      dispatchOffered:
+        $ref: '#/components/messages/dispatchOffered'
+    x-publisher: goway-realtime
+    x-consumers: [goway-notify]
 operations:
-  publishBookingCancelled:
+  publishUserCreated:
     action: send
     channel:
-      $ref: '#/channels/bookingCancelled'
-    description: Published when either side or an operator cancels a booking.
-  publishWalletEligibilityChanged:
+      $ref: '#/channels/userCreated'
+    description: Published by self-signup (with `account_type`), an admin create (with `first_name`, `last_name`) and an admin restore (with `updated_at`).
+  publishUserUpdated:
     action: send
     channel:
-      $ref: '#/channels/walletEligibilityChanged'
-    description: Published once per user of the organization whenever the wallet's eligibility flips.
+      $ref: '#/channels/userUpdated'
+    description: Published by a confirmed phone change, the account settings screen, a role switch, an admin edit and a profile edit, each with its own field set.
+  publishUserDeleted:
+    action: send
+    channel:
+      $ref: '#/channels/userDeleted'
+    description: Published when the owner deletes the account, and on an admin soft or hard delete (with `updated_at`).
+  publishUserLogin:
+    action: send
+    channel:
+      $ref: '#/channels/userLogin'
+    description: 'Published on every issued session: code, password, password reset, phone change.'
+  publishUserSessionRevoked:
+    action: send
+    channel:
+      $ref: '#/channels/userSessionRevoked'
+    description: Published after a password change or reset, a phone change, an account delete and an admin block.
+  publishUserSessionsClosed:
+    action: send
+    channel:
+      $ref: '#/channels/userSessionsClosed'
+    description: Published when a user closes one or all other sessions and at least one install is affected.
+  publishDeviceUpserted:
+    action: send
+    channel:
+      $ref: '#/channels/deviceUpserted'
+    description: Published on a new device, a restored device, a new push token, and on sign-out, which clears the token.
+  publishDeviceRemoved:
+    action: send
+    channel:
+      $ref: '#/channels/deviceRemoved'
+    description: Published when the owner removes a device from the account.
+  publishOrgUpdated:
+    action: send
+    channel:
+      $ref: '#/channels/orgUpdated'
+    description: Published by a role switch (`kind`, `account_type`) and by the organization screen (company details).
+  publishVehicleUpserted:
+    action: send
+    channel:
+      $ref: '#/channels/vehicleUpserted'
+    description: Published when a vehicle is added and whenever one of its fields changes.
+  publishVehicleRemoved:
+    action: send
+    channel:
+      $ref: '#/channels/vehicleRemoved'
+    description: Published when a carrier removes a vehicle.
+  publishCarrierDocumentUpdated:
+    action: send
+    channel:
+      $ref: '#/channels/carrierDocumentUpdated'
+    description: Published when a carrier uploads a document; it waits for review.
+  publishCarrierDocumentReviewed:
+    action: send
+    channel:
+      $ref: '#/channels/carrierDocumentReviewed'
+    description: Published on an operator's document decision.
+  publishCarrierDocumentExpired:
+    action: send
+    channel:
+      $ref: '#/channels/carrierDocumentExpired'
+    description: Published by the hourly document sweep.
+  publishCarrierDocumentExpiring:
+    action: send
+    channel:
+      $ref: '#/channels/carrierDocumentExpiring'
+    description: Published by the hourly document sweep, once per document.
+  publishCarrierVerificationChanged:
+    action: send
+    channel:
+      $ref: '#/channels/carrierVerificationChanged'
+    description: Published when a carrier submits for verification, when a replaced document reopens it, and on an operator's decision.
+  publishSupportTicketCreated:
+    action: send
+    channel:
+      $ref: '#/channels/supportTicketCreated'
+    description: Published when a ticket is opened.
+  publishSupportTicketReplied:
+    action: send
+    channel:
+      $ref: '#/channels/supportTicketReplied'
+    description: Published when an admin replies to a ticket.
   publishDriverStatsChanged:
     action: send
     channel:
       $ref: '#/channels/driverStatsChanged'
     description: Published after a completed haul or a new rating is counted.
+  publishLoadPosted:
+    action: send
+    channel:
+      $ref: '#/channels/loadPosted'
+    description: 'Published once per truck of a new post, and again with `reposted: true` when a booking is cancelled.'
+  publishLoadCancelled:
+    action: send
+    channel:
+      $ref: '#/channels/loadCancelled'
+    description: Published when the shipper cancels a load that is not booked.
+  publishLoadExpired:
+    action: send
+    channel:
+      $ref: '#/channels/loadExpired'
+    description: Published by the expiry sweep, every five minutes.
+  publishOfferCreated:
+    action: send
+    channel:
+      $ref: '#/channels/offerCreated'
+    description: Published on a carrier request and on every counter-offer.
+  publishOfferAccepted:
+    action: send
+    channel:
+      $ref: '#/channels/offerAccepted'
+    description: Published with `booking.created` when either side accepts an offer.
+  publishBookingCreated:
+    action: send
+    channel:
+      $ref: '#/channels/bookingCreated'
+    description: 'Published on an accepted offer and on an instant claim from dispatch (with `source: instant`).'
+  publishBookingStatusChanged:
+    action: send
+    channel:
+      $ref: '#/channels/bookingStatusChanged'
+    description: Published at every carrier step from `confirmed` to `delivered`.
+  publishBookingEtaUpdated:
+    action: send
+    channel:
+      $ref: '#/channels/bookingEtaUpdated'
+    description: Published at booking, at every carrier step, and on fresh GPS while the truck is moving.
+  publishBookingCompleted:
+    action: send
+    channel:
+      $ref: '#/channels/bookingCompleted'
+    description: Published when the shipper confirms, an operator completes, or the auto-complete sweep closes the haul.
+  publishBookingCancelled:
+    action: send
+    channel:
+      $ref: '#/channels/bookingCancelled'
+    description: Published when either side or an operator cancels a booking.
+  publishBookingAmountClaimed:
+    action: send
+    channel:
+      $ref: '#/channels/bookingAmountClaimed'
+    description: Published when a shipper or carrier claims another sum.
+  publishBookingAmountSettled:
+    action: send
+    channel:
+      $ref: '#/channels/bookingAmountSettled'
+    description: Published when an operator accepts a claim; a rejected claim publishes nothing.
+  publishBookingReturnLoads:
+    action: send
+    channel:
+      $ref: '#/channels/bookingReturnLoads'
+    description: Published by the return-offer sweep, every ten minutes, once per haul.
+  publishRatingCreated:
+    action: send
+    channel:
+      $ref: '#/channels/ratingCreated'
+    description: Published once per haul when the shipper rates it.
+  publishWalletEntryPosted:
+    action: send
+    channel:
+      $ref: '#/channels/walletEntryPosted'
+    description: 'Published for every new ledger line: commissions, cash, adjustments, subscriptions, promos, referrals and bonus moves.'
+  publishWalletEligibilityChanged:
+    action: send
+    channel:
+      $ref: '#/channels/walletEligibilityChanged'
+    description: Published once per user of the organization whenever the wallet's eligibility flips, or once with a null `user_id` when billing knows no user of it.
+  publishWalletToppedUp:
+    action: send
+    channel:
+      $ref: '#/channels/walletToppedUp'
+    description: Published when an operator records a cash payment.
+  publishNotificationCreated:
+    action: send
+    channel:
+      $ref: '#/channels/notificationCreated'
+    description: 'Published for every feed row: from an event''s delivery plan, or from an admin announcement.'
+  publishDevicePushFailed:
+    action: send
+    channel:
+      $ref: '#/channels/devicePushFailed'
+    description: Published when a push comes back with a dead-token answer.
+  publishRegionChanged:
+    action: send
+    channel:
+      $ref: '#/channels/regionChanged'
+    description: Published when an admin sets a region's active flag.
+  publishSettingsChanged:
+    action: send
+    channel:
+      $ref: '#/channels/settingsChanged'
+    description: Published by goway-lib in every Python service with runtime settings, and by goway-realtime, on change or reset.
+  publishDriverOnline:
+    action: send
+    channel:
+      $ref: '#/channels/driverOnline'
+    description: Published on every accepted `go_online` frame.
+  publishDriverOffline:
+    action: send
+    channel:
+      $ref: '#/channels/driverOffline'
+    description: Published on `go_offline`, line expiry, the end of the disconnect grace, and session revocation.
+  publishLocationSampled:
+    action: send
+    channel:
+      $ref: '#/channels/locationSampled'
+    description: Published at most every `location_sample_seconds` while the driver has an active booking.
+  publishDispatchOffered:
+    action: send
+    channel:
+      $ref: '#/channels/dispatchOffered'
+    description: Published after every offer wave that reached at least one driver.
 components:
   messages:
-    bookingCancelled:
-      name: booking.cancelled
-      title: Booking cancelled
+    userCreated:
+      name: user.created
+      title: User created
       payload:
-        $ref: '../schemas/events/booking.cancelled.json'
-    walletEligibilityChanged:
-      name: wallet.eligibility_changed
-      title: Wallet eligibility changed
+        $ref: '../schemas/events/user.created.json'
+    userUpdated:
+      name: user.updated
+      title: User updated
       payload:
-        $ref: '../schemas/events/wallet.eligibility_changed.json'
+        $ref: '../schemas/events/user.updated.json'
+    userDeleted:
+      name: user.deleted
+      title: User deleted
+      payload:
+        $ref: '../schemas/events/user.deleted.json'
+    userLogin:
+      name: user.login
+      title: User signed in
+      payload:
+        $ref: '../schemas/events/user.login.json'
+    userSessionRevoked:
+      name: user.session_revoked
+      title: Sessions revoked
+      payload:
+        $ref: '../schemas/events/user.session_revoked.json'
+    userSessionsClosed:
+      name: user.sessions_closed
+      title: Sessions closed
+      payload:
+        $ref: '../schemas/events/user.sessions_closed.json'
+    deviceUpserted:
+      name: device.upserted
+      title: Device registered
+      payload:
+        $ref: '../schemas/events/device.upserted.json'
+    deviceRemoved:
+      name: device.removed
+      title: Device removed
+      payload:
+        $ref: '../schemas/events/device.removed.json'
+    orgUpdated:
+      name: org.updated
+      title: Organization updated
+      payload:
+        $ref: '../schemas/events/org.updated.json'
+    vehicleUpserted:
+      name: vehicle.upserted
+      title: Vehicle saved
+      payload:
+        $ref: '../schemas/events/vehicle.upserted.json'
+    vehicleRemoved:
+      name: vehicle.removed
+      title: Vehicle removed
+      payload:
+        $ref: '../schemas/events/vehicle.removed.json'
+    carrierDocumentUpdated:
+      name: carrier.document_updated
+      title: Document submitted
+      payload:
+        $ref: '../schemas/events/carrier.document_updated.json'
+    carrierDocumentReviewed:
+      name: carrier.document_reviewed
+      title: Document reviewed
+      payload:
+        $ref: '../schemas/events/carrier.document_reviewed.json'
+    carrierDocumentExpired:
+      name: carrier.document_expired
+      title: Document expired
+      payload:
+        $ref: '../schemas/events/carrier.document_expired.json'
+    carrierDocumentExpiring:
+      name: carrier.document_expiring
+      title: Document expiring
+      payload:
+        $ref: '../schemas/events/carrier.document_expiring.json'
+    carrierVerificationChanged:
+      name: carrier.verification_changed
+      title: Verification changed
+      payload:
+        $ref: '../schemas/events/carrier.verification_changed.json'
+    supportTicketCreated:
+      name: support.ticket_created
+      title: Ticket opened
+      payload:
+        $ref: '../schemas/events/support.ticket_created.json'
+    supportTicketReplied:
+      name: support.ticket_replied
+      title: Ticket answered
+      payload:
+        $ref: '../schemas/events/support.ticket_replied.json'
     driverStatsChanged:
       name: driver.stats_changed
       title: Driver stats changed
       payload:
         $ref: '../schemas/events/driver.stats_changed.json'
+    loadPosted:
+      name: load.posted
+      title: Load posted
+      payload:
+        $ref: '../schemas/events/load.posted.json'
+    loadCancelled:
+      name: load.cancelled
+      title: Load cancelled
+      payload:
+        $ref: '../schemas/events/load.cancelled.json'
+    loadExpired:
+      name: load.expired
+      title: Load expired
+      payload:
+        $ref: '../schemas/events/load.expired.json'
+    offerCreated:
+      name: offer.created
+      title: Offer made
+      payload:
+        $ref: '../schemas/events/offer.created.json'
+    offerAccepted:
+      name: offer.accepted
+      title: Offer accepted
+      payload:
+        $ref: '../schemas/events/offer.accepted.json'
+    bookingCreated:
+      name: booking.created
+      title: Booking created
+      payload:
+        $ref: '../schemas/events/booking.created.json'
+    bookingStatusChanged:
+      name: booking.status_changed
+      title: Haul moved on
+      payload:
+        $ref: '../schemas/events/booking.status_changed.json'
+    bookingEtaUpdated:
+      name: booking.eta_updated
+      title: Arrival window moved
+      payload:
+        $ref: '../schemas/events/booking.eta_updated.json'
+    bookingCompleted:
+      name: booking.completed
+      title: Booking completed
+      payload:
+        $ref: '../schemas/events/booking.completed.json'
+    bookingCancelled:
+      name: booking.cancelled
+      title: Booking cancelled
+      payload:
+        $ref: '../schemas/events/booking.cancelled.json'
+    bookingAmountClaimed:
+      name: booking.amount_claimed
+      title: Amount claimed
+      payload:
+        $ref: '../schemas/events/booking.amount_claimed.json'
+    bookingAmountSettled:
+      name: booking.amount_settled
+      title: Amount settled
+      payload:
+        $ref: '../schemas/events/booking.amount_settled.json'
+    bookingReturnLoads:
+      name: booking.return_loads
+      title: Return loads waiting
+      payload:
+        $ref: '../schemas/events/booking.return_loads.json'
+    ratingCreated:
+      name: rating.created
+      title: Haul rated
+      payload:
+        $ref: '../schemas/events/rating.created.json'
+    walletEntryPosted:
+      name: wallet.entry_posted
+      title: Ledger entry posted
+      payload:
+        $ref: '../schemas/events/wallet.entry_posted.json'
+    walletEligibilityChanged:
+      name: wallet.eligibility_changed
+      title: Wallet eligibility changed
+      payload:
+        $ref: '../schemas/events/wallet.eligibility_changed.json'
+    walletToppedUp:
+      name: wallet.topped_up
+      title: Wallet topped up
+      payload:
+        $ref: '../schemas/events/wallet.topped_up.json'
+    notificationCreated:
+      name: notification.created
+      title: Notification created
+      payload:
+        $ref: '../schemas/events/notification.created.json'
+    devicePushFailed:
+      name: device.push_failed
+      title: Push token dead
+      payload:
+        $ref: '../schemas/events/device.push_failed.json'
+    regionChanged:
+      name: region.changed
+      title: Region opened or closed
+      payload:
+        $ref: '../schemas/events/region.changed.json'
+    settingsChanged:
+      name: settings.changed
+      title: Runtime settings changed
+      payload:
+        $ref: '../schemas/events/settings.changed.json'
+    driverOnline:
+      name: driver.online
+      title: Driver online
+      payload:
+        $ref: '../schemas/events/driver.online.json'
+    driverOffline:
+      name: driver.offline
+      title: Driver offline
+      payload:
+        $ref: '../schemas/events/driver.offline.json'
+    locationSampled:
+      name: location.sampled
+      title: Location sampled
+      payload:
+        $ref: '../schemas/events/location.sampled.json'
+    dispatchOffered:
+      name: dispatch.offered
+      title: Offer wave sent
+      payload:
+        $ref: '../schemas/events/dispatch.offered.json'

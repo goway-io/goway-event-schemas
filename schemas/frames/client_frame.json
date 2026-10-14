@@ -5,10 +5,28 @@
   "discriminator": "type",
   "oneOf": [
     {
+      "$ref": "./client/auth.json"
+    },
+    {
+      "$ref": "./client/ping.json"
+    },
+    {
       "$ref": "./client/go_online.json"
     },
     {
+      "$ref": "./client/go_offline.json"
+    },
+    {
+      "$ref": "./client/location.json"
+    },
+    {
       "$ref": "./client/offer_response.json"
+    },
+    {
+      "$ref": "./client/subscribe_booking.json"
+    },
+    {
+      "$ref": "./client/unsubscribe_booking.json"
     }
   ]
 }

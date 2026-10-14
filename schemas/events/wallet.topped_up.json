@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WalletToppedUp",
+  "description": "An operator took cash for an organization's wallet and issued a receipt.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "payment_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "receipt_no": {
+      "type": "string",
+      "description": "Receipt number, `GW-<year>-<6 digits>`, for example `GW-2026-000123`."
+    },
+    "amount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Cash received, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "balance": {
+      "type": "integer",
+      "description": "Balance after the top-up, whole so'm (a bare integer; `currency` is UZS today); negative means debt."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3,
+      "description": "ISO 4217 code; `UZS` today."
+    }
+  },
+  "required": [
+    "event_id",
+    "org_id",
+    "payment_id",
+    "receipt_no",
+    "amount",
+    "balance",
+    "currency"
+  ]
+}

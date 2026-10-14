@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UserLogin",
+  "description": "Somebody signed in to the account: by code, password, password reset or phone change. The device fields are null when the app sent no device.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "device_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "Device row the session belongs to."
+    },
+    "installation_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The app install's own id."
+    },
+    "platform": {
+      "anyOf": [
+        {
+          "title": "DevicePlatform",
+          "type": "string",
+          "enum": [
+            "android",
+            "ios",
+            "web"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Device platform."
+    },
+    "model": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Device model as the app reported it."
+    },
+    "new_device": {
+      "type": "boolean",
+      "description": "True the first time this install signs in, or when a removed device comes back."
+    },
+    "ip": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Client address."
+    },
+    "at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the sign-in happened. ISO 8601 with offset, as Python's `isoformat()` writes it."
+    }
+  },
+  "required": [
+    "event_id",
+    "user_id",
+    "device_id",
+    "installation_id",
+    "platform",
+    "model",
+    "new_device",
+    "ip",
+    "at"
+  ]
+}

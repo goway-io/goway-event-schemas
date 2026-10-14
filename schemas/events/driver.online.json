@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DriverOnline",
+  "description": "A driver opened or changed a line and waits for instant offers.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it."
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "from_region_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "to_region_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "vehicle_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "bidirectional": {
+      "type": "boolean",
+      "description": "Also takes loads on the way back."
+    },
+    "expires_at": {
+      "type": "integer",
+      "description": "When the line ends, unix milliseconds."
+    }
+  },
+  "required": [
+    "event_id",
+    "user_id",
+    "org_id",
+    "from_region_id",
+    "to_region_id",
+    "vehicle_id",
+    "bidirectional",
+    "expires_at"
+  ]
+}

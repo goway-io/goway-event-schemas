@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PingFrame",
+  "description": "Frame `ping` an app sends to goway-realtime.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "ping"
+    },
+    "data": {
+      "title": "Ping",
+      "description": "Nothing: an empty object, or no `data` at all.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {}
+    }
+  },
+  "required": [
+    "type"
+  ]
+}

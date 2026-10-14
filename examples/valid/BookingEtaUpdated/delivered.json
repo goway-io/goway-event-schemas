@@ -1,0 +1,15 @@
+{
+  "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+  "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+  "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+  "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+  "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+  "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+  "status": "delivered",
+  "eta_stop": null,
+  "eta_from": null,
+  "eta_to": null,
+  "free_at": "2026-10-14T09:30:00.123456+00:00",
+  "free_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
+  "truck_class": "tent_20t"
+}

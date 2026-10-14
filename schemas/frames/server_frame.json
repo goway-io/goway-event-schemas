@@ -5,10 +5,64 @@
   "discriminator": "type",
   "oneOf": [
     {
+      "$ref": "./server/connected.json"
+    },
+    {
+      "$ref": "./server/pong.json"
+    },
+    {
+      "$ref": "./server/online.json"
+    },
+    {
+      "$ref": "./server/offline.json"
+    },
+    {
       "$ref": "./server/offer_proposed.json"
     },
     {
       "$ref": "./server/offer_result.json"
+    },
+    {
+      "$ref": "./server/subscribed.json"
+    },
+    {
+      "$ref": "./server/booking_created.json"
+    },
+    {
+      "$ref": "./server/booking_status.json"
+    },
+    {
+      "$ref": "./server/booking_eta.json"
+    },
+    {
+      "$ref": "./server/booking_completed.json"
+    },
+    {
+      "$ref": "./server/booking_cancelled.json"
+    },
+    {
+      "$ref": "./server/driver_location.json"
+    },
+    {
+      "$ref": "./server/line_expiring.json"
+    },
+    {
+      "$ref": "./server/line_expired.json"
+    },
+    {
+      "$ref": "./server/offers_blocked.json"
+    },
+    {
+      "$ref": "./server/offers_unblocked.json"
+    },
+    {
+      "$ref": "./server/notification.json"
+    },
+    {
+      "$ref": "./server/session_started.json"
+    },
+    {
+      "$ref": "./server/kicked.json"
     },
     {
       "$ref": "./server/error.json"

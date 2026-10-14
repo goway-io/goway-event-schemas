@@ -1,0 +1,33 @@
+{
+  "type": "booking_completed",
+  "data": {
+    "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+    "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+    "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+    "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+    "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+    "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+    "agreed_amount": 4350000,
+    "settled_amount": 4350000,
+    "completed_at": "2026-10-14T09:30:00.123Z",
+    "completed_by": "shipper",
+    "charges": [
+      {
+        "code": "tariff",
+        "amount": 4350000,
+        "qty": 1
+      },
+      {
+        "code": "loaders",
+        "amount": 200000,
+        "qty": 2
+      }
+    ],
+    "waiting_minutes": 25,
+    "waiting_amount": 50000,
+    "waiting_billable": true,
+    "total_amount": 4600000,
+    "currency": "UZS"
+  },
+  "ts": "2026-10-14T09:30:00.123Z"
+}

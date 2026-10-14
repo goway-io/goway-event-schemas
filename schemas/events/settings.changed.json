@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SettingsChanged",
+  "description": "An admin changed or reset runtime settings of one service. Published by goway-lib for goway-auth, goway-loads, goway-billing and goway-notify, and by goway-realtime itself, with the same fields.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event: the outbox row id from a Python service, a random UUID from goway-realtime. Consumers dedupe on it."
+    },
+    "service": {
+      "type": "string",
+      "description": "The service whose settings changed, for example `goway-loads`."
+    },
+    "keys": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Setting keys that changed."
+    },
+    "by": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "The admin who changed them; null when not known."
+    }
+  },
+  "required": [
+    "event_id",
+    "service",
+    "keys",
+    "by"
+  ]
+}

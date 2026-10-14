@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "BookingCancelled",
-  "description": "A booking ended before the cargo was loaded. The load goes back to the board.",
+  "description": "A booking ended before the cargo was loaded. The load goes back to the board. Two paths send the same fields: either side cancelling (`by` is `shipper` or `carrier`) and an operator (`by` is `operator`).",
   "type": "object",
   "additionalProperties": false,
   "properties": {

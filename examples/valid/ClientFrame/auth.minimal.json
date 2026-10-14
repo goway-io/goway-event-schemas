@@ -1,0 +1,6 @@
+{
+  "type": "auth",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTkyZjZhMCJ9.c2lnbmF0dXJl"
+  }
+}

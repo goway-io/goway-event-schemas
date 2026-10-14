@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UserCreated",
+  "description": "An account came into being. Three paths publish it with different fields: self-signup sends `account_type`; an admin create sends `first_name` and `last_name`, either of which may be null; an admin restore of a soft-deleted account sends `updated_at`. `user_id`, `org_id`, `role`, `phone` and `language` are always sent.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "role": {
+      "type": "string",
+      "description": "Role name. Self-signup sends `shipper` or `carrier`, an admin create the role it picked, a restore the stored role or an empty string when the user has none."
+    },
+    "account_type": {
+      "title": "AccountType",
+      "type": "string",
+      "enum": [
+        "individual",
+        "business"
+      ]
+    },
+    "phone": {
+      "type": "string",
+      "description": "E.164 number, `+998…`. A restore sends the stored value, which is `del:…` for an account its owner deleted."
+    },
+    "language": {
+      "type": "string",
+      "description": "App language code: uz, uzc, ru, en, kaa or zh."
+    },
+    "first_name": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Admin create only; null when the admin gave none."
+    },
+    "last_name": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Admin create only; null when the admin gave none."
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Admin restore only: when the account came back. ISO 8601 with offset, as Python's `isoformat()` writes it."
+    }
+  },
+  "required": [
+    "event_id",
+    "user_id",
+    "org_id",
+    "role",
+    "phone",
+    "language"
+  ]
+}

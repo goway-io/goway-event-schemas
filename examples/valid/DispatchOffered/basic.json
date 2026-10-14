@@ -1,0 +1,16 @@
+{
+  "event_id": "6f1c2a9e-3b7d-4e8f-9a0b-1c2d3e4f5a6b",
+  "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+  "drivers": [
+    "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+    "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e17",
+    "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e18"
+  ],
+  "from_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
+  "to_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
+  "truck_class": "tent_20t",
+  "amount": 4500000,
+  "currency": "UZS",
+  "weight_kg": 18000,
+  "deadline_at": 1791970220123
+}

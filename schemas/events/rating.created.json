@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RatingCreated",
+  "description": "The shipper rated a completed haul; sent once per haul.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "booking_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "load_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "target": {
+      "type": "string",
+      "description": "Who was rated; always `driver` today."
+    },
+    "driver_user_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "The rated driver; the code allows null, a booking always has one."
+    },
+    "carrier_org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "shipper_org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "stars": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "1 to 5."
+    }
+  },
+  "required": [
+    "event_id",
+    "booking_id",
+    "load_id",
+    "target",
+    "driver_user_id",
+    "carrier_org_id",
+    "shipper_org_id",
+    "stars"
+  ]
+}

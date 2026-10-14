@@ -1,0 +1,7 @@
+{
+  "type": "kicked",
+  "data": {
+    "reason": "device_removed"
+  },
+  "ts": "2026-10-14T09:30:00.123Z"
+}

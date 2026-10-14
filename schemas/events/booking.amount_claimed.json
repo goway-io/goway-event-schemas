@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BookingAmountClaimed",
+  "description": "One side of a delivered haul says it settled at another sum; nothing changes until an operator decides.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "claim_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "booking_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "side": {
+      "title": "BookingSide",
+      "type": "string",
+      "enum": [
+        "shipper",
+        "carrier"
+      ],
+      "description": "Which side claims."
+    },
+    "amount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The claimed sum, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "recorded_amount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The sum on record now, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3,
+      "description": "ISO 4217 code; `UZS` today."
+    }
+  },
+  "required": [
+    "event_id",
+    "claim_id",
+    "booking_id",
+    "side",
+    "amount",
+    "recorded_amount",
+    "currency"
+  ]
+}

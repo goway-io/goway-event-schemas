@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CarrierDocumentReviewed",
+  "description": "An operator approved or rejected a carrier's document.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "kind": {
+      "title": "DocumentKind",
+      "type": "string",
+      "enum": [
+        "passport",
+        "driver_license",
+        "tech_passport",
+        "vehicle_photo",
+        "power_of_attorney"
+      ]
+    },
+    "status": {
+      "title": "ReviewDecision",
+      "type": "string",
+      "enum": [
+        "approved",
+        "rejected"
+      ],
+      "description": "The decision."
+    },
+    "note": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "What the operator wrote; a rejection always has one."
+    }
+  },
+  "required": [
+    "event_id",
+    "org_id",
+    "kind",
+    "status",
+    "note"
+  ]
+}

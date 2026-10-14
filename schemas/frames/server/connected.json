@@ -1,0 +1,83 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ConnectedFrame",
+  "description": "Frame `connected` goway-realtime sends to an app.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "connected"
+    },
+    "data": {
+      "title": "Connected",
+      "description": "The `auth` frame was accepted; the socket is live.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "conn_id": {
+          "type": "string",
+          "description": "This socket's id, 32 hex characters."
+        },
+        "worker": {
+          "type": "string",
+          "description": "The goway-realtime worker holding the socket, `<host>-<pid>-<suffix>`; for logs."
+        },
+        "config": {
+          "title": "ConnectionConfig",
+          "description": "Current realtime settings the app plays by.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "offer_ttl_seconds": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Seconds a driver has to answer an offer."
+            },
+            "offer_grace_seconds": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Extra seconds after the deadline a late answer is still honoured."
+            },
+            "line_changes_per_day": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Line changes a driver may make per Tashkent day."
+            },
+            "location_sample_seconds": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Seconds between durable GPS samples."
+            }
+          },
+          "required": [
+            "offer_ttl_seconds",
+            "offer_grace_seconds",
+            "line_changes_per_day",
+            "location_sample_seconds"
+          ]
+        }
+      },
+      "required": [
+        "user_id",
+        "conn_id",
+        "worker",
+        "config"
+      ]
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the server sent the frame, RFC 3339 UTC."
+    }
+  },
+  "required": [
+    "type",
+    "data",
+    "ts"
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DispatchOffered",
+  "description": "An instant load was offered to a wave of drivers on its line, so a driver whose app is in the background still sees it. Loss-tolerant: the socket frame is the offer itself.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it."
+    },
+    "load_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "drivers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "minItems": 1,
+      "description": "Drivers the wave reached."
+    },
+    "from_region_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "to_region_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "truck_class": {
+      "type": "string",
+      "description": "Truck class code from the reference list."
+    },
+    "amount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The load's fixed price, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3,
+      "description": "ISO 4217 code; `UZS` today."
+    },
+    "weight_kg": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "deadline_at": {
+      "type": "integer",
+      "description": "Answer deadline, unix milliseconds in server time."
+    }
+  },
+  "required": [
+    "event_id",
+    "load_id",
+    "drivers",
+    "from_region_id",
+    "to_region_id",
+    "truck_class",
+    "amount",
+    "currency",
+    "weight_kg",
+    "deadline_at"
+  ]
+}

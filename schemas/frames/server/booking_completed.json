@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BookingCompletedFrame",
+  "description": "Frame `booking_completed` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.completed` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "booking_completed"
+    },
+    "data": {
+      "$ref": "../../events/booking.completed.json"
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the server sent the frame, RFC 3339 UTC."
+    }
+  },
+  "required": [
+    "type",
+    "data",
+    "ts"
+  ]
+}

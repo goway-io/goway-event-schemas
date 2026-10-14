@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DeviceRemoved",
+  "description": "The owner removed a device; its sessions are closed and it is pushed no more.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "device_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "installation_id": {
+      "type": "string",
+      "description": "The app install's own id."
+    }
+  },
+  "required": [
+    "event_id",
+    "device_id",
+    "user_id",
+    "installation_id"
+  ]
+}

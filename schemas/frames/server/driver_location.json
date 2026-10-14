@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DriverLocationFrame",
+  "description": "Frame `driver_location` goway-realtime sends to an app.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "driver_location"
+    },
+    "data": {
+      "title": "DriverLocation",
+      "description": "The booked driver's live position, relayed to the booking's viewers as it arrives; dropped when a socket is slow.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "lat": {
+          "type": "number",
+          "minimum": -90,
+          "maximum": 90
+        },
+        "lng": {
+          "type": "number",
+          "minimum": -180,
+          "maximum": 180
+        },
+        "heading": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Degrees from north; null when the driver's device did not send it."
+        },
+        "speed": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Null when the driver's device did not send it."
+        }
+      },
+      "required": [
+        "booking_id",
+        "lat",
+        "lng",
+        "heading",
+        "speed"
+      ]
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the server sent the frame, RFC 3339 UTC."
+    }
+  },
+  "required": [
+    "type",
+    "data",
+    "ts"
+  ]
+}

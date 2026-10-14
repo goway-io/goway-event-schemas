@@ -11,10 +11,18 @@
     },
     "data": {
       "title": "FrameError",
-      "description": "A frame was refused; the same problem shape as REST errors.",
+      "description": "A frame was refused; the same problem shape as REST errors. Two forms are sent: a first frame that is not `auth`, an unreadable frame and a refused booking subscription send only `code` and `key`; every other refusal sends the full problem body with `type`, `title`, `status` and `code`, plus `detail`, `key` and `params` when set.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "type": {
+          "type": "string",
+          "description": "Problem type URI, `https://api.goway.uz/problems/<code>`."
+        },
+        "title": {
+          "type": "string",
+          "description": "HTTP status phrase, for example `Conflict`."
+        },
         "code": {
           "type": "string",
           "description": "Stable code the app branches on."

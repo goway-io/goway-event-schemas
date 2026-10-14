@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SubscribedFrame",
+  "description": "Frame `subscribed` goway-realtime sends to an app.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "subscribed"
+    },
+    "data": {
+      "title": "Subscribed",
+      "description": "`subscribe_booking` was accepted.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "booking_id"
+      ]
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the server sent the frame, RFC 3339 UTC."
+    }
+  },
+  "required": [
+    "type",
+    "data",
+    "ts"
+  ]
+}

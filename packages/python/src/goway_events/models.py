@@ -12,6 +12,198 @@ class GowayEventSchemas(RootModel[Any]):
     root: Annotated[Any, Field(title="GowayEventSchemas")]
 
 
+class AccountType(StrEnum):
+    INDIVIDUAL = "individual"
+    BUSINESS = "business"
+
+
+class Auth(BaseModel):
+    """
+    The first frame on a new socket, within five seconds: the access token.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    token: str
+    """
+    Access token (JWT).
+    """
+    installation_id: str | None = None
+    """
+    The app install's id, the one the device was registered under; lets this socket be signed out on its own when the device is removed.
+    """
+
+
+class AuthFrame(BaseModel):
+    """
+    Frame `auth` an app sends to goway-realtime.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["auth"]
+    data: Auth
+
+
+class ChargeLine(BaseModel):
+    """
+    One priced line of the haul.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    code: str
+    """
+    `tariff`, `loaders` or `req:<requirement code>`.
+    """
+    amount: Annotated[int, Field(ge=0)]
+    """
+    Line total, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    qty: Annotated[int, Field(ge=1)]
+
+
+class BookingCreated(BaseModel):
+    """
+    A load was booked. Two paths: an accepted offer, or an instant claim from dispatch, which adds `source: instant`.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    booking_id: UUID
+    load_id: UUID
+    shipper_org_id: UUID
+    carrier_org_id: UUID
+    driver_user_id: UUID | None
+    """
+    The driver; the offer path allows null, a booking always has one.
+    """
+    agreed_amount: Annotated[int, Field(ge=0)]
+    """
+    Agreed price, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    """
+    ISO 4217 code; `UZS` today.
+    """
+    source: str | None = None
+    """
+    Present only for an instant claim, and then always `instant`.
+    """
+
+
+class BookingCreatedFrame(BaseModel):
+    """
+    Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["booking_created"]
+    data: BookingCreated
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class BookingReturnLoads(BaseModel):
+    """
+    Hours before a truck is empty: loads are waiting in the region where it unloads. Sent once per haul.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    booking_id: UUID
+    driver_user_id: UUID
+    carrier_org_id: UUID
+    region_id: UUID
+    """
+    The drop-off region, where the truck will be free.
+    """
+    count: Annotated[int, Field(ge=1)]
+    """
+    Matching loads waiting there.
+    """
+    heads_home: Annotated[int, Field(ge=0)]
+    """
+    How many of them go back to the haul's pickup region.
+    """
+    free_at: AwareDatetime
+    """
+    When the truck is expected to be empty. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+
+
+class BookingSide(StrEnum):
+    """
+    Which side claims.
+    """
+
+    SHIPPER = "shipper"
+    CARRIER = "carrier"
+
+
+class BookingStatus(StrEnum):
+    CONFIRMED = "confirmed"
+    EN_ROUTE = "en_route"
+    AT_PICKUP = "at_pickup"
+    LOADING = "loading"
+    IN_TRANSIT = "in_transit"
+    DELIVERED = "delivered"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+
+
+class BookingStatusChanged(BaseModel):
+    """
+    The carrier moved the haul one step on: `en_route`, `at_pickup`, `loading`, `in_transit` or `delivered`. Completion and cancellation have their own subjects.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    booking_id: UUID
+    load_id: UUID
+    status: BookingStatus
+    shipper_org_id: UUID
+    carrier_org_id: UUID
+
+
+class BookingStatusFrame(BaseModel):
+    """
+    Frame `booking_status` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.status_changed` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["booking_status"]
+    data: BookingStatusChanged
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
 class CancelledBy(StrEnum):
     """
     Who cancelled.
@@ -20,6 +212,245 @@ class CancelledBy(StrEnum):
     SHIPPER = "shipper"
     CARRIER = "carrier"
     OPERATOR = "operator"
+
+
+class CompletedBy(StrEnum):
+    """
+    Who closed the haul; `system` is the auto-complete sweep.
+    """
+
+    SHIPPER = "shipper"
+    OPERATOR = "operator"
+    SYSTEM = "system"
+
+
+class ConnectionConfig(BaseModel):
+    """
+    Current realtime settings the app plays by.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    offer_ttl_seconds: Annotated[int, Field(ge=0)]
+    """
+    Seconds a driver has to answer an offer.
+    """
+    offer_grace_seconds: Annotated[int, Field(ge=0)]
+    """
+    Extra seconds after the deadline a late answer is still honoured.
+    """
+    line_changes_per_day: Annotated[int, Field(ge=0)]
+    """
+    Line changes a driver may make per Tashkent day.
+    """
+    location_sample_seconds: Annotated[int, Field(ge=0)]
+    """
+    Seconds between durable GPS samples.
+    """
+
+
+class DevicePlatform(StrEnum):
+    ANDROID = "android"
+    IOS = "ios"
+    WEB = "web"
+
+
+class DevicePushFailed(BaseModel):
+    """
+    The push provider rejected a device's token as dead; the device should be shown as unreachable.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    device_id: UUID
+    user_id: UUID
+
+
+class DeviceRemoved(BaseModel):
+    """
+    The owner removed a device; its sessions are closed and it is pushed no more.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    device_id: UUID
+    user_id: UUID
+    installation_id: str
+    """
+    The app install's own id.
+    """
+
+
+class DeviceUpserted(BaseModel):
+    """
+    A device was registered or came back after removal, or its push token changed or was cleared (signing out clears it).
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    device_id: UUID
+    user_id: UUID
+    platform: DevicePlatform
+    push_token: str | None
+    """
+    FCM registration token; null when the device can no longer be pushed.
+    """
+
+
+class DispatchOffered(BaseModel):
+    """
+    An instant load was offered to a wave of drivers on its line, so a driver whose app is in the background still sees it. Loss-tolerant: the socket frame is the offer itself.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it.
+    """
+    load_id: UUID
+    drivers: Annotated[list[UUID], Field(min_length=1)]
+    """
+    Drivers the wave reached.
+    """
+    from_region_id: UUID
+    to_region_id: UUID
+    truck_class: str
+    """
+    Truck class code from the reference list.
+    """
+    amount: Annotated[int, Field(ge=0)]
+    """
+    The load's fixed price, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    """
+    ISO 4217 code; `UZS` today.
+    """
+    weight_kg: Annotated[int, Field(ge=0)]
+    deadline_at: int
+    """
+    Answer deadline, unix milliseconds in server time.
+    """
+
+
+class DisplayCurrency(StrEnum):
+    """
+    Display currency; charges stay in UZS.
+    """
+
+    UZS = "UZS"
+    USD = "USD"
+    RUB = "RUB"
+    KZT = "KZT"
+
+
+class DocumentKind(StrEnum):
+    PASSPORT = "passport"
+    DRIVER_LICENSE = "driver_license"
+    TECH_PASSPORT = "tech_passport"
+    VEHICLE_PHOTO = "vehicle_photo"
+    POWER_OF_ATTORNEY = "power_of_attorney"
+
+
+class DriverLocation(BaseModel):
+    """
+    The booked driver's live position, relayed to the booking's viewers as it arrives; dropped when a socket is slow.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    booking_id: UUID
+    lat: Annotated[float, Field(ge=-90.0, le=90.0)]
+    lng: Annotated[float, Field(ge=-180.0, le=180.0)]
+    heading: float | None
+    """
+    Degrees from north; null when the driver's device did not send it.
+    """
+    speed: float | None
+    """
+    Null when the driver's device did not send it.
+    """
+
+
+class DriverLocationFrame(BaseModel):
+    """
+    Frame `driver_location` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["driver_location"]
+    data: DriverLocation
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class DriverOffline(BaseModel):
+    """
+    A driver left the line: went offline, the line expired, the grace after a disconnect ran out, or the sessions were revoked.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it.
+    """
+    user_id: UUID
+    org_id: UUID
+    """
+    From the presence record, which always has it.
+    """
+
+
+class DriverOnline(BaseModel):
+    """
+    A driver opened or changed a line and waits for instant offers.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it.
+    """
+    user_id: UUID
+    org_id: UUID
+    from_region_id: UUID
+    to_region_id: UUID
+    vehicle_id: UUID
+    bidirectional: bool
+    """
+    Also takes loads on the way back.
+    """
+    expires_at: int
+    """
+    When the line ends, unix milliseconds.
+    """
 
 
 class DriverStatsChanged(BaseModel):
@@ -43,14 +474,27 @@ class DriverStatsChanged(BaseModel):
     rating_count: Annotated[int, Field(ge=0)]
 
 
+class EtaStop(StrEnum):
+    PICKUP = "pickup"
+    DROPOFF = "dropoff"
+
+
 class FrameError(BaseModel):
     """
-    A frame was refused; the same problem shape as REST errors.
+    A frame was refused; the same problem shape as REST errors. Two forms are sent: a first frame that is not `auth`, an unreadable frame and a refused booking subscription send only `code` and `key`; every other refusal sends the full problem body with `type`, `title`, `status` and `code`, plus `detail`, `key` and `params` when set.
     """
 
     model_config = ConfigDict(
         extra="ignore",
     )
+    type: str | None = None
+    """
+    Problem type URI, `https://api.goway.uz/problems/<code>`.
+    """
+    title: str | None = None
+    """
+    HTTP status phrase, for example `Conflict`.
+    """
     code: str
     """
     Stable code the app branches on.
@@ -65,6 +509,28 @@ class FrameError(BaseModel):
     """
     Values for the translated message.
     """
+
+
+class GoOffline(BaseModel):
+    """
+    Leave the line. Nothing to send: an empty object, or no `data` at all.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+
+
+class GoOfflineFrame(BaseModel):
+    """
+    Frame `go_offline` an app sends to goway-realtime.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["go_offline"]
+    data: GoOffline | None = None
 
 
 class GoOnline(BaseModel):
@@ -105,9 +571,317 @@ class IneligibleReason(StrEnum):
     SUBSCRIPTION = "subscription"
 
 
+class Kicked(BaseModel):
+    """
+    This socket is being closed by the server; sign in again.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    reason: str | None
+    """
+    `device_removed`, `logout` (closed from another device), the `user.session_revoked` reason, or what a service passed to `/internal/kick`; null when none was given.
+    """
+
+
+class KickedFrame(BaseModel):
+    """
+    Frame `kicked` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["kicked"]
+    data: Kicked
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class LineExpired(BaseModel):
+    """
+    The driver's line ended and the driver is offline; open a line again to get offers.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    expired_at: int
+    """
+    When the line ended, unix milliseconds.
+    """
+
+
+class LineExpiredFrame(BaseModel):
+    """
+    Frame `line_expired` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["line_expired"]
+    data: LineExpired
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class LineExpiring(BaseModel):
+    """
+    The driver's line ends soon (`line_expiry_warning_minutes` before).
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    expires_at: int
+    """
+    When the line ends, unix milliseconds.
+    """
+
+
+class LineExpiringFrame(BaseModel):
+    """
+    Frame `line_expiring` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["line_expiring"]
+    data: LineExpiring
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class LoadCancelled(BaseModel):
+    """
+    The shipper withdrew an open load.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    load_id: UUID
+    org_id: UUID
+    """
+    The shipper organization.
+    """
+
+
+class LoadExpired(BaseModel):
+    """
+    An open load passed its expiry unbooked; the sweep closed it.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    load_id: UUID
+    org_id: UUID
+    """
+    The shipper organization.
+    """
+
+
+class Location(BaseModel):
+    """
+    The driver's position. Relayed to booking viewers and sampled as evidence only while a booking is active.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    lat: Annotated[float, Field(ge=-90.0, le=90.0)]
+    lng: Annotated[float, Field(ge=-180.0, le=180.0)]
+    heading: float | None = None
+    """
+    Degrees from north, when the device knows it.
+    """
+    speed: float | None = None
+    """
+    Speed the device reports, when it knows it.
+    """
+
+
+class LocationFrame(BaseModel):
+    """
+    Frame `location` an app sends to goway-realtime.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["location"]
+    data: Location
+
+
+class LocationSampled(BaseModel):
+    """
+    A driver's GPS position during an active booking, sampled every `location_sample_seconds` as evidence of the haul.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it.
+    """
+    booking_id: UUID
+    driver_user_id: UUID
+    lat: Annotated[float, Field(ge=-90.0, le=90.0)]
+    lng: Annotated[float, Field(ge=-180.0, le=180.0)]
+    recorded_at: AwareDatetime
+    """
+    When the position was sampled, RFC 3339 UTC with milliseconds.
+    """
+
+
+class Notification(BaseModel):
+    """
+    Something landed in the user's notification feed; refresh the badge. Copied from `notification.created`; a field that event lacked or sent empty arrives as null.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    notification_id: UUID | None
+    kind: str | None
+    """
+    Template kind, for example `driver_found` or `announcement`.
+    """
+    title: str | None
+    """
+    Title in the user's language.
+    """
+    body: str | None
+    """
+    Text in the user's language.
+    """
+
+
+class NotificationCreated(BaseModel):
+    """
+    A message landed in a user's notification feed: from an event, or from an admin announcement (`kind: announcement`).
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    notification_id: UUID
+    user_id: UUID
+    kind: str
+    """
+    Template kind, for example `driver_found`, `booking_status` or `announcement`.
+    """
+    title: str
+    """
+    Title in the user's language.
+    """
+    body: str
+    """
+    Text in the user's language.
+    """
+
+
+class NotificationFrame(BaseModel):
+    """
+    Frame `notification` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["notification"]
+    data: Notification
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class NotificationPrefs(BaseModel):
+    """
+    Every switch, sent whole whenever one of them changed.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    offers: bool
+    """
+    Push for new offers and dispatch results.
+    """
+    orders: bool
+    """
+    Push for booking status changes.
+    """
+    marketing: bool
+    """
+    Promotions and news.
+    """
+    sms: bool
+    """
+    SMS fallback for critical events.
+    """
+
+
+class OfferAccepted(BaseModel):
+    """
+    An offer was accepted and became a booking; published together with `booking.created`.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    offer_id: UUID
+    load_id: UUID
+    booking_id: UUID
+    shipper_org_id: UUID
+    carrier_org_id: UUID
+    driver_user_id: UUID | None
+    """
+    The driver who made the offer; the code allows null, an offer always has one.
+    """
+
+
 class OfferAction(StrEnum):
     ACCEPT = "accept"
     DECLINE = "decline"
+
+
+class OfferKind(StrEnum):
+    """
+    Who made the offer and how.
+    """
+
+    CARRIER_REQUEST = "carrier_request"
+    CARRIER_COUNTER = "carrier_counter"
+    SHIPPER_COUNTER = "shipper_counter"
 
 
 class OfferOutcome(StrEnum):
@@ -195,7 +969,7 @@ class OfferResult(BaseModel):
     outcome: OfferOutcome
     booking_id: UUID | None = None
     """
-    Set when the outcome is `won`.
+    Sent only when the outcome is `won`; null when goway-loads' answer could not be read.
     """
 
 
@@ -215,9 +989,104 @@ class OfferResultFrame(BaseModel):
     """
 
 
-class WalletEligibilityChanged(BaseModel):
+class OffersBlockedReason(StrEnum):
+    BALANCE_INSUFFICIENT = "BALANCE_INSUFFICIENT"
+    SUBSCRIPTION_REQUIRED = "SUBSCRIPTION_REQUIRED"
+
+
+class OffersUnblocked(BaseModel):
     """
-    An organization's wallet started or stopped being allowed to receive offers. One event per user of the organization.
+    The wallet is eligible again after being blocked; nothing in it.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+
+
+class OffersUnblockedFrame(BaseModel):
+    """
+    Frame `offers_unblocked` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["offers_unblocked"]
+    data: OffersUnblocked
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class Offline(BaseModel):
+    """
+    The driver left the line after `go_offline`.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+
+
+class OfflineFrame(BaseModel):
+    """
+    Frame `offline` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["offline"]
+    data: Offline
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class Online(BaseModel):
+    """
+    The driver is on the line after `go_online`.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    queue_position: Annotated[int, Field(ge=1)]
+    """
+    Place in the outbound line's queue, from 1.
+    """
+    expires_at: int
+    """
+    When the line ends, unix milliseconds.
+    """
+    offers_blocked: OffersBlockedReason | None
+    """
+    Set when the wallet blocks offers, null otherwise; this frame only ever sends `BALANCE_INSUFFICIENT`.
+    """
+
+
+class OnlineFrame(BaseModel):
+    """
+    Frame `online` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["online"]
+    data: Online
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class OrgUpdated(BaseModel):
+    """
+    An organization's details changed. Only what changed is sent, besides `org_id` and `updated_at`: a role switch sends `kind` and `account_type`; the organization screen any of `name`, `legal_name`, `inn`, `contact_phone`, `address`.
     """
 
     model_config = ConfigDict(
@@ -228,7 +1097,603 @@ class WalletEligibilityChanged(BaseModel):
     Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
     """
     org_id: UUID
+    kind: str | None = None
+    """
+    Market side: `shipper` or `carrier`.
+    """
+    account_type: AccountType | None = None
+    name: str | None = None
+    """
+    Display name.
+    """
+    legal_name: str | None = None
+    """
+    Registered company name.
+    """
+    inn: str | None = None
+    """
+    Tax id (STIR/INN), 9 digits.
+    """
+    contact_phone: str | None = None
+    """
+    E.164 number, `+998…`.
+    """
+    address: str | None = None
+    updated_at: AwareDatetime
+    """
+    When the change was made. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+
+
+class PaymentMethod(StrEnum):
+    CASH = "cash"
+    TRANSFER = "transfer"
+    CARD = "card"
+    MIXED = "mixed"
+
+
+class Ping(BaseModel):
+    """
+    Nothing: an empty object, or no `data` at all.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+
+
+class PingFrame(BaseModel):
+    """
+    Frame `ping` an app sends to goway-realtime.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["ping"]
+    data: Ping | None = None
+
+
+class Pong(BaseModel):
+    """
+    The answer to `ping`; nothing in it.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+
+
+class PongFrame(BaseModel):
+    """
+    Frame `pong` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["pong"]
+    data: Pong
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class PriceMode(StrEnum):
+    FIXED = "fixed"
+    NEGOTIABLE = "negotiable"
+
+
+class RatingCreated(BaseModel):
+    """
+    The shipper rated a completed haul; sent once per haul.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    booking_id: UUID
+    load_id: UUID
+    target: str
+    """
+    Who was rated; always `driver` today.
+    """
+    driver_user_id: UUID | None
+    """
+    The rated driver; the code allows null, a booking always has one.
+    """
+    carrier_org_id: UUID
+    shipper_org_id: UUID
+    stars: Annotated[int, Field(ge=1)]
+    """
+    1 to 5.
+    """
+
+
+class RegionChanged(BaseModel):
+    """
+    An admin opened or closed a region for the marketplace.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    region_id: UUID
+    is_active: bool
+
+
+class ReviewDecision(StrEnum):
+    """
+    The decision.
+    """
+
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
+class SessionStarted(BaseModel):
+    """
+    Somebody signed in to this account; ignore it when `installation_id` is this app's own. Copied from `user.login`; a field that event lacked or sent empty arrives as null.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    device_id: UUID | None
+    installation_id: str | None
+    platform: DevicePlatform | None
+    """
+    Device platform.
+    """
+    model: str | None
+    """
+    Device model.
+    """
+    new_device: bool
+    at: AwareDatetime | None
+    """
+    When the sign-in happened, as `user.login` wrote it.
+    """
+
+
+class SessionStartedFrame(BaseModel):
+    """
+    Frame `session_started` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["session_started"]
+    data: SessionStarted
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class SettingsChanged(BaseModel):
+    """
+    An admin changed or reset runtime settings of one service. Published by goway-lib for goway-auth, goway-loads, goway-billing and goway-notify, and by goway-realtime itself, with the same fields.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event: the outbox row id from a Python service, a random UUID from goway-realtime. Consumers dedupe on it.
+    """
+    service: str
+    """
+    The service whose settings changed, for example `goway-loads`.
+    """
+    keys: list[str]
+    """
+    Setting keys that changed.
+    """
+    by: UUID | None
+    """
+    The admin who changed them; null when not known.
+    """
+
+
+class SubscribeBooking(BaseModel):
+    """
+    Watch a booking of the caller's organization: status, arrival window and the driver's position.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    booking_id: UUID
+
+
+class SubscribeBookingFrame(BaseModel):
+    """
+    Frame `subscribe_booking` an app sends to goway-realtime.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["subscribe_booking"]
+    data: SubscribeBooking
+
+
+class Subscribed(BaseModel):
+    """
+    `subscribe_booking` was accepted.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    booking_id: UUID
+
+
+class SubscribedFrame(BaseModel):
+    """
+    Frame `subscribed` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["subscribed"]
+    data: Subscribed
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class SupportTopic(StrEnum):
+    """
+    What the ticket is about.
+    """
+
+    SUGGESTION = "suggestion"
+    COMPLAINT = "complaint"
+    BUG = "bug"
+    PAYMENT = "payment"
+    ORDER = "order"
+    DRIVER = "driver"
+    APP = "app"
+    DOCUMENTS = "documents"
+    OTHER = "other"
+
+
+class Theme(StrEnum):
+    """
+    App theme.
+    """
+
+    LIGHT = "light"
+    DARK = "dark"
+    SYSTEM = "system"
+
+
+class TicketReplyStatus(StrEnum):
+    """
+    The ticket's status after the reply.
+    """
+
+    ANSWERED = "answered"
+    CLOSED = "closed"
+
+
+class UnsubscribeBooking(BaseModel):
+    """
+    Stop watching a booking.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    booking_id: UUID
+
+
+class UnsubscribeBookingFrame(BaseModel):
+    """
+    Frame `unsubscribe_booking` an app sends to goway-realtime.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["unsubscribe_booking"]
+    data: UnsubscribeBooking
+
+
+class UserCreated(BaseModel):
+    """
+    An account came into being. Three paths publish it with different fields: self-signup sends `account_type`; an admin create sends `first_name` and `last_name`, either of which may be null; an admin restore of a soft-deleted account sends `updated_at`. `user_id`, `org_id`, `role`, `phone` and `language` are always sent.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
     user_id: UUID
+    org_id: UUID
+    role: str
+    """
+    Role name. Self-signup sends `shipper` or `carrier`, an admin create the role it picked, a restore the stored role or an empty string when the user has none.
+    """
+    account_type: AccountType | None = None
+    phone: str
+    """
+    E.164 number, `+998…`. A restore sends the stored value, which is `del:…` for an account its owner deleted.
+    """
+    language: str
+    """
+    App language code: uz, uzc, ru, en, kaa or zh.
+    """
+    first_name: str | None = None
+    """
+    Admin create only; null when the admin gave none.
+    """
+    last_name: str | None = None
+    """
+    Admin create only; null when the admin gave none.
+    """
+    updated_at: AwareDatetime | None = None
+    """
+    Admin restore only: when the account came back. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+
+
+class UserDeleted(BaseModel):
+    """
+    An account was deleted: by its owner, without `updated_at`, or by an admin, soft or hard, with `updated_at`.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    user_id: UUID
+    org_id: UUID
+    updated_at: AwareDatetime | None = None
+    """
+    Admin deletes only: when the account was deleted. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+
+
+class UserLogin(BaseModel):
+    """
+    Somebody signed in to the account: by code, password, password reset or phone change. The device fields are null when the app sent no device.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    user_id: UUID
+    device_id: UUID | None
+    """
+    Device row the session belongs to.
+    """
+    installation_id: str | None
+    """
+    The app install's own id.
+    """
+    platform: DevicePlatform | None
+    """
+    Device platform.
+    """
+    model: str | None
+    """
+    Device model as the app reported it.
+    """
+    new_device: bool
+    """
+    True the first time this install signs in, or when a removed device comes back.
+    """
+    ip: str | None
+    """
+    Client address.
+    """
+    at: AwareDatetime
+    """
+    When the sign-in happened. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+
+
+class UserSessionRevoked(BaseModel):
+    """
+    Every session of the account was closed; each app must sign in again.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    user_id: UUID
+    reason: str
+    """
+    Why: `password_change`, `password_reset`, `phone_change`, `deleted`, `blocked`, or the free text an admin wrote when blocking the account.
+    """
+
+
+class UserSessionsClosed(BaseModel):
+    """
+    Some of the account's sessions were closed from another device; those installs must sign in again.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    user_id: UUID
+    installation_ids: Annotated[list[str], Field(min_length=1)]
+    """
+    Installs whose sessions were closed; never empty.
+    """
+    reason: str
+    """
+    Always `logout` today.
+    """
+
+
+class UserUpdated(BaseModel):
+    """
+    Something about an account changed. Only what changed is sent, besides `user_id` and `updated_at`, and five paths send five field sets: a confirmed phone change sends `phone`; the account settings screen any of `language`, `currency`, `theme`, `notification_prefs`; a role switch `role`; an admin edit any of `phone`, `language`, `first_name`, `last_name`, plus `role` whenever the admin named one; a profile edit `first_name`, `last_name`, `email` and `avatar_url` together, each of them possibly null.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    user_id: UUID
+    phone: str | None = None
+    """
+    New E.164 number, `+998…`.
+    """
+    language: str | None = None
+    """
+    App language code: uz, uzc, ru, en, kaa or zh.
+    """
+    currency: DisplayCurrency | None = None
+    theme: Theme | None = None
+    notification_prefs: NotificationPrefs | None = None
+    role: str | None = None
+    """
+    Role name: `shipper` or `carrier` from a role switch, any role from an admin edit.
+    """
+    first_name: str | None = None
+    """
+    Null only from a profile edit, when the profile has no first name.
+    """
+    last_name: str | None = None
+    """
+    Null only from a profile edit, when the profile has no last name.
+    """
+    email: str | None = None
+    """
+    Profile edit only; null when the profile has no email.
+    """
+    avatar_url: str | None = None
+    """
+    Profile edit only. Public avatar address; null when there is none or it would expire.
+    """
+    updated_at: AwareDatetime
+    """
+    When the change was made. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+
+
+class VehicleRemoved(BaseModel):
+    """
+    A fleet vehicle was removed.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    vehicle_id: UUID
+    org_id: UUID
+
+
+class VehicleUpserted(BaseModel):
+    """
+    A fleet vehicle was added or changed; the whole vehicle is sent every time.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    vehicle_id: UUID
+    org_id: UUID
+    plate_number: str
+    """
+    Normalized plate: no spaces, upper case.
+    """
+    truck_class: str
+    """
+    Truck class code from the reference list.
+    """
+    capabilities: list[str]
+    """
+    Capability codes: rear_ramp, open_top, side_curtain, tail_lift, refrigerated.
+    """
+    loading_method: str
+    """
+    How the vehicle is loaded: `top`, `rear` or `both`.
+    """
+    capacity_kg: Annotated[int | None, Field(ge=0)]
+    """
+    Payload in kilograms; null when not given.
+    """
+    updated_at: AwareDatetime
+    """
+    When the vehicle was saved. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+
+
+class VerificationStatus(StrEnum):
+    """
+    The new verification status.
+    """
+
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
+class WalletEligibilityChanged(BaseModel):
+    """
+    An organization's wallet started or stopped being allowed to receive offers. One event per user of the organization, or a single event with a null `user_id` when billing knows no user of it yet.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    org_id: UUID
+    user_id: UUID | None
+    """
+    Null when billing's replica holds no user of the organization.
+    """
     eligible: bool
     balance: int
     """
@@ -244,9 +1709,141 @@ class WalletEligibilityChanged(BaseModel):
     """
 
 
+class WalletEntryPosted(BaseModel):
+    """
+    A line was written to an organization's wallet ledger.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    org_id: UUID
+    entry_id: UUID
+    kind: str
+    """
+    Ledger line kind: commission, commission_adjustment, cash_topup, cash_void, adjustment, subscription_fee, promo, referral, bonus_hold, bonus_release or bonus_discount.
+    """
+    amount: int
+    """
+    Signed change of the balance, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    balance: int
+    """
+    Balance after the line, whole so'm (a bare integer; `currency` is UZS today); negative means debt.
+    """
+    booking_id: UUID | None
+    """
+    The haul the line is for; null for lines not tied to a haul.
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    """
+    ISO 4217 code; `UZS` today.
+    """
+
+
+class WalletToppedUp(BaseModel):
+    """
+    An operator took cash for an organization's wallet and issued a receipt.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    org_id: UUID
+    payment_id: UUID
+    receipt_no: str
+    """
+    Receipt number, `GW-<year>-<6 digits>`, for example `GW-2026-000123`.
+    """
+    amount: Annotated[int, Field(ge=0)]
+    """
+    Cash received, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    balance: int
+    """
+    Balance after the top-up, whole so'm (a bare integer; `currency` is UZS today); negative means debt.
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    """
+    ISO 4217 code; `UZS` today.
+    """
+
+
+class BookingAmountClaimed(BaseModel):
+    """
+    One side of a delivered haul says it settled at another sum; nothing changes until an operator decides.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    claim_id: UUID
+    booking_id: UUID
+    side: BookingSide
+    amount: Annotated[int, Field(ge=0)]
+    """
+    The claimed sum, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    recorded_amount: Annotated[int, Field(ge=0)]
+    """
+    The sum on record now, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    """
+    ISO 4217 code; `UZS` today.
+    """
+
+
+class BookingAmountSettled(BaseModel):
+    """
+    An operator accepted an amount claim; the haul now settles at `settled_amount` and billing adjusts its commission.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    booking_id: UUID
+    load_id: UUID
+    carrier_org_id: UUID
+    shipper_org_id: UUID | None
+    """
+    Null only when the load could not be read.
+    """
+    driver_user_id: UUID
+    status: BookingStatus
+    previous_amount: Annotated[int, Field(ge=0)]
+    """
+    The sum on record before, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    settled_amount: Annotated[int, Field(ge=0)]
+    """
+    The sum the operator settled on, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    """
+    ISO 4217 code; `UZS` today.
+    """
+
+
 class BookingCancelled(BaseModel):
     """
-    A booking ended before the cargo was loaded. The load goes back to the board.
+    A booking ended before the cargo was loaded. The load goes back to the board. Two paths send the same fields: either side cancelling (`by` is `shipper` or `carrier`) and an operator (`by` is `operator`).
     """
 
     model_config = ConfigDict(
@@ -271,10 +1868,300 @@ class BookingCancelled(BaseModel):
     """
 
 
-class ClientFrame(RootModel[GoOnlineFrame | OfferResponseFrame]):
-    root: Annotated[GoOnlineFrame | OfferResponseFrame, Field(discriminator="type", title="ClientFrame")]
+class BookingCancelledFrame(BaseModel):
+    """
+    Frame `booking_cancelled` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.cancelled` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["booking_cancelled"]
+    data: BookingCancelled
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class BookingCompleted(BaseModel):
+    """
+    A delivered haul was closed: by the shipper, by an operator, or by the auto-complete sweep. All three send the same fields. Billing charges its commission from this event.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    booking_id: UUID
+    load_id: UUID
+    carrier_org_id: UUID
+    shipper_org_id: UUID
+    driver_user_id: UUID
+    agreed_amount: Annotated[int, Field(ge=0)]
+    """
+    Price agreed at booking, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    settled_amount: Annotated[int, Field(ge=0)]
+    """
+    What the haul actually settled at: the agreed price unless another sum was confirmed, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    completed_at: AwareDatetime | None
+    """
+    When the haul was closed; the code allows null, it is always set. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+    completed_by: CompletedBy
+    charges: list[ChargeLine]
+    """
+    Price lines; the first is always the agreed tariff.
+    """
+    waiting_minutes: Annotated[int, Field(ge=0)]
+    """
+    Billable minutes the driver waited at pickup.
+    """
+    waiting_amount: Annotated[int, Field(ge=0)]
+    """
+    What the waiting costs, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    waiting_billable: bool
+    """
+    Whether the waiting is charged to the shipper.
+    """
+    total_amount: Annotated[int | None, Field(ge=0)]
+    """
+    Charges plus waiting, whole so'm (a bare integer; `currency` is UZS today); the code allows null.
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    """
+    ISO 4217 code; `UZS` today.
+    """
+
+
+class BookingCompletedFrame(BaseModel):
+    """
+    Frame `booking_completed` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.completed` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["booking_completed"]
+    data: BookingCompleted
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class BookingEtaUpdated(BaseModel):
+    """
+    The arrival window or the time the truck is free again moved: when the haul is booked (`confirmed`), at every carrier step, and on fresh GPS while `en_route` or `in_transit`.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    booking_id: UUID
+    load_id: UUID
+    carrier_org_id: UUID
+    driver_user_id: UUID
+    shipper_org_id: UUID
+    status: BookingStatus
+    eta_stop: EtaStop | None
+    """
+    Which stop the window is for; null when no arrival is expected any more.
+    """
+    eta_from: AwareDatetime | None
+    """
+    Earliest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+    eta_to: AwareDatetime | None
+    """
+    Latest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+    free_at: AwareDatetime | None
+    """
+    When the truck is expected to be empty again. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+    free_region_id: UUID | None
+    """
+    Where the truck will be free: the drop-off region; null when unknown.
+    """
+    truck_class: str
+    """
+    The booked vehicle's truck class code.
+    """
+
+
+class CarrierDocumentExpired(BaseModel):
+    """
+    A carrier's document passed its expiry date; the hourly sweep marked it expired.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    org_id: UUID
+    kind: DocumentKind
+    expired_at: AwareDatetime
+    """
+    The document's expiry date. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+
+
+class CarrierDocumentExpiring(BaseModel):
+    """
+    A carrier's document expires within the warning window; sent once per document.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    org_id: UUID
+    kind: DocumentKind
+    expires_at: AwareDatetime
+    """
+    The document's expiry date. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+
+
+class CarrierDocumentReviewed(BaseModel):
+    """
+    An operator approved or rejected a carrier's document.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    org_id: UUID
+    kind: DocumentKind
+    status: ReviewDecision
+    note: str | None
+    """
+    What the operator wrote; a rejection always has one.
+    """
+
+
+class CarrierDocumentUpdated(BaseModel):
+    """
+    A carrier submitted a new version of a document; it waits for review.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    org_id: UUID
+    kind: DocumentKind
+    status: str
+    """
+    Always `pending` today.
+    """
+    version: Annotated[int, Field(ge=1)]
+    """
+    Version of this document kind, from 1.
+    """
+
+
+class CarrierVerificationChanged(BaseModel):
+    """
+    A carrier organization's verification moved: submitted or reopened by a replaced document (`pending`), or decided by an operator.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    org_id: UUID
+    status: VerificationStatus
+
+
+class ClientFrame(
+    RootModel[
+        AuthFrame
+        | PingFrame
+        | GoOnlineFrame
+        | GoOfflineFrame
+        | LocationFrame
+        | OfferResponseFrame
+        | SubscribeBookingFrame
+        | UnsubscribeBookingFrame
+    ]
+):
+    root: Annotated[
+        AuthFrame
+        | PingFrame
+        | GoOnlineFrame
+        | GoOfflineFrame
+        | LocationFrame
+        | OfferResponseFrame
+        | SubscribeBookingFrame
+        | UnsubscribeBookingFrame,
+        Field(discriminator="type", title="ClientFrame"),
+    ]
     """
     Any frame an app may send; `type` tells which.
+    """
+
+
+class Connected(BaseModel):
+    """
+    The `auth` frame was accepted; the socket is live.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    user_id: UUID
+    conn_id: str
+    """
+    This socket's id, 32 hex characters.
+    """
+    worker: str
+    """
+    The goway-realtime worker holding the socket, `<host>-<pid>-<suffix>`; for logs.
+    """
+    config: ConnectionConfig
+
+
+class ConnectedFrame(BaseModel):
+    """
+    Frame `connected` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["connected"]
+    data: Connected
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
     """
 
 
@@ -294,9 +2181,257 @@ class ErrorFrame(BaseModel):
     """
 
 
-class ServerFrame(RootModel[OfferProposedFrame | OfferResultFrame | ErrorFrame]):
+class LoadPosted(BaseModel):
+    """
+    A load is open on the board: just posted (one event per truck of a multi-truck post), or back on the board after its booking was cancelled, which adds `reposted: true`.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    load_id: UUID
+    org_id: UUID
+    """
+    The shipper organization.
+    """
+    from_region_id: UUID | None
+    """
+    Pickup region; null when the address resolved to none.
+    """
+    to_region_id: UUID | None
+    """
+    Drop-off region; null when the address resolved to none.
+    """
+    truck_class: str
+    """
+    Truck class code from the reference list.
+    """
+    loading_method: str
+    """
+    How the cargo goes in: `top` or `rear`.
+    """
+    needs_refrigeration: bool
+    allow_instant: bool
+    """
+    Whether instant dispatch may offer the load.
+    """
+    price_mode: PriceMode
+    asking_amount: Annotated[int | None, Field(ge=0)]
+    """
+    The shipper's price, whole so'm (a bare integer; `currency` is UZS today); null when it asks for offers.
+    """
+    bonus_amount: Annotated[int | None, Field(ge=0)]
+    """
+    Shipper bonus set aside for this truck, whole so'm (a bare integer; `currency` is UZS today); null when none.
+    """
+    suggested_amount: Annotated[int | None, Field(ge=0)]
+    """
+    Market price GoWay suggested, whole so'm (a bare integer; `currency` is UZS today); null when there was none.
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    """
+    ISO 4217 code; `UZS` today.
+    """
+    weight_kg: Annotated[int, Field(ge=0)]
+    pickup_from: AwareDatetime | None
+    """
+    Earliest pickup; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+    pickup_to: AwareDatetime | None
+    """
+    Latest pickup, also the posting's expiry; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+    pickup_lat: float | None
+    """
+    Pickup point latitude; null only when the load has no stops.
+    """
+    pickup_lng: float | None
+    """
+    Pickup point longitude; null only when the load has no stops.
+    """
+    group_id: UUID | None
+    """
+    Shared by the sibling loads of one multi-truck post; null for a single truck.
+    """
+    is_urgent: bool
+    payment_method: PaymentMethod
+    reposted: bool | None = None
+    """
+    Present, and true, only when a cancelled booking put the load back.
+    """
+
+
+class OfferCreated(BaseModel):
+    """
+    A carrier asked for a load, or either side countered the other's price.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    offer_id: UUID
+    load_id: UUID
+    kind: OfferKind
+    carrier_org_id: UUID
+    shipper_org_id: UUID
+    amount: Annotated[int, Field(ge=0)]
+    """
+    Offered price, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    """
+    ISO 4217 code; `UZS` today.
+    """
+
+
+class OffersBlocked(BaseModel):
+    """
+    The wallet stopped being eligible; no offers until it is settled.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    reason: OffersBlockedReason
+
+
+class OffersBlockedFrame(BaseModel):
+    """
+    Frame `offers_blocked` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["offers_blocked"]
+    data: OffersBlocked
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class SupportTicketCreated(BaseModel):
+    """
+    A user opened a support ticket.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    ticket_id: UUID
+    number: str
+    """
+    Reference the user sees: `T-` and six characters, for example `T-7KQ2MZ`.
+    """
+    user_id: UUID
+    topic: SupportTopic
+    order_id: UUID | None
+    """
+    The haul the ticket is about; null when none was named.
+    """
+
+
+class SupportTicketReplied(BaseModel):
+    """
+    Support answered or closed a ticket.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    ticket_id: UUID
+    number: str
+    """
+    Reference the user sees: `T-` and six characters, for example `T-7KQ2MZ`.
+    """
+    user_id: UUID
+    """
+    Who opened the ticket.
+    """
+    status: TicketReplyStatus
+
+
+class BookingEtaFrame(BaseModel):
+    """
+    Frame `booking_eta` goway-realtime sends to an app. Sent to the booking's viewers only, and dropped when a socket is slow. It currently forwards the internal `booking.eta_updated` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["booking_eta"]
+    data: BookingEtaUpdated
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class ServerFrame(
+    RootModel[
+        ConnectedFrame
+        | PongFrame
+        | OnlineFrame
+        | OfflineFrame
+        | OfferProposedFrame
+        | OfferResultFrame
+        | SubscribedFrame
+        | BookingCreatedFrame
+        | BookingStatusFrame
+        | BookingEtaFrame
+        | BookingCompletedFrame
+        | BookingCancelledFrame
+        | DriverLocationFrame
+        | LineExpiringFrame
+        | LineExpiredFrame
+        | OffersBlockedFrame
+        | OffersUnblockedFrame
+        | NotificationFrame
+        | SessionStartedFrame
+        | KickedFrame
+        | ErrorFrame
+    ]
+):
     root: Annotated[
-        OfferProposedFrame | OfferResultFrame | ErrorFrame, Field(discriminator="type", title="ServerFrame")
+        ConnectedFrame
+        | PongFrame
+        | OnlineFrame
+        | OfflineFrame
+        | OfferProposedFrame
+        | OfferResultFrame
+        | SubscribedFrame
+        | BookingCreatedFrame
+        | BookingStatusFrame
+        | BookingEtaFrame
+        | BookingCompletedFrame
+        | BookingCancelledFrame
+        | DriverLocationFrame
+        | LineExpiringFrame
+        | LineExpiredFrame
+        | OffersBlockedFrame
+        | OffersUnblockedFrame
+        | NotificationFrame
+        | SessionStartedFrame
+        | KickedFrame
+        | ErrorFrame,
+        Field(discriminator="type", title="ServerFrame"),
     ]
     """
     Any frame goway-realtime may send; `type` tells which.

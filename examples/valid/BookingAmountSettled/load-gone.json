@@ -1,0 +1,12 @@
+{
+  "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+  "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+  "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+  "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+  "shipper_org_id": null,
+  "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+  "status": "delivered",
+  "previous_amount": 4350000,
+  "settled_amount": 4600000,
+  "currency": "UZS"
+}

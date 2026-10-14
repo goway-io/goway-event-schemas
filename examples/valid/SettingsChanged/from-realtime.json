@@ -1,0 +1,8 @@
+{
+  "event_id": "6f1c2a9e-3b7d-4e8f-9a0b-1c2d3e4f5a6b",
+  "service": "goway-realtime",
+  "keys": [
+    "offer_ttl_seconds"
+  ],
+  "by": null
+}

@@ -1,0 +1,175 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LoadPosted",
+  "description": "A load is open on the board: just posted (one event per truck of a multi-truck post), or back on the board after its booking was cancelled, which adds `reposted: true`.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "load_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The shipper organization."
+    },
+    "from_region_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "Pickup region; null when the address resolved to none."
+    },
+    "to_region_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "Drop-off region; null when the address resolved to none."
+    },
+    "truck_class": {
+      "type": "string",
+      "description": "Truck class code from the reference list."
+    },
+    "loading_method": {
+      "type": "string",
+      "description": "How the cargo goes in: `top` or `rear`."
+    },
+    "needs_refrigeration": {
+      "type": "boolean"
+    },
+    "allow_instant": {
+      "type": "boolean",
+      "description": "Whether instant dispatch may offer the load."
+    },
+    "price_mode": {
+      "title": "PriceMode",
+      "type": "string",
+      "enum": [
+        "fixed",
+        "negotiable"
+      ]
+    },
+    "asking_amount": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "The shipper's price, whole so'm (a bare integer; `currency` is UZS today); null when it asks for offers."
+    },
+    "bonus_amount": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Shipper bonus set aside for this truck, whole so'm (a bare integer; `currency` is UZS today); null when none."
+    },
+    "suggested_amount": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Market price GoWay suggested, whole so'm (a bare integer; `currency` is UZS today); null when there was none."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3,
+      "description": "ISO 4217 code; `UZS` today."
+    },
+    "weight_kg": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "pickup_from": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "Earliest pickup; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it."
+    },
+    "pickup_to": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "Latest pickup, also the posting's expiry; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it."
+    },
+    "pickup_lat": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Pickup point latitude; null only when the load has no stops."
+    },
+    "pickup_lng": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Pickup point longitude; null only when the load has no stops."
+    },
+    "group_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "Shared by the sibling loads of one multi-truck post; null for a single truck."
+    },
+    "is_urgent": {
+      "type": "boolean"
+    },
+    "payment_method": {
+      "title": "PaymentMethod",
+      "type": "string",
+      "enum": [
+        "cash",
+        "transfer",
+        "card",
+        "mixed"
+      ]
+    },
+    "reposted": {
+      "type": "boolean",
+      "description": "Present, and true, only when a cancelled booking put the load back."
+    }
+  },
+  "required": [
+    "event_id",
+    "load_id",
+    "org_id",
+    "from_region_id",
+    "to_region_id",
+    "truck_class",
+    "loading_method",
+    "needs_refrigeration",
+    "allow_instant",
+    "price_mode",
+    "asking_amount",
+    "bonus_amount",
+    "suggested_amount",
+    "currency",
+    "weight_kg",
+    "pickup_from",
+    "pickup_to",
+    "pickup_lat",
+    "pickup_lng",
+    "group_id",
+    "is_urgent",
+    "payment_method"
+  ]
+}

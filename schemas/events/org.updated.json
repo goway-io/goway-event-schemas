@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OrgUpdated",
+  "description": "An organization's details changed. Only what changed is sent, besides `org_id` and `updated_at`: a role switch sends `kind` and `account_type`; the organization screen any of `name`, `legal_name`, `inn`, `contact_phone`, `address`.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "kind": {
+      "type": "string",
+      "description": "Market side: `shipper` or `carrier`."
+    },
+    "account_type": {
+      "title": "AccountType",
+      "type": "string",
+      "enum": [
+        "individual",
+        "business"
+      ]
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name."
+    },
+    "legal_name": {
+      "type": "string",
+      "description": "Registered company name."
+    },
+    "inn": {
+      "type": "string",
+      "description": "Tax id (STIR/INN), 9 digits."
+    },
+    "contact_phone": {
+      "type": "string",
+      "description": "E.164 number, `+998…`."
+    },
+    "address": {
+      "type": "string"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the change was made. ISO 8601 with offset, as Python's `isoformat()` writes it."
+    }
+  },
+  "required": [
+    "event_id",
+    "org_id",
+    "updated_at"
+  ]
+}

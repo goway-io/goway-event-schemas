@@ -6,9 +6,10 @@ info:
     The WebSocket between goway-realtime and the driver and client apps, described from the server's side:
     frames the apps send are `receive`, frames the server sends are `send`.
 
-    Every frame is a JSON object `{"type", "data"}`; frames from the server also carry `ts`. The first frame
-    after connecting must be `auth` within five seconds. The socket is a wake-up signal: after a reconnect the
-    app re-reads state over REST, because frames sent while it was away are not replayed.
+    Every frame is a JSON object `{"type", "data"}`; frames from the server also carry `ts`, and `ping` and
+    `go_offline` may leave `data` out. The first frame after connecting must be `auth` within five seconds. The
+    socket is a wake-up signal: after a reconnect the app re-reads state over REST, because frames sent while it was
+    away are not replayed.
 defaultContentType: application/json
 servers:
   production:
@@ -22,14 +23,62 @@ channels:
     title: App socket
     description: One socket per signed-in app session.
     messages:
+      auth:
+        $ref: '#/components/messages/auth'
+      ping:
+        $ref: '#/components/messages/ping'
       goOnline:
         $ref: '#/components/messages/goOnline'
+      goOffline:
+        $ref: '#/components/messages/goOffline'
+      location:
+        $ref: '#/components/messages/location'
       offerResponse:
         $ref: '#/components/messages/offerResponse'
+      subscribeBooking:
+        $ref: '#/components/messages/subscribeBooking'
+      unsubscribeBooking:
+        $ref: '#/components/messages/unsubscribeBooking'
+      connected:
+        $ref: '#/components/messages/connected'
+      pong:
+        $ref: '#/components/messages/pong'
+      online:
+        $ref: '#/components/messages/online'
+      offline:
+        $ref: '#/components/messages/offline'
       offerProposed:
         $ref: '#/components/messages/offerProposed'
       offerResult:
         $ref: '#/components/messages/offerResult'
+      subscribed:
+        $ref: '#/components/messages/subscribed'
+      bookingCreated:
+        $ref: '#/components/messages/bookingCreated'
+      bookingStatus:
+        $ref: '#/components/messages/bookingStatus'
+      bookingEta:
+        $ref: '#/components/messages/bookingEta'
+      bookingCompleted:
+        $ref: '#/components/messages/bookingCompleted'
+      bookingCancelled:
+        $ref: '#/components/messages/bookingCancelled'
+      driverLocation:
+        $ref: '#/components/messages/driverLocation'
+      lineExpiring:
+        $ref: '#/components/messages/lineExpiring'
+      lineExpired:
+        $ref: '#/components/messages/lineExpired'
+      offersBlocked:
+        $ref: '#/components/messages/offersBlocked'
+      offersUnblocked:
+        $ref: '#/components/messages/offersUnblocked'
+      notification:
+        $ref: '#/components/messages/notification'
+      sessionStarted:
+        $ref: '#/components/messages/sessionStarted'
+      kicked:
+        $ref: '#/components/messages/kicked'
       error:
         $ref: '#/components/messages/error'
     bindings:
@@ -43,29 +92,103 @@ operations:
       $ref: '#/channels/socket'
     description: Frames an app sends.
     messages:
+      - $ref: '#/channels/socket/messages/auth'
+      - $ref: '#/channels/socket/messages/ping'
       - $ref: '#/channels/socket/messages/goOnline'
+      - $ref: '#/channels/socket/messages/goOffline'
+      - $ref: '#/channels/socket/messages/location'
       - $ref: '#/channels/socket/messages/offerResponse'
+      - $ref: '#/channels/socket/messages/subscribeBooking'
+      - $ref: '#/channels/socket/messages/unsubscribeBooking'
   sendToApp:
     action: send
     channel:
       $ref: '#/channels/socket'
     description: Frames goway-realtime sends.
     messages:
+      - $ref: '#/channels/socket/messages/connected'
+      - $ref: '#/channels/socket/messages/pong'
+      - $ref: '#/channels/socket/messages/online'
+      - $ref: '#/channels/socket/messages/offline'
       - $ref: '#/channels/socket/messages/offerProposed'
       - $ref: '#/channels/socket/messages/offerResult'
+      - $ref: '#/channels/socket/messages/subscribed'
+      - $ref: '#/channels/socket/messages/bookingCreated'
+      - $ref: '#/channels/socket/messages/bookingStatus'
+      - $ref: '#/channels/socket/messages/bookingEta'
+      - $ref: '#/channels/socket/messages/bookingCompleted'
+      - $ref: '#/channels/socket/messages/bookingCancelled'
+      - $ref: '#/channels/socket/messages/driverLocation'
+      - $ref: '#/channels/socket/messages/lineExpiring'
+      - $ref: '#/channels/socket/messages/lineExpired'
+      - $ref: '#/channels/socket/messages/offersBlocked'
+      - $ref: '#/channels/socket/messages/offersUnblocked'
+      - $ref: '#/channels/socket/messages/notification'
+      - $ref: '#/channels/socket/messages/sessionStarted'
+      - $ref: '#/channels/socket/messages/kicked'
       - $ref: '#/channels/socket/messages/error'
 components:
   messages:
+    auth:
+      name: auth
+      title: Sign in the socket
+      payload:
+        $ref: '../schemas/frames/client/auth.json'
+    ping:
+      name: ping
+      title: Ping
+      payload:
+        $ref: '../schemas/frames/client/ping.json'
     goOnline:
       name: go_online
       title: Go online
       payload:
         $ref: '../schemas/frames/client/go_online.json'
+    goOffline:
+      name: go_offline
+      title: Go offline
+      payload:
+        $ref: '../schemas/frames/client/go_offline.json'
+    location:
+      name: location
+      title: Driver position
+      payload:
+        $ref: '../schemas/frames/client/location.json'
     offerResponse:
       name: offer_response
       title: Answer an offer
       payload:
         $ref: '../schemas/frames/client/offer_response.json'
+    subscribeBooking:
+      name: subscribe_booking
+      title: Watch a booking
+      payload:
+        $ref: '../schemas/frames/client/subscribe_booking.json'
+    unsubscribeBooking:
+      name: unsubscribe_booking
+      title: Stop watching a booking
+      payload:
+        $ref: '../schemas/frames/client/unsubscribe_booking.json'
+    connected:
+      name: connected
+      title: Connected
+      payload:
+        $ref: '../schemas/frames/server/connected.json'
+    pong:
+      name: pong
+      title: Pong
+      payload:
+        $ref: '../schemas/frames/server/pong.json'
+    online:
+      name: online
+      title: Online
+      payload:
+        $ref: '../schemas/frames/server/online.json'
+    offline:
+      name: offline
+      title: Offline
+      payload:
+        $ref: '../schemas/frames/server/offline.json'
     offerProposed:
       name: offer_proposed
       title: Offer proposed
@@ -76,6 +199,76 @@ components:
       title: Offer result
       payload:
         $ref: '../schemas/frames/server/offer_result.json'
+    subscribed:
+      name: subscribed
+      title: Watching a booking
+      payload:
+        $ref: '../schemas/frames/server/subscribed.json'
+    bookingCreated:
+      name: booking_created
+      title: Booking created
+      payload:
+        $ref: '../schemas/frames/server/booking_created.json'
+    bookingStatus:
+      name: booking_status
+      title: Haul moved on
+      payload:
+        $ref: '../schemas/frames/server/booking_status.json'
+    bookingEta:
+      name: booking_eta
+      title: Arrival window moved
+      payload:
+        $ref: '../schemas/frames/server/booking_eta.json'
+    bookingCompleted:
+      name: booking_completed
+      title: Booking completed
+      payload:
+        $ref: '../schemas/frames/server/booking_completed.json'
+    bookingCancelled:
+      name: booking_cancelled
+      title: Booking cancelled
+      payload:
+        $ref: '../schemas/frames/server/booking_cancelled.json'
+    driverLocation:
+      name: driver_location
+      title: Driver position
+      payload:
+        $ref: '../schemas/frames/server/driver_location.json'
+    lineExpiring:
+      name: line_expiring
+      title: Line ends soon
+      payload:
+        $ref: '../schemas/frames/server/line_expiring.json'
+    lineExpired:
+      name: line_expired
+      title: Line ended
+      payload:
+        $ref: '../schemas/frames/server/line_expired.json'
+    offersBlocked:
+      name: offers_blocked
+      title: Offers blocked
+      payload:
+        $ref: '../schemas/frames/server/offers_blocked.json'
+    offersUnblocked:
+      name: offers_unblocked
+      title: Offers unblocked
+      payload:
+        $ref: '../schemas/frames/server/offers_unblocked.json'
+    notification:
+      name: notification
+      title: Notification
+      payload:
+        $ref: '../schemas/frames/server/notification.json'
+    sessionStarted:
+      name: session_started
+      title: Signed in elsewhere
+      payload:
+        $ref: '../schemas/frames/server/session_started.json'
+    kicked:
+      name: kicked
+      title: Signed out
+      payload:
+        $ref: '../schemas/frames/server/kicked.json'
     error:
       name: error
       title: Frame refused

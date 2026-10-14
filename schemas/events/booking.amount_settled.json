@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BookingAmountSettled",
+  "description": "An operator accepted an amount claim; the haul now settles at `settled_amount` and billing adjusts its commission.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "booking_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "load_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "carrier_org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "shipper_org_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "Null only when the load could not be read."
+    },
+    "driver_user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "status": {
+      "title": "BookingStatus",
+      "type": "string",
+      "enum": [
+        "confirmed",
+        "en_route",
+        "at_pickup",
+        "loading",
+        "in_transit",
+        "delivered",
+        "completed",
+        "cancelled"
+      ]
+    },
+    "previous_amount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The sum on record before, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "settled_amount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The sum the operator settled on, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3,
+      "description": "ISO 4217 code; `UZS` today."
+    }
+  },
+  "required": [
+    "event_id",
+    "booking_id",
+    "load_id",
+    "carrier_org_id",
+    "shipper_org_id",
+    "driver_user_id",
+    "status",
+    "previous_amount",
+    "settled_amount",
+    "currency"
+  ]
+}

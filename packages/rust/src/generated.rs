@@ -3,7 +3,194 @@
 #![allow(clippy::match_single_binding)]
 #![allow(clippy::clone_on_copy)]
 
-#[doc = "A booking ended before the cargo was loaded. The load goes back to the board."]
+#[doc = "`AccountType`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum AccountType {
+    #[serde(rename = "individual")]
+    Individual,
+    #[serde(rename = "business")]
+    Business,
+}
+impl ::std::fmt::Display for AccountType {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Individual => f.write_str("individual"),
+            Self::Business => f.write_str("business"),
+        }
+    }
+}
+impl ::std::str::FromStr for AccountType {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "individual" => Ok(Self::Individual),
+            "business" => Ok(Self::Business),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for AccountType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for AccountType {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "The first frame on a new socket, within five seconds: the access token."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct Auth {
+    #[doc = "The app install's id, the one the device was registered under; lets this socket be signed out on its own when the device is removed."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub installation_id: ::std::option::Option<::std::string::String>,
+    #[doc = "Access token (JWT)."]
+    pub token: ::std::string::String,
+}
+#[doc = "Frame `auth` an app sends to goway-realtime."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct AuthFrame {
+    pub data: Auth,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "One side of a delivered haul says it settled at another sum; nothing changes until an operator decides."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BookingAmountClaimed {
+    #[doc = "The claimed sum, whole so'm (a bare integer; `currency` is UZS today)."]
+    pub amount: u64,
+    pub booking_id: ::uuid::Uuid,
+    pub claim_id: ::uuid::Uuid,
+    #[doc = "ISO 4217 code; `UZS` today."]
+    pub currency: BookingAmountClaimedCurrency,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "The sum on record now, whole so'm (a bare integer; `currency` is UZS today)."]
+    pub recorded_amount: u64,
+    pub side: BookingSide,
+}
+#[doc = "ISO 4217 code; `UZS` today."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BookingAmountClaimedCurrency(::std::string::String);
+impl ::std::ops::Deref for BookingAmountClaimedCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BookingAmountClaimedCurrency> for ::std::string::String {
+    fn from(value: BookingAmountClaimedCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BookingAmountClaimedCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 3usize {
+            return Err("longer than 3 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BookingAmountClaimedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BookingAmountClaimedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BookingAmountClaimedCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+#[doc = "An operator accepted an amount claim; the haul now settles at `settled_amount` and billing adjusts its commission."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BookingAmountSettled {
+    pub booking_id: ::uuid::Uuid,
+    pub carrier_org_id: ::uuid::Uuid,
+    #[doc = "ISO 4217 code; `UZS` today."]
+    pub currency: BookingAmountSettledCurrency,
+    pub driver_user_id: ::uuid::Uuid,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub load_id: ::uuid::Uuid,
+    #[doc = "The sum on record before, whole so'm (a bare integer; `currency` is UZS today)."]
+    pub previous_amount: u64,
+    #[doc = "The sum the operator settled on, whole so'm (a bare integer; `currency` is UZS today)."]
+    pub settled_amount: u64,
+    #[doc = "Null only when the load could not be read."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub shipper_org_id: ::std::option::Option<::uuid::Uuid>,
+    pub status: BookingStatus,
+}
+#[doc = "ISO 4217 code; `UZS` today."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BookingAmountSettledCurrency(::std::string::String);
+impl ::std::ops::Deref for BookingAmountSettledCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BookingAmountSettledCurrency> for ::std::string::String {
+    fn from(value: BookingAmountSettledCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BookingAmountSettledCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 3usize {
+            return Err("longer than 3 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BookingAmountSettledCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BookingAmountSettledCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BookingAmountSettledCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+#[doc = "A booking ended before the cargo was loaded. The load goes back to the board. Two paths send the same fields: either side cancelling (`by` is `shipper` or `carrier`) and an operator (`by` is `operator`)."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct BookingCancelled {
     pub booking_id: ::uuid::Uuid,
@@ -18,6 +205,358 @@ pub struct BookingCancelled {
     #[doc = "What the canceller wrote; empty when nothing was written."]
     pub reason: ::std::string::String,
     pub shipper_org_id: ::uuid::Uuid,
+}
+#[doc = "Frame `booking_cancelled` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.cancelled` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BookingCancelledFrame {
+    pub data: BookingCancelled,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "A delivered haul was closed: by the shipper, by an operator, or by the auto-complete sweep. All three send the same fields. Billing charges its commission from this event."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BookingCompleted {
+    #[doc = "Price agreed at booking, whole so'm (a bare integer; `currency` is UZS today)."]
+    pub agreed_amount: u64,
+    pub booking_id: ::uuid::Uuid,
+    pub carrier_org_id: ::uuid::Uuid,
+    #[doc = "Price lines; the first is always the agreed tariff."]
+    pub charges: ::std::vec::Vec<ChargeLine>,
+    #[doc = "When the haul was closed; the code allows null, it is always set. ISO 8601 with offset, as Python's `isoformat()` writes it."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub completed_at: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
+    pub completed_by: CompletedBy,
+    #[doc = "ISO 4217 code; `UZS` today."]
+    pub currency: BookingCompletedCurrency,
+    pub driver_user_id: ::uuid::Uuid,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub load_id: ::uuid::Uuid,
+    #[doc = "What the haul actually settled at: the agreed price unless another sum was confirmed, whole so'm (a bare integer; `currency` is UZS today)."]
+    pub settled_amount: u64,
+    pub shipper_org_id: ::uuid::Uuid,
+    #[doc = "Charges plus waiting, whole so'm (a bare integer; `currency` is UZS today); the code allows null."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub total_amount: ::std::option::Option<u64>,
+    #[doc = "What the waiting costs, whole so'm (a bare integer; `currency` is UZS today)."]
+    pub waiting_amount: u64,
+    #[doc = "Whether the waiting is charged to the shipper."]
+    pub waiting_billable: bool,
+    #[doc = "Billable minutes the driver waited at pickup."]
+    pub waiting_minutes: u64,
+}
+#[doc = "ISO 4217 code; `UZS` today."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BookingCompletedCurrency(::std::string::String);
+impl ::std::ops::Deref for BookingCompletedCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BookingCompletedCurrency> for ::std::string::String {
+    fn from(value: BookingCompletedCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BookingCompletedCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 3usize {
+            return Err("longer than 3 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BookingCompletedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BookingCompletedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BookingCompletedCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+#[doc = "Frame `booking_completed` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.completed` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BookingCompletedFrame {
+    pub data: BookingCompleted,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "A load was booked. Two paths: an accepted offer, or an instant claim from dispatch, which adds `source: instant`."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BookingCreated {
+    #[doc = "Agreed price, whole so'm (a bare integer; `currency` is UZS today)."]
+    pub agreed_amount: u64,
+    pub booking_id: ::uuid::Uuid,
+    pub carrier_org_id: ::uuid::Uuid,
+    #[doc = "ISO 4217 code; `UZS` today."]
+    pub currency: BookingCreatedCurrency,
+    #[doc = "The driver; the offer path allows null, a booking always has one."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub driver_user_id: ::std::option::Option<::uuid::Uuid>,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub load_id: ::uuid::Uuid,
+    pub shipper_org_id: ::uuid::Uuid,
+    #[doc = "Present only for an instant claim, and then always `instant`."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub source: ::std::option::Option<::std::string::String>,
+}
+#[doc = "ISO 4217 code; `UZS` today."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BookingCreatedCurrency(::std::string::String);
+impl ::std::ops::Deref for BookingCreatedCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BookingCreatedCurrency> for ::std::string::String {
+    fn from(value: BookingCreatedCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BookingCreatedCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 3usize {
+            return Err("longer than 3 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BookingCreatedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BookingCreatedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BookingCreatedCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+#[doc = "Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BookingCreatedFrame {
+    pub data: BookingCreated,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "Frame `booking_eta` goway-realtime sends to an app. Sent to the booking's viewers only, and dropped when a socket is slow. It currently forwards the internal `booking.eta_updated` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BookingEtaFrame {
+    pub data: BookingEtaUpdated,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "The arrival window or the time the truck is free again moved: when the haul is booked (`confirmed`), at every carrier step, and on fresh GPS while `en_route` or `in_transit`."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BookingEtaUpdated {
+    pub booking_id: ::uuid::Uuid,
+    pub carrier_org_id: ::uuid::Uuid,
+    pub driver_user_id: ::uuid::Uuid,
+    #[doc = "Earliest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's `isoformat()` writes it."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub eta_from: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
+    #[doc = "Which stop the window is for; null when no arrival is expected any more."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub eta_stop: ::std::option::Option<EtaStop>,
+    #[doc = "Latest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's `isoformat()` writes it."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub eta_to: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "When the truck is expected to be empty again. ISO 8601 with offset, as Python's `isoformat()` writes it."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub free_at: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
+    #[doc = "Where the truck will be free: the drop-off region; null when unknown."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub free_region_id: ::std::option::Option<::uuid::Uuid>,
+    pub load_id: ::uuid::Uuid,
+    pub shipper_org_id: ::uuid::Uuid,
+    pub status: BookingStatus,
+    #[doc = "The booked vehicle's truck class code."]
+    pub truck_class: ::std::string::String,
+}
+#[doc = "Hours before a truck is empty: loads are waiting in the region where it unloads. Sent once per haul."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BookingReturnLoads {
+    pub booking_id: ::uuid::Uuid,
+    pub carrier_org_id: ::uuid::Uuid,
+    #[doc = "Matching loads waiting there."]
+    pub count: ::std::num::NonZeroU64,
+    pub driver_user_id: ::uuid::Uuid,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "When the truck is expected to be empty. ISO 8601 with offset, as Python's `isoformat()` writes it."]
+    pub free_at: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[doc = "How many of them go back to the haul's pickup region."]
+    pub heads_home: u64,
+    #[doc = "The drop-off region, where the truck will be free."]
+    pub region_id: ::uuid::Uuid,
+}
+#[doc = "Which side claims."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum BookingSide {
+    #[serde(rename = "shipper")]
+    Shipper,
+    #[serde(rename = "carrier")]
+    Carrier,
+}
+impl ::std::fmt::Display for BookingSide {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Shipper => f.write_str("shipper"),
+            Self::Carrier => f.write_str("carrier"),
+        }
+    }
+}
+impl ::std::str::FromStr for BookingSide {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "shipper" => Ok(Self::Shipper),
+            "carrier" => Ok(Self::Carrier),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BookingSide {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BookingSide {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`BookingStatus`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum BookingStatus {
+    #[serde(rename = "confirmed")]
+    Confirmed,
+    #[serde(rename = "en_route")]
+    EnRoute,
+    #[serde(rename = "at_pickup")]
+    AtPickup,
+    #[serde(rename = "loading")]
+    Loading,
+    #[serde(rename = "in_transit")]
+    InTransit,
+    #[serde(rename = "delivered")]
+    Delivered,
+    #[serde(rename = "completed")]
+    Completed,
+    #[serde(rename = "cancelled")]
+    Cancelled,
+}
+impl ::std::fmt::Display for BookingStatus {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Confirmed => f.write_str("confirmed"),
+            Self::EnRoute => f.write_str("en_route"),
+            Self::AtPickup => f.write_str("at_pickup"),
+            Self::Loading => f.write_str("loading"),
+            Self::InTransit => f.write_str("in_transit"),
+            Self::Delivered => f.write_str("delivered"),
+            Self::Completed => f.write_str("completed"),
+            Self::Cancelled => f.write_str("cancelled"),
+        }
+    }
+}
+impl ::std::str::FromStr for BookingStatus {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "confirmed" => Ok(Self::Confirmed),
+            "en_route" => Ok(Self::EnRoute),
+            "at_pickup" => Ok(Self::AtPickup),
+            "loading" => Ok(Self::Loading),
+            "in_transit" => Ok(Self::InTransit),
+            "delivered" => Ok(Self::Delivered),
+            "completed" => Ok(Self::Completed),
+            "cancelled" => Ok(Self::Cancelled),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BookingStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BookingStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "The carrier moved the haul one step on: `en_route`, `at_pickup`, `loading`, `in_transit` or `delivered`. Completion and cancellation have their own subjects."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BookingStatusChanged {
+    pub booking_id: ::uuid::Uuid,
+    pub carrier_org_id: ::uuid::Uuid,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub load_id: ::uuid::Uuid,
+    pub shipper_org_id: ::uuid::Uuid,
+    pub status: BookingStatus,
+}
+#[doc = "Frame `booking_status` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.status_changed` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BookingStatusFrame {
+    pub data: BookingStatusChanged,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
 }
 #[doc = "Who cancelled."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -61,26 +600,457 @@ impl ::std::convert::TryFrom<::std::string::String> for CancelledBy {
         value.parse()
     }
 }
+#[doc = "A carrier's document passed its expiry date; the hourly sweep marked it expired."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct CarrierDocumentExpired {
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "The document's expiry date. ISO 8601 with offset, as Python's `isoformat()` writes it."]
+    pub expired_at: ::chrono::DateTime<::chrono::offset::Utc>,
+    pub kind: DocumentKind,
+    pub org_id: ::uuid::Uuid,
+}
+#[doc = "A carrier's document expires within the warning window; sent once per document."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct CarrierDocumentExpiring {
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "The document's expiry date. ISO 8601 with offset, as Python's `isoformat()` writes it."]
+    pub expires_at: ::chrono::DateTime<::chrono::offset::Utc>,
+    pub kind: DocumentKind,
+    pub org_id: ::uuid::Uuid,
+}
+#[doc = "An operator approved or rejected a carrier's document."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct CarrierDocumentReviewed {
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub kind: DocumentKind,
+    #[doc = "What the operator wrote; a rejection always has one."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub note: ::std::option::Option<::std::string::String>,
+    pub org_id: ::uuid::Uuid,
+    pub status: ReviewDecision,
+}
+#[doc = "A carrier submitted a new version of a document; it waits for review."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct CarrierDocumentUpdated {
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub kind: DocumentKind,
+    pub org_id: ::uuid::Uuid,
+    #[doc = "Always `pending` today."]
+    pub status: ::std::string::String,
+    #[doc = "Version of this document kind, from 1."]
+    pub version: ::std::num::NonZeroU64,
+}
+#[doc = "A carrier organization's verification moved: submitted or reopened by a replaced document (`pending`), or decided by an operator."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct CarrierVerificationChanged {
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub org_id: ::uuid::Uuid,
+    pub status: VerificationStatus,
+}
+#[doc = "One priced line of the haul."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct ChargeLine {
+    #[doc = "Line total, whole so'm (a bare integer; `currency` is UZS today)."]
+    pub amount: u64,
+    #[doc = "`tariff`, `loaders` or `req:<requirement code>`."]
+    pub code: ::std::string::String,
+    pub qty: ::std::num::NonZeroU64,
+}
 #[doc = "Any frame an app may send; `type` tells which."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
-#[serde(tag = "type", content = "data")]
+#[serde(tag = "type")]
 pub enum ClientFrame {
+    #[doc = "Frame `auth` an app sends to goway-realtime."]
+    #[serde(rename = "auth")]
+    Auth { data: Auth },
+    #[doc = "Frame `ping` an app sends to goway-realtime."]
+    #[serde(rename = "ping")]
+    Ping {
+        #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+        data: ::std::option::Option<Ping>,
+    },
     #[doc = "Frame `go_online` an app sends to goway-realtime."]
     #[serde(rename = "go_online")]
-    GoOnline(GoOnline),
+    GoOnline { data: GoOnline },
+    #[doc = "Frame `go_offline` an app sends to goway-realtime."]
+    #[serde(rename = "go_offline")]
+    GoOffline {
+        #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+        data: ::std::option::Option<GoOffline>,
+    },
+    #[doc = "Frame `location` an app sends to goway-realtime."]
+    #[serde(rename = "location")]
+    Location { data: Location },
     #[doc = "Frame `offer_response` an app sends to goway-realtime."]
     #[serde(rename = "offer_response")]
-    OfferResponse(OfferResponse),
+    OfferResponse { data: OfferResponse },
+    #[doc = "Frame `subscribe_booking` an app sends to goway-realtime."]
+    #[serde(rename = "subscribe_booking")]
+    SubscribeBooking { data: SubscribeBooking },
+    #[doc = "Frame `unsubscribe_booking` an app sends to goway-realtime."]
+    #[serde(rename = "unsubscribe_booking")]
+    UnsubscribeBooking { data: UnsubscribeBooking },
 }
-impl ::std::convert::From<GoOnline> for ClientFrame {
-    fn from(value: GoOnline) -> Self {
-        Self::GoOnline(value)
+#[doc = "Who closed the haul; `system` is the auto-complete sweep."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum CompletedBy {
+    #[serde(rename = "shipper")]
+    Shipper,
+    #[serde(rename = "operator")]
+    Operator,
+    #[serde(rename = "system")]
+    System,
+}
+impl ::std::fmt::Display for CompletedBy {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Shipper => f.write_str("shipper"),
+            Self::Operator => f.write_str("operator"),
+            Self::System => f.write_str("system"),
+        }
     }
 }
-impl ::std::convert::From<OfferResponse> for ClientFrame {
-    fn from(value: OfferResponse) -> Self {
-        Self::OfferResponse(value)
+impl ::std::str::FromStr for CompletedBy {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "shipper" => Ok(Self::Shipper),
+            "operator" => Ok(Self::Operator),
+            "system" => Ok(Self::System),
+            _ => Err("invalid value".into()),
+        }
     }
+}
+impl ::std::convert::TryFrom<&str> for CompletedBy {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for CompletedBy {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "The `auth` frame was accepted; the socket is live."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct Connected {
+    pub config: ConnectionConfig,
+    #[doc = "This socket's id, 32 hex characters."]
+    pub conn_id: ::std::string::String,
+    pub user_id: ::uuid::Uuid,
+    #[doc = "The goway-realtime worker holding the socket, `<host>-<pid>-<suffix>`; for logs."]
+    pub worker: ::std::string::String,
+}
+#[doc = "Frame `connected` goway-realtime sends to an app."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct ConnectedFrame {
+    pub data: Connected,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "Current realtime settings the app plays by."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct ConnectionConfig {
+    #[doc = "Line changes a driver may make per Tashkent day."]
+    pub line_changes_per_day: u64,
+    #[doc = "Seconds between durable GPS samples."]
+    pub location_sample_seconds: u64,
+    #[doc = "Extra seconds after the deadline a late answer is still honoured."]
+    pub offer_grace_seconds: u64,
+    #[doc = "Seconds a driver has to answer an offer."]
+    pub offer_ttl_seconds: u64,
+}
+#[doc = "`DevicePlatform`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum DevicePlatform {
+    #[serde(rename = "android")]
+    Android,
+    #[serde(rename = "ios")]
+    Ios,
+    #[serde(rename = "web")]
+    Web,
+}
+impl ::std::fmt::Display for DevicePlatform {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Android => f.write_str("android"),
+            Self::Ios => f.write_str("ios"),
+            Self::Web => f.write_str("web"),
+        }
+    }
+}
+impl ::std::str::FromStr for DevicePlatform {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "android" => Ok(Self::Android),
+            "ios" => Ok(Self::Ios),
+            "web" => Ok(Self::Web),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for DevicePlatform {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for DevicePlatform {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "The push provider rejected a device's token as dead; the device should be shown as unreachable."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct DevicePushFailed {
+    pub device_id: ::uuid::Uuid,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "The owner removed a device; its sessions are closed and it is pushed no more."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct DeviceRemoved {
+    pub device_id: ::uuid::Uuid,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "The app install's own id."]
+    pub installation_id: ::std::string::String,
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "A device was registered or came back after removal, or its push token changed or was cleared (signing out clears it)."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct DeviceUpserted {
+    pub device_id: ::uuid::Uuid,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub platform: DevicePlatform,
+    #[doc = "FCM registration token; null when the device can no longer be pushed."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub push_token: ::std::option::Option<::std::string::String>,
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "An instant load was offered to a wave of drivers on its line, so a driver whose app is in the background still sees it. Loss-tolerant: the socket frame is the offer itself."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct DispatchOffered {
+    #[doc = "The load's fixed price, whole so'm (a bare integer; `currency` is UZS today)."]
+    pub amount: u64,
+    #[doc = "ISO 4217 code; `UZS` today."]
+    pub currency: DispatchOfferedCurrency,
+    #[doc = "Answer deadline, unix milliseconds in server time."]
+    pub deadline_at: i64,
+    #[doc = "Drivers the wave reached."]
+    pub drivers: ::std::vec::Vec<::uuid::Uuid>,
+    #[doc = "Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub from_region_id: ::uuid::Uuid,
+    pub load_id: ::uuid::Uuid,
+    pub to_region_id: ::uuid::Uuid,
+    #[doc = "Truck class code from the reference list."]
+    pub truck_class: ::std::string::String,
+    pub weight_kg: u64,
+}
+#[doc = "ISO 4217 code; `UZS` today."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct DispatchOfferedCurrency(::std::string::String);
+impl ::std::ops::Deref for DispatchOfferedCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<DispatchOfferedCurrency> for ::std::string::String {
+    fn from(value: DispatchOfferedCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for DispatchOfferedCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 3usize {
+            return Err("longer than 3 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for DispatchOfferedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for DispatchOfferedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for DispatchOfferedCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+#[doc = "Display currency; charges stay in UZS."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum DisplayCurrency {
+    #[serde(rename = "UZS")]
+    Uzs,
+    #[serde(rename = "USD")]
+    Usd,
+    #[serde(rename = "RUB")]
+    Rub,
+    #[serde(rename = "KZT")]
+    Kzt,
+}
+impl ::std::fmt::Display for DisplayCurrency {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Uzs => f.write_str("UZS"),
+            Self::Usd => f.write_str("USD"),
+            Self::Rub => f.write_str("RUB"),
+            Self::Kzt => f.write_str("KZT"),
+        }
+    }
+}
+impl ::std::str::FromStr for DisplayCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "UZS" => Ok(Self::Uzs),
+            "USD" => Ok(Self::Usd),
+            "RUB" => Ok(Self::Rub),
+            "KZT" => Ok(Self::Kzt),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for DisplayCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for DisplayCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`DocumentKind`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum DocumentKind {
+    #[serde(rename = "passport")]
+    Passport,
+    #[serde(rename = "driver_license")]
+    DriverLicense,
+    #[serde(rename = "tech_passport")]
+    TechPassport,
+    #[serde(rename = "vehicle_photo")]
+    VehiclePhoto,
+    #[serde(rename = "power_of_attorney")]
+    PowerOfAttorney,
+}
+impl ::std::fmt::Display for DocumentKind {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Passport => f.write_str("passport"),
+            Self::DriverLicense => f.write_str("driver_license"),
+            Self::TechPassport => f.write_str("tech_passport"),
+            Self::VehiclePhoto => f.write_str("vehicle_photo"),
+            Self::PowerOfAttorney => f.write_str("power_of_attorney"),
+        }
+    }
+}
+impl ::std::str::FromStr for DocumentKind {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "passport" => Ok(Self::Passport),
+            "driver_license" => Ok(Self::DriverLicense),
+            "tech_passport" => Ok(Self::TechPassport),
+            "vehicle_photo" => Ok(Self::VehiclePhoto),
+            "power_of_attorney" => Ok(Self::PowerOfAttorney),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for DocumentKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for DocumentKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "The booked driver's live position, relayed to the booking's viewers as it arrives; dropped when a socket is slow."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct DriverLocation {
+    pub booking_id: ::uuid::Uuid,
+    #[doc = "Degrees from north; null when the driver's device did not send it."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub heading: ::std::option::Option<f64>,
+    pub lat: f64,
+    pub lng: f64,
+    #[doc = "Null when the driver's device did not send it."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub speed: ::std::option::Option<f64>,
+}
+#[doc = "Frame `driver_location` goway-realtime sends to an app."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct DriverLocationFrame {
+    pub data: DriverLocation,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "A driver left the line: went offline, the line expired, the grace after a disconnect ran out, or the sessions were revoked."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct DriverOffline {
+    #[doc = "Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "From the presence record, which always has it."]
+    pub org_id: ::uuid::Uuid,
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "A driver opened or changed a line and waits for instant offers."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct DriverOnline {
+    #[doc = "Also takes loads on the way back."]
+    pub bidirectional: bool,
+    #[doc = "Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "When the line ends, unix milliseconds."]
+    pub expires_at: i64,
+    pub from_region_id: ::uuid::Uuid,
+    pub org_id: ::uuid::Uuid,
+    pub to_region_id: ::uuid::Uuid,
+    pub user_id: ::uuid::Uuid,
+    pub vehicle_id: ::uuid::Uuid,
 }
 #[doc = "A driver's completed-haul count or rating changed. Counters only grow, so a late older event is recognisable."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
@@ -103,7 +1073,45 @@ pub struct ErrorFrame {
     #[serde(rename = "type")]
     pub type_: ::std::string::String,
 }
-#[doc = "A frame was refused; the same problem shape as REST errors."]
+#[doc = "`EtaStop`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum EtaStop {
+    #[serde(rename = "pickup")]
+    Pickup,
+    #[serde(rename = "dropoff")]
+    Dropoff,
+}
+impl ::std::fmt::Display for EtaStop {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Pickup => f.write_str("pickup"),
+            Self::Dropoff => f.write_str("dropoff"),
+        }
+    }
+}
+impl ::std::str::FromStr for EtaStop {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "pickup" => Ok(Self::Pickup),
+            "dropoff" => Ok(Self::Dropoff),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for EtaStop {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for EtaStop {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "A frame was refused; the same problem shape as REST errors. Two forms are sent: a first frame that is not `auth`, an unreadable frame and a refused booking subscription send only `code` and `key`; every other refusal sends the full problem body with `type`, `title`, `status` and `code`, plus `detail`, `key` and `params` when set."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct FrameError {
     #[doc = "Stable code the app branches on."]
@@ -118,6 +1126,40 @@ pub struct FrameError {
     pub params: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub status: ::std::option::Option<i64>,
+    #[doc = "HTTP status phrase, for example `Conflict`."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub title: ::std::option::Option<::std::string::String>,
+    #[doc = "Problem type URI, `https://api.goway.uz/problems/<code>`."]
+    #[serde(rename = "type", skip_serializing_if = "::std::option::Option::is_none")]
+    pub type_: ::std::option::Option<::std::string::String>,
+}
+#[doc = "Leave the line. Nothing to send: an empty object, or no `data` at all."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(transparent)]
+pub struct GoOffline(pub ::serde_json::Map<::std::string::String, ::serde_json::Value>);
+impl ::std::ops::Deref for GoOffline {
+    type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
+    fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        &self.0
+    }
+}
+impl ::std::convert::From<GoOffline> for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+    fn from(value: GoOffline) -> Self {
+        value.0
+    }
+}
+impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>> for GoOffline {
+    fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
+        Self(value)
+    }
+}
+#[doc = "Frame `go_offline` an app sends to goway-realtime."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct GoOfflineFrame {
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub data: ::std::option::Option<GoOffline>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
 }
 #[doc = "Start receiving instant offers on a line with one vehicle."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
@@ -197,6 +1239,269 @@ impl ::std::convert::TryFrom<::std::string::String> for IneligibleReason {
         value.parse()
     }
 }
+#[doc = "This socket is being closed by the server; sign in again."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct Kicked {
+    #[doc = "`device_removed`, `logout` (closed from another device), the `user.session_revoked` reason, or what a service passed to `/internal/kick`; null when none was given."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub reason: ::std::option::Option<::std::string::String>,
+}
+#[doc = "Frame `kicked` goway-realtime sends to an app."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct KickedFrame {
+    pub data: Kicked,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "The driver's line ended and the driver is offline; open a line again to get offers."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct LineExpired {
+    #[doc = "When the line ended, unix milliseconds."]
+    pub expired_at: i64,
+}
+#[doc = "Frame `line_expired` goway-realtime sends to an app."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct LineExpiredFrame {
+    pub data: LineExpired,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "The driver's line ends soon (`line_expiry_warning_minutes` before)."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct LineExpiring {
+    #[doc = "When the line ends, unix milliseconds."]
+    pub expires_at: i64,
+}
+#[doc = "Frame `line_expiring` goway-realtime sends to an app."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct LineExpiringFrame {
+    pub data: LineExpiring,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "The shipper withdrew an open load."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct LoadCancelled {
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub load_id: ::uuid::Uuid,
+    #[doc = "The shipper organization."]
+    pub org_id: ::uuid::Uuid,
+}
+#[doc = "An open load passed its expiry unbooked; the sweep closed it."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct LoadExpired {
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub load_id: ::uuid::Uuid,
+    #[doc = "The shipper organization."]
+    pub org_id: ::uuid::Uuid,
+}
+#[doc = "A load is open on the board: just posted (one event per truck of a multi-truck post), or back on the board after its booking was cancelled, which adds `reposted: true`."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct LoadPosted {
+    #[doc = "Whether instant dispatch may offer the load."]
+    pub allow_instant: bool,
+    #[doc = "The shipper's price, whole so'm (a bare integer; `currency` is UZS today); null when it asks for offers."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub asking_amount: ::std::option::Option<u64>,
+    #[doc = "Shipper bonus set aside for this truck, whole so'm (a bare integer; `currency` is UZS today); null when none."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub bonus_amount: ::std::option::Option<u64>,
+    #[doc = "ISO 4217 code; `UZS` today."]
+    pub currency: LoadPostedCurrency,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "Pickup region; null when the address resolved to none."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub from_region_id: ::std::option::Option<::uuid::Uuid>,
+    #[doc = "Shared by the sibling loads of one multi-truck post; null for a single truck."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub group_id: ::std::option::Option<::uuid::Uuid>,
+    pub is_urgent: bool,
+    pub load_id: ::uuid::Uuid,
+    #[doc = "How the cargo goes in: `top` or `rear`."]
+    pub loading_method: ::std::string::String,
+    pub needs_refrigeration: bool,
+    #[doc = "The shipper organization."]
+    pub org_id: ::uuid::Uuid,
+    pub payment_method: PaymentMethod,
+    #[doc = "Earliest pickup; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub pickup_from: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
+    #[doc = "Pickup point latitude; null only when the load has no stops."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub pickup_lat: ::std::option::Option<f64>,
+    #[doc = "Pickup point longitude; null only when the load has no stops."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub pickup_lng: ::std::option::Option<f64>,
+    #[doc = "Latest pickup, also the posting's expiry; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub pickup_to: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
+    pub price_mode: PriceMode,
+    #[doc = "Present, and true, only when a cancelled booking put the load back."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub reposted: ::std::option::Option<bool>,
+    #[doc = "Market price GoWay suggested, whole so'm (a bare integer; `currency` is UZS today); null when there was none."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub suggested_amount: ::std::option::Option<u64>,
+    #[doc = "Drop-off region; null when the address resolved to none."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub to_region_id: ::std::option::Option<::uuid::Uuid>,
+    #[doc = "Truck class code from the reference list."]
+    pub truck_class: ::std::string::String,
+    pub weight_kg: u64,
+}
+#[doc = "ISO 4217 code; `UZS` today."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct LoadPostedCurrency(::std::string::String);
+impl ::std::ops::Deref for LoadPostedCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<LoadPostedCurrency> for ::std::string::String {
+    fn from(value: LoadPostedCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for LoadPostedCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 3usize {
+            return Err("longer than 3 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for LoadPostedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for LoadPostedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for LoadPostedCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+#[doc = "The driver's position. Relayed to booking viewers and sampled as evidence only while a booking is active."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct Location {
+    #[doc = "Degrees from north, when the device knows it."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub heading: ::std::option::Option<f64>,
+    pub lat: f64,
+    pub lng: f64,
+    #[doc = "Speed the device reports, when it knows it."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub speed: ::std::option::Option<f64>,
+}
+#[doc = "Frame `location` an app sends to goway-realtime."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct LocationFrame {
+    pub data: Location,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "A driver's GPS position during an active booking, sampled every `location_sample_seconds` as evidence of the haul."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct LocationSampled {
+    pub booking_id: ::uuid::Uuid,
+    pub driver_user_id: ::uuid::Uuid,
+    #[doc = "Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub lat: f64,
+    pub lng: f64,
+    #[doc = "When the position was sampled, RFC 3339 UTC with milliseconds."]
+    pub recorded_at: ::chrono::DateTime<::chrono::offset::Utc>,
+}
+#[doc = "Something landed in the user's notification feed; refresh the badge. Copied from `notification.created`; a field that event lacked or sent empty arrives as null."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct Notification {
+    #[doc = "Text in the user's language."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub body: ::std::option::Option<::std::string::String>,
+    #[doc = "Template kind, for example `driver_found` or `announcement`."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub kind: ::std::option::Option<::std::string::String>,
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub notification_id: ::std::option::Option<::uuid::Uuid>,
+    #[doc = "Title in the user's language."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub title: ::std::option::Option<::std::string::String>,
+}
+#[doc = "A message landed in a user's notification feed: from an event, or from an admin announcement (`kind: announcement`)."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct NotificationCreated {
+    #[doc = "Text in the user's language."]
+    pub body: ::std::string::String,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "Template kind, for example `driver_found`, `booking_status` or `announcement`."]
+    pub kind: ::std::string::String,
+    pub notification_id: ::uuid::Uuid,
+    #[doc = "Title in the user's language."]
+    pub title: ::std::string::String,
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "Frame `notification` goway-realtime sends to an app."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct NotificationFrame {
+    pub data: Notification,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "Every switch, sent whole whenever one of them changed."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct NotificationPrefs {
+    #[doc = "Promotions and news."]
+    pub marketing: bool,
+    #[doc = "Push for new offers and dispatch results."]
+    pub offers: bool,
+    #[doc = "Push for booking status changes."]
+    pub orders: bool,
+    #[doc = "SMS fallback for critical events."]
+    pub sms: bool,
+}
+#[doc = "An offer was accepted and became a booking; published together with `booking.created`."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct OfferAccepted {
+    pub booking_id: ::uuid::Uuid,
+    pub carrier_org_id: ::uuid::Uuid,
+    #[doc = "The driver who made the offer; the code allows null, an offer always has one."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub driver_user_id: ::std::option::Option<::uuid::Uuid>,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub load_id: ::uuid::Uuid,
+    pub offer_id: ::uuid::Uuid,
+    pub shipper_org_id: ::uuid::Uuid,
+}
 #[doc = "`OfferAction`"]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum OfferAction {
@@ -230,6 +1535,112 @@ impl ::std::convert::TryFrom<&str> for OfferAction {
     }
 }
 impl ::std::convert::TryFrom<::std::string::String> for OfferAction {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "A carrier asked for a load, or either side countered the other's price."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct OfferCreated {
+    #[doc = "Offered price, whole so'm (a bare integer; `currency` is UZS today)."]
+    pub amount: u64,
+    pub carrier_org_id: ::uuid::Uuid,
+    #[doc = "ISO 4217 code; `UZS` today."]
+    pub currency: OfferCreatedCurrency,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub kind: OfferKind,
+    pub load_id: ::uuid::Uuid,
+    pub offer_id: ::uuid::Uuid,
+    pub shipper_org_id: ::uuid::Uuid,
+}
+#[doc = "ISO 4217 code; `UZS` today."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct OfferCreatedCurrency(::std::string::String);
+impl ::std::ops::Deref for OfferCreatedCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<OfferCreatedCurrency> for ::std::string::String {
+    fn from(value: OfferCreatedCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for OfferCreatedCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 3usize {
+            return Err("longer than 3 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for OfferCreatedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for OfferCreatedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for OfferCreatedCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+#[doc = "Who made the offer and how."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum OfferKind {
+    #[serde(rename = "carrier_request")]
+    CarrierRequest,
+    #[serde(rename = "carrier_counter")]
+    CarrierCounter,
+    #[serde(rename = "shipper_counter")]
+    ShipperCounter,
+}
+impl ::std::fmt::Display for OfferKind {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::CarrierRequest => f.write_str("carrier_request"),
+            Self::CarrierCounter => f.write_str("carrier_counter"),
+            Self::ShipperCounter => f.write_str("shipper_counter"),
+        }
+    }
+}
+impl ::std::str::FromStr for OfferKind {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "carrier_request" => Ok(Self::CarrierRequest),
+            "carrier_counter" => Ok(Self::CarrierCounter),
+            "shipper_counter" => Ok(Self::ShipperCounter),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for OfferKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for OfferKind {
     type Error = self::error::ConversionError;
     fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
@@ -374,7 +1785,7 @@ pub struct OfferResponseFrame {
 #[doc = "How an offer ended for this driver."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct OfferResult {
-    #[doc = "Set when the outcome is `won`."]
+    #[doc = "Sent only when the outcome is `won`; null when goway-loads' answer could not be read."]
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub booking_id: ::std::option::Option<::uuid::Uuid>,
     pub load_id: ::uuid::Uuid,
@@ -389,10 +1800,400 @@ pub struct OfferResultFrame {
     #[serde(rename = "type")]
     pub type_: ::std::string::String,
 }
+#[doc = "The wallet stopped being eligible; no offers until it is settled."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct OffersBlocked {
+    pub reason: OffersBlockedReason,
+}
+#[doc = "Frame `offers_blocked` goway-realtime sends to an app."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct OffersBlockedFrame {
+    pub data: OffersBlocked,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "`OffersBlockedReason`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum OffersBlockedReason {
+    #[serde(rename = "BALANCE_INSUFFICIENT")]
+    BalanceInsufficient,
+    #[serde(rename = "SUBSCRIPTION_REQUIRED")]
+    SubscriptionRequired,
+}
+impl ::std::fmt::Display for OffersBlockedReason {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::BalanceInsufficient => f.write_str("BALANCE_INSUFFICIENT"),
+            Self::SubscriptionRequired => f.write_str("SUBSCRIPTION_REQUIRED"),
+        }
+    }
+}
+impl ::std::str::FromStr for OffersBlockedReason {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "BALANCE_INSUFFICIENT" => Ok(Self::BalanceInsufficient),
+            "SUBSCRIPTION_REQUIRED" => Ok(Self::SubscriptionRequired),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for OffersBlockedReason {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for OffersBlockedReason {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "The wallet is eligible again after being blocked; nothing in it."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(transparent)]
+pub struct OffersUnblocked(pub ::serde_json::Map<::std::string::String, ::serde_json::Value>);
+impl ::std::ops::Deref for OffersUnblocked {
+    type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
+    fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        &self.0
+    }
+}
+impl ::std::convert::From<OffersUnblocked> for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+    fn from(value: OffersUnblocked) -> Self {
+        value.0
+    }
+}
+impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>> for OffersUnblocked {
+    fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
+        Self(value)
+    }
+}
+#[doc = "Frame `offers_unblocked` goway-realtime sends to an app."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct OffersUnblockedFrame {
+    pub data: OffersUnblocked,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "The driver left the line after `go_offline`."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(transparent)]
+pub struct Offline(pub ::serde_json::Map<::std::string::String, ::serde_json::Value>);
+impl ::std::ops::Deref for Offline {
+    type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
+    fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        &self.0
+    }
+}
+impl ::std::convert::From<Offline> for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+    fn from(value: Offline) -> Self {
+        value.0
+    }
+}
+impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>> for Offline {
+    fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
+        Self(value)
+    }
+}
+#[doc = "Frame `offline` goway-realtime sends to an app."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct OfflineFrame {
+    pub data: Offline,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "The driver is on the line after `go_online`."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct Online {
+    #[doc = "When the line ends, unix milliseconds."]
+    pub expires_at: i64,
+    #[doc = "Set when the wallet blocks offers, null otherwise; this frame only ever sends `BALANCE_INSUFFICIENT`."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub offers_blocked: ::std::option::Option<OffersBlockedReason>,
+    #[doc = "Place in the outbound line's queue, from 1."]
+    pub queue_position: ::std::num::NonZeroU64,
+}
+#[doc = "Frame `online` goway-realtime sends to an app."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct OnlineFrame {
+    pub data: Online,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "An organization's details changed. Only what changed is sent, besides `org_id` and `updated_at`: a role switch sends `kind` and `account_type`; the organization screen any of `name`, `legal_name`, `inn`, `contact_phone`, `address`."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct OrgUpdated {
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub account_type: ::std::option::Option<AccountType>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub address: ::std::option::Option<::std::string::String>,
+    #[doc = "E.164 number, `+998…`."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub contact_phone: ::std::option::Option<::std::string::String>,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "Tax id (STIR/INN), 9 digits."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub inn: ::std::option::Option<::std::string::String>,
+    #[doc = "Market side: `shipper` or `carrier`."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub kind: ::std::option::Option<::std::string::String>,
+    #[doc = "Registered company name."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub legal_name: ::std::option::Option<::std::string::String>,
+    #[doc = "Display name."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub name: ::std::option::Option<::std::string::String>,
+    pub org_id: ::uuid::Uuid,
+    #[doc = "When the change was made. ISO 8601 with offset, as Python's `isoformat()` writes it."]
+    pub updated_at: ::chrono::DateTime<::chrono::offset::Utc>,
+}
+#[doc = "`PaymentMethod`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum PaymentMethod {
+    #[serde(rename = "cash")]
+    Cash,
+    #[serde(rename = "transfer")]
+    Transfer,
+    #[serde(rename = "card")]
+    Card,
+    #[serde(rename = "mixed")]
+    Mixed,
+}
+impl ::std::fmt::Display for PaymentMethod {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Cash => f.write_str("cash"),
+            Self::Transfer => f.write_str("transfer"),
+            Self::Card => f.write_str("card"),
+            Self::Mixed => f.write_str("mixed"),
+        }
+    }
+}
+impl ::std::str::FromStr for PaymentMethod {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "cash" => Ok(Self::Cash),
+            "transfer" => Ok(Self::Transfer),
+            "card" => Ok(Self::Card),
+            "mixed" => Ok(Self::Mixed),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for PaymentMethod {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for PaymentMethod {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "Nothing: an empty object, or no `data` at all."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(transparent)]
+pub struct Ping(pub ::serde_json::Map<::std::string::String, ::serde_json::Value>);
+impl ::std::ops::Deref for Ping {
+    type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
+    fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        &self.0
+    }
+}
+impl ::std::convert::From<Ping> for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+    fn from(value: Ping) -> Self {
+        value.0
+    }
+}
+impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>> for Ping {
+    fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
+        Self(value)
+    }
+}
+#[doc = "Frame `ping` an app sends to goway-realtime."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct PingFrame {
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub data: ::std::option::Option<Ping>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "The answer to `ping`; nothing in it."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(transparent)]
+pub struct Pong(pub ::serde_json::Map<::std::string::String, ::serde_json::Value>);
+impl ::std::ops::Deref for Pong {
+    type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
+    fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
+        &self.0
+    }
+}
+impl ::std::convert::From<Pong> for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
+    fn from(value: Pong) -> Self {
+        value.0
+    }
+}
+impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>> for Pong {
+    fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
+        Self(value)
+    }
+}
+#[doc = "Frame `pong` goway-realtime sends to an app."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct PongFrame {
+    pub data: Pong,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "`PriceMode`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum PriceMode {
+    #[serde(rename = "fixed")]
+    Fixed,
+    #[serde(rename = "negotiable")]
+    Negotiable,
+}
+impl ::std::fmt::Display for PriceMode {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Fixed => f.write_str("fixed"),
+            Self::Negotiable => f.write_str("negotiable"),
+        }
+    }
+}
+impl ::std::str::FromStr for PriceMode {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "fixed" => Ok(Self::Fixed),
+            "negotiable" => Ok(Self::Negotiable),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for PriceMode {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for PriceMode {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "The shipper rated a completed haul; sent once per haul."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct RatingCreated {
+    pub booking_id: ::uuid::Uuid,
+    pub carrier_org_id: ::uuid::Uuid,
+    #[doc = "The rated driver; the code allows null, a booking always has one."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub driver_user_id: ::std::option::Option<::uuid::Uuid>,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub load_id: ::uuid::Uuid,
+    pub shipper_org_id: ::uuid::Uuid,
+    #[doc = "1 to 5."]
+    pub stars: ::std::num::NonZeroU64,
+    #[doc = "Who was rated; always `driver` today."]
+    pub target: ::std::string::String,
+}
+#[doc = "An admin opened or closed a region for the marketplace."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct RegionChanged {
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub is_active: bool,
+    pub region_id: ::uuid::Uuid,
+}
+#[doc = "The decision."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum ReviewDecision {
+    #[serde(rename = "approved")]
+    Approved,
+    #[serde(rename = "rejected")]
+    Rejected,
+}
+impl ::std::fmt::Display for ReviewDecision {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Approved => f.write_str("approved"),
+            Self::Rejected => f.write_str("rejected"),
+        }
+    }
+}
+impl ::std::str::FromStr for ReviewDecision {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "approved" => Ok(Self::Approved),
+            "rejected" => Ok(Self::Rejected),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ReviewDecision {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ReviewDecision {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
 #[doc = "Any frame goway-realtime may send; `type` tells which."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 #[serde(tag = "type")]
 pub enum ServerFrame {
+    #[doc = "Frame `connected` goway-realtime sends to an app."]
+    #[serde(rename = "connected")]
+    Connected {
+        data: Connected,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `pong` goway-realtime sends to an app."]
+    #[serde(rename = "pong")]
+    Pong {
+        data: Pong,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `online` goway-realtime sends to an app."]
+    #[serde(rename = "online")]
+    Online {
+        data: Online,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `offline` goway-realtime sends to an app."]
+    #[serde(rename = "offline")]
+    Offline {
+        data: Offline,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
     #[doc = "Frame `offer_proposed` goway-realtime sends to an app."]
     #[serde(rename = "offer_proposed")]
     OfferProposed {
@@ -407,6 +2208,104 @@ pub enum ServerFrame {
         #[doc = "When the server sent the frame, RFC 3339 UTC."]
         ts: ::chrono::DateTime<::chrono::offset::Utc>,
     },
+    #[doc = "Frame `subscribed` goway-realtime sends to an app."]
+    #[serde(rename = "subscribed")]
+    Subscribed {
+        data: Subscribed,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
+    #[serde(rename = "booking_created")]
+    BookingCreated {
+        data: BookingCreated,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `booking_status` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.status_changed` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
+    #[serde(rename = "booking_status")]
+    BookingStatus {
+        data: BookingStatusChanged,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `booking_eta` goway-realtime sends to an app. Sent to the booking's viewers only, and dropped when a socket is slow. It currently forwards the internal `booking.eta_updated` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
+    #[serde(rename = "booking_eta")]
+    BookingEta {
+        data: BookingEtaUpdated,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `booking_completed` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.completed` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
+    #[serde(rename = "booking_completed")]
+    BookingCompleted {
+        data: BookingCompleted,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `booking_cancelled` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.cancelled` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
+    #[serde(rename = "booking_cancelled")]
+    BookingCancelled {
+        data: BookingCancelled,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `driver_location` goway-realtime sends to an app."]
+    #[serde(rename = "driver_location")]
+    DriverLocation {
+        data: DriverLocation,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `line_expiring` goway-realtime sends to an app."]
+    #[serde(rename = "line_expiring")]
+    LineExpiring {
+        data: LineExpiring,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `line_expired` goway-realtime sends to an app."]
+    #[serde(rename = "line_expired")]
+    LineExpired {
+        data: LineExpired,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `offers_blocked` goway-realtime sends to an app."]
+    #[serde(rename = "offers_blocked")]
+    OffersBlocked {
+        data: OffersBlocked,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `offers_unblocked` goway-realtime sends to an app."]
+    #[serde(rename = "offers_unblocked")]
+    OffersUnblocked {
+        data: OffersUnblocked,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `notification` goway-realtime sends to an app."]
+    #[serde(rename = "notification")]
+    Notification {
+        data: Notification,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `session_started` goway-realtime sends to an app."]
+    #[serde(rename = "session_started")]
+    SessionStarted {
+        data: SessionStarted,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `kicked` goway-realtime sends to an app."]
+    #[serde(rename = "kicked")]
+    Kicked {
+        data: Kicked,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
     #[doc = "Frame `error` goway-realtime sends to an app."]
     #[serde(rename = "error")]
     Error {
@@ -415,7 +2314,446 @@ pub enum ServerFrame {
         ts: ::chrono::DateTime<::chrono::offset::Utc>,
     },
 }
-#[doc = "An organization's wallet started or stopped being allowed to receive offers. One event per user of the organization."]
+#[doc = "Somebody signed in to this account; ignore it when `installation_id` is this app's own. Copied from `user.login`; a field that event lacked or sent empty arrives as null."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct SessionStarted {
+    #[doc = "When the sign-in happened, as `user.login` wrote it."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub at: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub device_id: ::std::option::Option<::uuid::Uuid>,
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub installation_id: ::std::option::Option<::std::string::String>,
+    #[doc = "Device model."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub model: ::std::option::Option<::std::string::String>,
+    pub new_device: bool,
+    #[doc = "Device platform."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub platform: ::std::option::Option<DevicePlatform>,
+}
+#[doc = "Frame `session_started` goway-realtime sends to an app."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct SessionStartedFrame {
+    pub data: SessionStarted,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "An admin changed or reset runtime settings of one service. Published by goway-lib for goway-auth, goway-loads, goway-billing and goway-notify, and by goway-realtime itself, with the same fields."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct SettingsChanged {
+    #[doc = "The admin who changed them; null when not known."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub by: ::std::option::Option<::uuid::Uuid>,
+    #[doc = "Unique id of this event: the outbox row id from a Python service, a random UUID from goway-realtime. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "Setting keys that changed."]
+    pub keys: ::std::vec::Vec<::std::string::String>,
+    #[doc = "The service whose settings changed, for example `goway-loads`."]
+    pub service: ::std::string::String,
+}
+#[doc = "Watch a booking of the caller's organization: status, arrival window and the driver's position."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct SubscribeBooking {
+    pub booking_id: ::uuid::Uuid,
+}
+#[doc = "Frame `subscribe_booking` an app sends to goway-realtime."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct SubscribeBookingFrame {
+    pub data: SubscribeBooking,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "`subscribe_booking` was accepted."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct Subscribed {
+    pub booking_id: ::uuid::Uuid,
+}
+#[doc = "Frame `subscribed` goway-realtime sends to an app."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct SubscribedFrame {
+    pub data: Subscribed,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "A user opened a support ticket."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct SupportTicketCreated {
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "Reference the user sees: `T-` and six characters, for example `T-7KQ2MZ`."]
+    pub number: ::std::string::String,
+    #[doc = "The haul the ticket is about; null when none was named."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub order_id: ::std::option::Option<::uuid::Uuid>,
+    pub ticket_id: ::uuid::Uuid,
+    pub topic: SupportTopic,
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "Support answered or closed a ticket."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct SupportTicketReplied {
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "Reference the user sees: `T-` and six characters, for example `T-7KQ2MZ`."]
+    pub number: ::std::string::String,
+    pub status: TicketReplyStatus,
+    pub ticket_id: ::uuid::Uuid,
+    #[doc = "Who opened the ticket."]
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "What the ticket is about."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum SupportTopic {
+    #[serde(rename = "suggestion")]
+    Suggestion,
+    #[serde(rename = "complaint")]
+    Complaint,
+    #[serde(rename = "bug")]
+    Bug,
+    #[serde(rename = "payment")]
+    Payment,
+    #[serde(rename = "order")]
+    Order,
+    #[serde(rename = "driver")]
+    Driver,
+    #[serde(rename = "app")]
+    App,
+    #[serde(rename = "documents")]
+    Documents,
+    #[serde(rename = "other")]
+    Other,
+}
+impl ::std::fmt::Display for SupportTopic {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Suggestion => f.write_str("suggestion"),
+            Self::Complaint => f.write_str("complaint"),
+            Self::Bug => f.write_str("bug"),
+            Self::Payment => f.write_str("payment"),
+            Self::Order => f.write_str("order"),
+            Self::Driver => f.write_str("driver"),
+            Self::App => f.write_str("app"),
+            Self::Documents => f.write_str("documents"),
+            Self::Other => f.write_str("other"),
+        }
+    }
+}
+impl ::std::str::FromStr for SupportTopic {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "suggestion" => Ok(Self::Suggestion),
+            "complaint" => Ok(Self::Complaint),
+            "bug" => Ok(Self::Bug),
+            "payment" => Ok(Self::Payment),
+            "order" => Ok(Self::Order),
+            "driver" => Ok(Self::Driver),
+            "app" => Ok(Self::App),
+            "documents" => Ok(Self::Documents),
+            "other" => Ok(Self::Other),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for SupportTopic {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for SupportTopic {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "App theme."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum Theme {
+    #[serde(rename = "light")]
+    Light,
+    #[serde(rename = "dark")]
+    Dark,
+    #[serde(rename = "system")]
+    System,
+}
+impl ::std::fmt::Display for Theme {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Light => f.write_str("light"),
+            Self::Dark => f.write_str("dark"),
+            Self::System => f.write_str("system"),
+        }
+    }
+}
+impl ::std::str::FromStr for Theme {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "light" => Ok(Self::Light),
+            "dark" => Ok(Self::Dark),
+            "system" => Ok(Self::System),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for Theme {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for Theme {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "The ticket's status after the reply."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum TicketReplyStatus {
+    #[serde(rename = "answered")]
+    Answered,
+    #[serde(rename = "closed")]
+    Closed,
+}
+impl ::std::fmt::Display for TicketReplyStatus {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Answered => f.write_str("answered"),
+            Self::Closed => f.write_str("closed"),
+        }
+    }
+}
+impl ::std::str::FromStr for TicketReplyStatus {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "answered" => Ok(Self::Answered),
+            "closed" => Ok(Self::Closed),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for TicketReplyStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for TicketReplyStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "Stop watching a booking."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct UnsubscribeBooking {
+    pub booking_id: ::uuid::Uuid,
+}
+#[doc = "Frame `unsubscribe_booking` an app sends to goway-realtime."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct UnsubscribeBookingFrame {
+    pub data: UnsubscribeBooking,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "An account came into being. Three paths publish it with different fields: self-signup sends `account_type`; an admin create sends `first_name` and `last_name`, either of which may be null; an admin restore of a soft-deleted account sends `updated_at`. `user_id`, `org_id`, `role`, `phone` and `language` are always sent."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct UserCreated {
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub account_type: ::std::option::Option<AccountType>,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "Admin create only; null when the admin gave none."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub first_name: ::std::option::Option<::std::string::String>,
+    #[doc = "App language code: uz, uzc, ru, en, kaa or zh."]
+    pub language: ::std::string::String,
+    #[doc = "Admin create only; null when the admin gave none."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub last_name: ::std::option::Option<::std::string::String>,
+    pub org_id: ::uuid::Uuid,
+    #[doc = "E.164 number, `+998…`. A restore sends the stored value, which is `del:…` for an account its owner deleted."]
+    pub phone: ::std::string::String,
+    #[doc = "Role name. Self-signup sends `shipper` or `carrier`, an admin create the role it picked, a restore the stored role or an empty string when the user has none."]
+    pub role: ::std::string::String,
+    #[doc = "Admin restore only: when the account came back. ISO 8601 with offset, as Python's `isoformat()` writes it."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub updated_at: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "An account was deleted: by its owner, without `updated_at`, or by an admin, soft or hard, with `updated_at`."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct UserDeleted {
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub org_id: ::uuid::Uuid,
+    #[doc = "Admin deletes only: when the account was deleted. ISO 8601 with offset, as Python's `isoformat()` writes it."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub updated_at: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "Somebody signed in to the account: by code, password, password reset or phone change. The device fields are null when the app sent no device."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct UserLogin {
+    #[doc = "When the sign-in happened. ISO 8601 with offset, as Python's `isoformat()` writes it."]
+    pub at: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[doc = "Device row the session belongs to."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub device_id: ::std::option::Option<::uuid::Uuid>,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "The app install's own id."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub installation_id: ::std::option::Option<::std::string::String>,
+    #[doc = "Client address."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub ip: ::std::option::Option<::std::string::String>,
+    #[doc = "Device model as the app reported it."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub model: ::std::option::Option<::std::string::String>,
+    #[doc = "True the first time this install signs in, or when a removed device comes back."]
+    pub new_device: bool,
+    #[doc = "Device platform."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub platform: ::std::option::Option<DevicePlatform>,
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "Every session of the account was closed; each app must sign in again."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct UserSessionRevoked {
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "Why: `password_change`, `password_reset`, `phone_change`, `deleted`, `blocked`, or the free text an admin wrote when blocking the account."]
+    pub reason: ::std::string::String,
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "Some of the account's sessions were closed from another device; those installs must sign in again."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct UserSessionsClosed {
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "Installs whose sessions were closed; never empty."]
+    pub installation_ids: ::std::vec::Vec<::std::string::String>,
+    #[doc = "Always `logout` today."]
+    pub reason: ::std::string::String,
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "Something about an account changed. Only what changed is sent, besides `user_id` and `updated_at`, and five paths send five field sets: a confirmed phone change sends `phone`; the account settings screen any of `language`, `currency`, `theme`, `notification_prefs`; a role switch `role`; an admin edit any of `phone`, `language`, `first_name`, `last_name`, plus `role` whenever the admin named one; a profile edit `first_name`, `last_name`, `email` and `avatar_url` together, each of them possibly null."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct UserUpdated {
+    #[doc = "Profile edit only. Public avatar address; null when there is none or it would expire."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub avatar_url: ::std::option::Option<::std::string::String>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub currency: ::std::option::Option<DisplayCurrency>,
+    #[doc = "Profile edit only; null when the profile has no email."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub email: ::std::option::Option<::std::string::String>,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "Null only from a profile edit, when the profile has no first name."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub first_name: ::std::option::Option<::std::string::String>,
+    #[doc = "App language code: uz, uzc, ru, en, kaa or zh."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub language: ::std::option::Option<::std::string::String>,
+    #[doc = "Null only from a profile edit, when the profile has no last name."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub last_name: ::std::option::Option<::std::string::String>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub notification_prefs: ::std::option::Option<NotificationPrefs>,
+    #[doc = "New E.164 number, `+998…`."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub phone: ::std::option::Option<::std::string::String>,
+    #[doc = "Role name: `shipper` or `carrier` from a role switch, any role from an admin edit."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub role: ::std::option::Option<::std::string::String>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub theme: ::std::option::Option<Theme>,
+    #[doc = "When the change was made. ISO 8601 with offset, as Python's `isoformat()` writes it."]
+    pub updated_at: ::chrono::DateTime<::chrono::offset::Utc>,
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "A fleet vehicle was removed."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct VehicleRemoved {
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub org_id: ::uuid::Uuid,
+    pub vehicle_id: ::uuid::Uuid,
+}
+#[doc = "A fleet vehicle was added or changed; the whole vehicle is sent every time."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct VehicleUpserted {
+    #[doc = "Capability codes: rear_ramp, open_top, side_curtain, tail_lift, refrigerated."]
+    pub capabilities: ::std::vec::Vec<::std::string::String>,
+    #[doc = "Payload in kilograms; null when not given."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub capacity_kg: ::std::option::Option<u64>,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "How the vehicle is loaded: `top`, `rear` or `both`."]
+    pub loading_method: ::std::string::String,
+    pub org_id: ::uuid::Uuid,
+    #[doc = "Normalized plate: no spaces, upper case."]
+    pub plate_number: ::std::string::String,
+    #[doc = "Truck class code from the reference list."]
+    pub truck_class: ::std::string::String,
+    #[doc = "When the vehicle was saved. ISO 8601 with offset, as Python's `isoformat()` writes it."]
+    pub updated_at: ::chrono::DateTime<::chrono::offset::Utc>,
+    pub vehicle_id: ::uuid::Uuid,
+}
+#[doc = "The new verification status."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum VerificationStatus {
+    #[serde(rename = "pending")]
+    Pending,
+    #[serde(rename = "approved")]
+    Approved,
+    #[serde(rename = "rejected")]
+    Rejected,
+}
+impl ::std::fmt::Display for VerificationStatus {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Pending => f.write_str("pending"),
+            Self::Approved => f.write_str("approved"),
+            Self::Rejected => f.write_str("rejected"),
+        }
+    }
+}
+impl ::std::str::FromStr for VerificationStatus {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "pending" => Ok(Self::Pending),
+            "approved" => Ok(Self::Approved),
+            "rejected" => Ok(Self::Rejected),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for VerificationStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for VerificationStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "An organization's wallet started or stopped being allowed to receive offers. One event per user of the organization, or a single event with a null `user_id` when billing knows no user of it yet."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct WalletEligibilityChanged {
     #[doc = "Wallet balance in so'm; negative means debt."]
@@ -429,7 +2767,142 @@ pub struct WalletEligibilityChanged {
     #[doc = "Why offers stopped; null when the wallet is eligible."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub reason: ::std::option::Option<IneligibleReason>,
-    pub user_id: ::uuid::Uuid,
+    #[doc = "Null when billing's replica holds no user of the organization."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub user_id: ::std::option::Option<::uuid::Uuid>,
+}
+#[doc = "A line was written to an organization's wallet ledger."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct WalletEntryPosted {
+    #[doc = "Signed change of the balance, whole so'm (a bare integer; `currency` is UZS today)."]
+    pub amount: i64,
+    #[doc = "Balance after the line, whole so'm (a bare integer; `currency` is UZS today); negative means debt."]
+    pub balance: i64,
+    #[doc = "The haul the line is for; null for lines not tied to a haul."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub booking_id: ::std::option::Option<::uuid::Uuid>,
+    #[doc = "ISO 4217 code; `UZS` today."]
+    pub currency: WalletEntryPostedCurrency,
+    pub entry_id: ::uuid::Uuid,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "Ledger line kind: commission, commission_adjustment, cash_topup, cash_void, adjustment, subscription_fee, promo, referral, bonus_hold, bonus_release or bonus_discount."]
+    pub kind: ::std::string::String,
+    pub org_id: ::uuid::Uuid,
+}
+#[doc = "ISO 4217 code; `UZS` today."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct WalletEntryPostedCurrency(::std::string::String);
+impl ::std::ops::Deref for WalletEntryPostedCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<WalletEntryPostedCurrency> for ::std::string::String {
+    fn from(value: WalletEntryPostedCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for WalletEntryPostedCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 3usize {
+            return Err("longer than 3 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for WalletEntryPostedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for WalletEntryPostedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for WalletEntryPostedCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+#[doc = "An operator took cash for an organization's wallet and issued a receipt."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct WalletToppedUp {
+    #[doc = "Cash received, whole so'm (a bare integer; `currency` is UZS today)."]
+    pub amount: u64,
+    #[doc = "Balance after the top-up, whole so'm (a bare integer; `currency` is UZS today); negative means debt."]
+    pub balance: i64,
+    #[doc = "ISO 4217 code; `UZS` today."]
+    pub currency: WalletToppedUpCurrency,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub org_id: ::uuid::Uuid,
+    pub payment_id: ::uuid::Uuid,
+    #[doc = "Receipt number, `GW-<year>-<6 digits>`, for example `GW-2026-000123`."]
+    pub receipt_no: ::std::string::String,
+}
+#[doc = "ISO 4217 code; `UZS` today."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct WalletToppedUpCurrency(::std::string::String);
+impl ::std::ops::Deref for WalletToppedUpCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<WalletToppedUpCurrency> for ::std::string::String {
+    fn from(value: WalletToppedUpCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for WalletToppedUpCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 3usize {
+            return Err("longer than 3 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for WalletToppedUpCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for WalletToppedUpCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for WalletToppedUpCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
 }
 #[doc = " Generation of default values for serde."]
 pub mod defaults {

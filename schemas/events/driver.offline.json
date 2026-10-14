@@ -1,0 +1,28 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DriverOffline",
+  "description": "A driver left the line: went offline, the line expired, the grace after a disconnect ran out, or the sessions were revoked.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it."
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "From the presence record, which always has it."
+    }
+  },
+  "required": [
+    "event_id",
+    "user_id",
+    "org_id"
+  ]
+}

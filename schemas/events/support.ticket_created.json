@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SupportTicketCreated",
+  "description": "A user opened a support ticket.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "ticket_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "number": {
+      "type": "string",
+      "description": "Reference the user sees: `T-` and six characters, for example `T-7KQ2MZ`."
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "topic": {
+      "title": "SupportTopic",
+      "type": "string",
+      "enum": [
+        "suggestion",
+        "complaint",
+        "bug",
+        "payment",
+        "order",
+        "driver",
+        "app",
+        "documents",
+        "other"
+      ],
+      "description": "What the ticket is about."
+    },
+    "order_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "The haul the ticket is about; null when none was named."
+    }
+  },
+  "required": [
+    "event_id",
+    "ticket_id",
+    "number",
+    "user_id",
+    "topic",
+    "order_id"
+  ]
+}

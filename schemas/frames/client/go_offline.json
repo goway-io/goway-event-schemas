@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GoOfflineFrame",
+  "description": "Frame `go_offline` an app sends to goway-realtime.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "go_offline"
+    },
+    "data": {
+      "title": "GoOffline",
+      "description": "Leave the line. Nothing to send: an empty object, or no `data` at all.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {}
+    }
+  },
+  "required": [
+    "type"
+  ]
+}

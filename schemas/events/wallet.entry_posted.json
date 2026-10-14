@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WalletEntryPosted",
+  "description": "A line was written to an organization's wallet ledger.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "entry_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "kind": {
+      "type": "string",
+      "description": "Ledger line kind: commission, commission_adjustment, cash_topup, cash_void, adjustment, subscription_fee, promo, referral, bonus_hold, bonus_release or bonus_discount."
+    },
+    "amount": {
+      "type": "integer",
+      "description": "Signed change of the balance, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "balance": {
+      "type": "integer",
+      "description": "Balance after the line, whole so'm (a bare integer; `currency` is UZS today); negative means debt."
+    },
+    "booking_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "The haul the line is for; null for lines not tied to a haul."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3,
+      "description": "ISO 4217 code; `UZS` today."
+    }
+  },
+  "required": [
+    "event_id",
+    "org_id",
+    "entry_id",
+    "kind",
+    "amount",
+    "balance",
+    "booking_id",
+    "currency"
+  ]
+}

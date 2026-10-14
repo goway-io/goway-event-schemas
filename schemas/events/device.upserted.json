@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DeviceUpserted",
+  "description": "A device was registered or came back after removal, or its push token changed or was cleared (signing out clears it).",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "device_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "platform": {
+      "title": "DevicePlatform",
+      "type": "string",
+      "enum": [
+        "android",
+        "ios",
+        "web"
+      ]
+    },
+    "push_token": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "FCM registration token; null when the device can no longer be pushed."
+    }
+  },
+  "required": [
+    "event_id",
+    "device_id",
+    "user_id",
+    "platform",
+    "push_token"
+  ]
+}

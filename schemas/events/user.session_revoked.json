@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UserSessionRevoked",
+  "description": "Every session of the account was closed; each app must sign in again.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Why: `password_change`, `password_reset`, `phone_change`, `deleted`, `blocked`, or the free text an admin wrote when blocking the account."
+    }
+  },
+  "required": [
+    "event_id",
+    "user_id",
+    "reason"
+  ]
+}

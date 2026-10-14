@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NotificationCreated",
+  "description": "A message landed in a user's notification feed: from an event, or from an admin announcement (`kind: announcement`).",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "notification_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "kind": {
+      "type": "string",
+      "description": "Template kind, for example `driver_found`, `booking_status` or `announcement`."
+    },
+    "title": {
+      "type": "string",
+      "description": "Title in the user's language."
+    },
+    "body": {
+      "type": "string",
+      "description": "Text in the user's language."
+    }
+  },
+  "required": [
+    "event_id",
+    "notification_id",
+    "user_id",
+    "kind",
+    "title",
+    "body"
+  ]
+}

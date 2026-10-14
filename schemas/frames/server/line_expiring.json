@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LineExpiringFrame",
+  "description": "Frame `line_expiring` goway-realtime sends to an app.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "line_expiring"
+    },
+    "data": {
+      "title": "LineExpiring",
+      "description": "The driver's line ends soon (`line_expiry_warning_minutes` before).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expires_at": {
+          "type": "integer",
+          "description": "When the line ends, unix milliseconds."
+        }
+      },
+      "required": [
+        "expires_at"
+      ]
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the server sent the frame, RFC 3339 UTC."
+    }
+  },
+  "required": [
+    "type",
+    "data",
+    "ts"
+  ]
+}

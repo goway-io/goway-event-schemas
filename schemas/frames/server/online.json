@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OnlineFrame",
+  "description": "Frame `online` goway-realtime sends to an app.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "online"
+    },
+    "data": {
+      "title": "Online",
+      "description": "The driver is on the line after `go_online`.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "queue_position": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Place in the outbound line's queue, from 1."
+        },
+        "expires_at": {
+          "type": "integer",
+          "description": "When the line ends, unix milliseconds."
+        },
+        "offers_blocked": {
+          "anyOf": [
+            {
+              "title": "OffersBlockedReason",
+              "type": "string",
+              "enum": [
+                "BALANCE_INSUFFICIENT",
+                "SUBSCRIPTION_REQUIRED"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Set when the wallet blocks offers, null otherwise; this frame only ever sends `BALANCE_INSUFFICIENT`."
+        }
+      },
+      "required": [
+        "queue_position",
+        "expires_at",
+        "offers_blocked"
+      ]
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the server sent the frame, RFC 3339 UTC."
+    }
+  },
+  "required": [
+    "type",
+    "data",
+    "ts"
+  ]
+}

@@ -1,0 +1,115 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BookingEtaUpdated",
+  "description": "The arrival window or the time the truck is free again moved: when the haul is booked (`confirmed`), at every carrier step, and on fresh GPS while `en_route` or `in_transit`.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "booking_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "load_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "carrier_org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "driver_user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "shipper_org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "status": {
+      "title": "BookingStatus",
+      "type": "string",
+      "enum": [
+        "confirmed",
+        "en_route",
+        "at_pickup",
+        "loading",
+        "in_transit",
+        "delivered",
+        "completed",
+        "cancelled"
+      ]
+    },
+    "eta_stop": {
+      "anyOf": [
+        {
+          "title": "EtaStop",
+          "type": "string",
+          "enum": [
+            "pickup",
+            "dropoff"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Which stop the window is for; null when no arrival is expected any more."
+    },
+    "eta_from": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "Earliest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's `isoformat()` writes it."
+    },
+    "eta_to": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "Latest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's `isoformat()` writes it."
+    },
+    "free_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "When the truck is expected to be empty again. ISO 8601 with offset, as Python's `isoformat()` writes it."
+    },
+    "free_region_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "Where the truck will be free: the drop-off region; null when unknown."
+    },
+    "truck_class": {
+      "type": "string",
+      "description": "The booked vehicle's truck class code."
+    }
+  },
+  "required": [
+    "event_id",
+    "booking_id",
+    "load_id",
+    "carrier_org_id",
+    "driver_user_id",
+    "shipper_org_id",
+    "status",
+    "eta_stop",
+    "eta_from",
+    "eta_to",
+    "free_at",
+    "free_region_id",
+    "truck_class"
+  ]
+}
