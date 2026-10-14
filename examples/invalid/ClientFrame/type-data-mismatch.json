@@ -1,0 +1,8 @@
+{
+  "type": "offer_response",
+  "data": {
+    "from_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
+    "to_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
+    "vehicle_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e09"
+  }
+}

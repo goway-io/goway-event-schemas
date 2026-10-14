@@ -1,0 +1,28 @@
+extends:
+  - spectral:asyncapi
+rules:
+  asyncapi-info-contact: off
+  asyncapi-info-license: off
+  asyncapi-3-tags: off
+  goway-message-has-title:
+    description: Every message has a human title for the docs page.
+    given: $.components.messages[*]
+    severity: error
+    then:
+      field: title
+      function: truthy
+  goway-message-name-is-the-wire-name:
+    description: The message name is the subject or frame type exactly as it travels.
+    given: $.components.messages[*].name
+    severity: error
+    then:
+      function: pattern
+      functionOptions:
+        match: "^[a-z][a-z_]*(\\.[a-z][a-z_]*)*(\\.v[0-9]+)?$"
+  goway-channel-names-its-publisher:
+    description: Every NATS channel says which service publishes it.
+    given: $.channels[?(@.address && @.address.indexOf('/') !== 0)]
+    severity: error
+    then:
+      field: x-publisher
+      function: truthy

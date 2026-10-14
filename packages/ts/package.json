@@ -1,0 +1,10 @@
+{
+  "name": "@goway/events",
+  "version": "0.1.0",
+  "description": "Types of GoWay's NATS events and WebSocket frames, generated from goway-event-schemas.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": ["src"]
+}

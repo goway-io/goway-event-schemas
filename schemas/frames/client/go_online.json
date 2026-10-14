@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GoOnlineFrame",
+  "description": "Frame `go_online` an app sends to goway-realtime.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "go_online"
+    },
+    "data": {
+      "title": "GoOnline",
+      "description": "Start receiving instant offers on a line with one vehicle.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "from_region_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "to_region_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "vehicle_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "duration_hours": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 48,
+          "default": 12,
+          "description": "How long to stay online; must be one of the allowed durations."
+        },
+        "bidirectional": {
+          "type": "boolean",
+          "default": true,
+          "description": "Also take loads on the way back."
+        }
+      },
+      "required": [
+        "from_region_id",
+        "to_region_id",
+        "vehicle_id"
+      ]
+    }
+  },
+  "required": [
+    "type",
+    "data"
+  ]
+}

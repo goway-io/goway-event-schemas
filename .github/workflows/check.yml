@@ -1,0 +1,30 @@
+name: check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: astral-sh/setup-uv@v6
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: dart-lang/setup-dart@v1
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .tools
+            ~/.cargo/registry
+            packages/rust/target
+          key: tools-${{ runner.os }}-${{ hashFiles('packages/rust/Cargo.lock', 'Makefile') }}
+      - run: make tools
+      - run: make check
+      - run: make drift
+      - run: make test
+      - run: make docs

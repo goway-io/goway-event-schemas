@@ -1,0 +1,7 @@
+{
+  "type": "error",
+  "data": {
+    "code": "rate_limited"
+  },
+  "ts": "2026-10-14T09:30:00.123Z"
+}

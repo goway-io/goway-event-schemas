@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OfferResponseFrame",
+  "description": "Frame `offer_response` an app sends to goway-realtime.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "offer_response"
+    },
+    "data": {
+      "title": "OfferResponse",
+      "description": "The driver's answer to an instant offer.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "action": {
+          "title": "OfferAction",
+          "type": "string",
+          "enum": [
+            "accept",
+            "decline"
+          ]
+        }
+      },
+      "required": [
+        "load_id",
+        "action"
+      ]
+    }
+  },
+  "required": [
+    "type",
+    "data"
+  ]
+}

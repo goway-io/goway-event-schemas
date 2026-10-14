@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ErrorFrame",
+  "description": "Frame `error` goway-realtime sends to an app.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "error"
+    },
+    "data": {
+      "title": "FrameError",
+      "description": "A frame was refused; the same problem shape as REST errors.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Stable code the app branches on."
+        },
+        "key": {
+          "type": "string",
+          "description": "Translation key for the message."
+        },
+        "status": {
+          "type": "integer"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "params": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Values for the translated message."
+        }
+      },
+      "required": [
+        "code"
+      ]
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the server sent the frame, RFC 3339 UTC."
+    }
+  },
+  "required": [
+    "type",
+    "data",
+    "ts"
+  ]
+}

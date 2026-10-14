@@ -1,0 +1,8 @@
+node_modules/
+build/
+.tools/
+.DS_Store
+packages/python/.venv/
+packages/python/**/__pycache__/
+packages/rust/target/
+packages/dart/.dart_tool/

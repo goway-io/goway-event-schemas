@@ -1,0 +1,83 @@
+asyncapi: 3.1.0
+info:
+  title: GoWay realtime socket
+  version: 0.1.0
+  description: |
+    The WebSocket between goway-realtime and the driver and client apps, described from the server's side:
+    frames the apps send are `receive`, frames the server sends are `send`.
+
+    Every frame is a JSON object `{"type", "data"}`; frames from the server also carry `ts`. The first frame
+    after connecting must be `auth` within five seconds. The socket is a wake-up signal: after a reconnect the
+    app re-reads state over REST, because frames sent while it was away are not replayed.
+defaultContentType: application/json
+servers:
+  production:
+    host: api.goroute.uz
+    pathname: /realtime
+    protocol: wss
+    description: Public entry; the proxy forwards `/realtime/v1/ws` to goway-realtime.
+channels:
+  socket:
+    address: /v1/ws
+    title: App socket
+    description: One socket per signed-in app session.
+    messages:
+      goOnline:
+        $ref: '#/components/messages/goOnline'
+      offerResponse:
+        $ref: '#/components/messages/offerResponse'
+      offerProposed:
+        $ref: '#/components/messages/offerProposed'
+      offerResult:
+        $ref: '#/components/messages/offerResult'
+      error:
+        $ref: '#/components/messages/error'
+    bindings:
+      ws:
+        method: GET
+        bindingVersion: 0.1.0
+operations:
+  receiveFromApp:
+    action: receive
+    channel:
+      $ref: '#/channels/socket'
+    description: Frames an app sends.
+    messages:
+      - $ref: '#/channels/socket/messages/goOnline'
+      - $ref: '#/channels/socket/messages/offerResponse'
+  sendToApp:
+    action: send
+    channel:
+      $ref: '#/channels/socket'
+    description: Frames goway-realtime sends.
+    messages:
+      - $ref: '#/channels/socket/messages/offerProposed'
+      - $ref: '#/channels/socket/messages/offerResult'
+      - $ref: '#/channels/socket/messages/error'
+components:
+  messages:
+    goOnline:
+      name: go_online
+      title: Go online
+      payload:
+        $ref: '../schemas/frames/client/go_online.json'
+    offerResponse:
+      name: offer_response
+      title: Answer an offer
+      payload:
+        $ref: '../schemas/frames/client/offer_response.json'
+    offerProposed:
+      name: offer_proposed
+      title: Offer proposed
+      payload:
+        $ref: '../schemas/frames/server/offer_proposed.json'
+    offerResult:
+      name: offer_result
+      title: Offer result
+      payload:
+        $ref: '../schemas/frames/server/offer_result.json'
+    error:
+      name: error
+      title: Frame refused
+      payload:
+        $ref: '../schemas/frames/server/error.json'

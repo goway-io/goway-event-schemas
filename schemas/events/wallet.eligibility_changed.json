@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WalletEligibilityChanged",
+  "description": "An organization's wallet started or stopped being allowed to receive offers. One event per user of the organization.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "eligible": {
+      "type": "boolean"
+    },
+    "balance": {
+      "type": "integer",
+      "description": "Wallet balance in so'm; negative means debt."
+    },
+    "debt_limit": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "How far below zero the balance may go, so'm."
+    },
+    "reason": {
+      "anyOf": [
+        {
+          "title": "IneligibleReason",
+          "type": "string",
+          "enum": [
+            "debt",
+            "subscription"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Why offers stopped; null when the wallet is eligible."
+    }
+  },
+  "required": [
+    "event_id",
+    "org_id",
+    "user_id",
+    "eligible",
+    "balance",
+    "debt_limit",
+    "reason"
+  ]
+}

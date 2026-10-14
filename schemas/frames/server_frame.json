@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ServerFrame",
+  "description": "Any frame goway-realtime may send; `type` tells which.",
+  "discriminator": "type",
+  "oneOf": [
+    {
+      "$ref": "./server/offer_proposed.json"
+    },
+    {
+      "$ref": "./server/offer_result.json"
+    },
+    {
+      "$ref": "./server/error.json"
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OfferProposedFrame",
+  "description": "Frame `offer_proposed` goway-realtime sends to an app.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "offer_proposed"
+    },
+    "data": {
+      "title": "OfferProposed",
+      "description": "An instant load offered to this driver; answer before `deadline_at`.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "from_region_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "to_region_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "truck_class": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Price in minor units of `currency`."
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3
+        },
+        "weight_kg": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "deadline_at": {
+          "type": "integer",
+          "description": "Answer deadline, unix milliseconds in server time."
+        },
+        "server_time": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "load_id",
+        "from_region_id",
+        "to_region_id",
+        "truck_class",
+        "amount",
+        "currency",
+        "weight_kg",
+        "deadline_at",
+        "server_time"
+      ]
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the server sent the frame, RFC 3339 UTC."
+    }
+  },
+  "required": [
+    "type",
+    "data",
+    "ts"
+  ]
+}

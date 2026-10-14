@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ClientFrame",
+  "description": "Any frame an app may send; `type` tells which.",
+  "discriminator": "type",
+  "oneOf": [
+    {
+      "$ref": "./client/go_online.json"
+    },
+    {
+      "$ref": "./client/offer_response.json"
+    }
+  ]
+}

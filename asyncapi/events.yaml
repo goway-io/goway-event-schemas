@@ -1,0 +1,73 @@
+asyncapi: 3.1.0
+info:
+  title: GoWay events
+  version: 0.1.0
+  description: |
+    Domain events the GoWay services publish to NATS JetStream (stream `GOWAY`). A service writes the event into
+    its outbox inside the same transaction as the change, and a relay publishes it; `event_id` is stamped then.
+    Delivery is at least once, so every consumer dedupes on `event_id`. Payloads only grow within a version:
+    a field is never renamed, retyped or removed, and a breaking change gets a new subject ending in `.v2`.
+defaultContentType: application/json
+servers:
+  nats:
+    host: nats:4222
+    protocol: nats
+    description: NATS JetStream inside the GoWay network.
+channels:
+  bookingCancelled:
+    address: booking.cancelled
+    description: A booking ended before loading. The load returns to the board in the same transaction.
+    messages:
+      bookingCancelled:
+        $ref: '#/components/messages/bookingCancelled'
+    x-publisher: goway-loads
+    x-consumers: [goway-notify, goway-realtime]
+  walletEligibilityChanged:
+    address: wallet.eligibility_changed
+    description: An organization's wallet started or stopped being allowed to receive offers.
+    messages:
+      walletEligibilityChanged:
+        $ref: '#/components/messages/walletEligibilityChanged'
+    x-publisher: goway-billing
+    x-consumers: [goway-loads, goway-notify, goway-realtime]
+  driverStatsChanged:
+    address: driver.stats_changed
+    description: A driver's completed-haul count or rating changed.
+    messages:
+      driverStatsChanged:
+        $ref: '#/components/messages/driverStatsChanged'
+    x-publisher: goway-auth
+    x-consumers: [goway-loads]
+operations:
+  publishBookingCancelled:
+    action: send
+    channel:
+      $ref: '#/channels/bookingCancelled'
+    description: Published when either side or an operator cancels a booking.
+  publishWalletEligibilityChanged:
+    action: send
+    channel:
+      $ref: '#/channels/walletEligibilityChanged'
+    description: Published once per user of the organization whenever the wallet's eligibility flips.
+  publishDriverStatsChanged:
+    action: send
+    channel:
+      $ref: '#/channels/driverStatsChanged'
+    description: Published after a completed haul or a new rating is counted.
+components:
+  messages:
+    bookingCancelled:
+      name: booking.cancelled
+      title: Booking cancelled
+      payload:
+        $ref: '../schemas/events/booking.cancelled.json'
+    walletEligibilityChanged:
+      name: wallet.eligibility_changed
+      title: Wallet eligibility changed
+      payload:
+        $ref: '../schemas/events/wallet.eligibility_changed.json'
+    driverStatsChanged:
+      name: driver.stats_changed
+      title: Driver stats changed
+      payload:
+        $ref: '../schemas/events/driver.stats_changed.json'

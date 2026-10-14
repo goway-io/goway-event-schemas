@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OfferResultFrame",
+  "description": "Frame `offer_result` goway-realtime sends to an app.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "offer_result"
+    },
+    "data": {
+      "title": "OfferResult",
+      "description": "How an offer ended for this driver.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "outcome": {
+          "title": "OfferOutcome",
+          "type": "string",
+          "enum": [
+            "won",
+            "lost",
+            "declined",
+            "expired",
+            "withdrawn"
+          ]
+        },
+        "booking_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Set when the outcome is `won`."
+        }
+      },
+      "required": [
+        "load_id",
+        "outcome"
+      ]
+    },
+    "ts": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the server sent the frame, RFC 3339 UTC."
+    }
+  },
+  "required": [
+    "type",
+    "data",
+    "ts"
+  ]
+}
