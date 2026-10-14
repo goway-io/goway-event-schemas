@@ -22,7 +22,11 @@ generate: bundle
 	./scripts/generate.sh
 
 drift: generate
-	git diff --exit-code -- packages
+	@stale=$$(git status --porcelain --untracked-files=all -- packages); \
+	if [ -n "$$stale" ]; then \
+		echo "generated code differs from the commit; run make generate and commit packages/:"; \
+		echo "$$stale"; git --no-pager diff --stat -- packages; exit 1; \
+	fi
 
 test:
 	cd packages/python && uv run ruff check src tests && uv run ruff format --check src tests && uv run pytest -q

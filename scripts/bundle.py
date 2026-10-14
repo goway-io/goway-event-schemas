@@ -1,12 +1,18 @@
 """Bundle schemas/ into one draft-07 document, and a variant shaped for the code generators.
 
-build/schemas.json  every file's root schema under `definitions`, keyed by its title; nested titled objects and
-                    enums are hoisted to their own definition so every language names them the same way.
+build/schemas.json  every file's root schema under `definitions`, keyed by its title. A titled object or enum nested
+                    in a file is hoisted to its own definition, so every language names it the same way, when it is
+                    a property, an array's `items`, or a branch of `anyOf`, `oneOf` or `allOf`; a titled schema
+                    anywhere else stays inline. A title belongs to one schema: two different nested schemas with
+                    the same title, or a nested title equal to a file's root title, stop the bundle.
 build/codegen.json  the same, shaped for the code generators: the variants of each discriminated union are written
                     inline (typify only emits a tagged enum for inline variants and silently falls back to an
                     untagged one otherwise), and objects are opened up. The schemas stay closed so a producer
                     cannot send a field nobody agreed on; the generated types must stay open so a consumer keeps
                     working when a producer adds an optional field first.
+
+A `$ref` names a whole file by its relative path; a `#fragment` in a file is refused, since it would point into the
+bundle instead of the file.
 """
 
 import copy
@@ -22,39 +28,56 @@ def hoistable(node: dict) -> bool:
     return "title" in node and ("properties" in node or "enum" in node)
 
 
-def hoist(node, definitions: dict, origin: str):
+class Hoister:
+    """Lifts nested titled schemas of one file into `definitions`; `roots` maps every file's root title to its file."""
+
+    def __init__(self, definitions: dict, roots: dict, origin: str):
+        self.definitions = definitions
+        self.roots = roots
+        self.origin = origin
+
+    def hoist(self, node):
+        if isinstance(node, list):
+            return [self.hoist(item) for item in node]
+        if not isinstance(node, dict):
+            return node
+        node = {key: self.hoist(value) for key, value in node.items()}
+        if isinstance(node.get("properties"), dict):
+            node["properties"] = {name: self.lift(schema) for name, schema in node["properties"].items()}
+        if isinstance(node.get("items"), dict):
+            node["items"] = self.lift(node["items"])
+        for key in ("anyOf", "oneOf", "allOf"):
+            if isinstance(node.get(key), list):
+                node[key] = [self.lift(branch) for branch in node[key]]
+        return node
+
+    def lift(self, schema):
+        if not isinstance(schema, dict) or not hoistable(schema):
+            return schema
+        title = schema["title"]
+        if title in self.roots:
+            sys.exit(f"{self.origin}: nested title {title!r} is the root title of {self.roots[title]}; rename one")
+        if title in self.definitions and self.definitions[title] != schema:
+            sys.exit(f"{self.origin}: title {title!r} is used for two different schemas")
+        self.definitions[title] = schema
+        return {"$ref": f"#/definitions/{title}"}
+
+
+def rewrite_refs(node, path: pathlib.Path, titles: dict):
     if isinstance(node, list):
-        return [hoist(item, definitions, origin) for item in node]
+        return [rewrite_refs(item, path, titles) for item in node]
     if not isinstance(node, dict):
         return node
-    node = {key: hoist(value, definitions, origin) for key, value in node.items()}
-    for key in ("properties",):
-        if key in node:
-            node[key] = {name: lift(schema, definitions, origin) for name, schema in node[key].items()}
-    if "anyOf" in node:
-        node["anyOf"] = [lift(branch, definitions, origin) for branch in node["anyOf"]]
-    return node
-
-
-def lift(schema, definitions: dict, origin: str):
-    if not isinstance(schema, dict) or not hoistable(schema):
-        return schema
-    title = schema["title"]
-    if title in definitions and definitions[title] != schema:
-        sys.exit(f"{origin}: title {title!r} is used for two different schemas")
-    definitions[title] = schema
-    return {"$ref": f"#/definitions/{title}"}
-
-
-def rewrite_refs(node, base: pathlib.Path, titles: dict):
-    if isinstance(node, list):
-        return [rewrite_refs(item, base, titles) for item in node]
-    if not isinstance(node, dict):
-        return node
-    node = {key: rewrite_refs(value, base, titles) for key, value in node.items()}
+    node = {key: rewrite_refs(value, path, titles) for key, value in node.items()}
     ref = node.get("$ref")
-    if ref and not ref.startswith("#"):
-        node["$ref"] = f"#/definitions/{titles[(base.parent / ref).resolve()]}"
+    if isinstance(ref, str):
+        where = path.relative_to(ROOT)
+        if "#" in ref:
+            sys.exit(f"{where}: $ref {ref!r} has a #fragment; refer to a whole schema file by its relative path")
+        target = (path.parent / ref).resolve()
+        if target not in titles:
+            sys.exit(f"{where}: $ref {ref!r} is not a schema file under schemas/")
+        node["$ref"] = f"#/definitions/{titles[target]}"
     return node
 
 
@@ -62,13 +85,14 @@ def bundle() -> dict:
     files = sorted((ROOT / "schemas").rglob("*.json"))
     schemas = {path.resolve(): json.loads(path.read_text()) for path in files}
     titles = {path: schema["title"] for path, schema in schemas.items()}
-    if len(set(titles.values())) != len(titles):
+    roots = {title: str(path.relative_to(ROOT)) for path, title in titles.items()}
+    if len(roots) != len(titles):
         sys.exit("two schema files share a title")
     definitions: dict = {}
     for path, schema in schemas.items():
         schema = {key: value for key, value in schema.items() if key != "$schema"}
         schema = rewrite_refs(schema, path, titles)
-        definitions[schema["title"]] = hoist(schema, definitions, str(path.relative_to(ROOT)))
+        definitions[schema["title"]] = Hoister(definitions, roots, str(path.relative_to(ROOT))).hoist(schema)
     return {
         "$schema": DRAFT_07,
         "title": "GowayEventSchemas",
