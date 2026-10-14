@@ -64,12 +64,12 @@ export type ReviewDecision = "approved" | "rejected";
  */
 export type SubmittedDocumentStatus = "pending";
 /**
- * The new verification status.
+ * The new verification status; `expired` when an approved document ran out.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "VerificationStatus".
  */
-export type VerificationStatus = "pending" | "approved" | "rejected";
+export type VerificationStatus = "pending" | "approved" | "rejected" | "expired";
 /**
  * Any frame an app may send; `type` tells which.
  *
@@ -141,6 +141,13 @@ export type OfferOutcome = "won" | "lost" | "declined" | "expired" | "withdrawn"
  * via the `definition` "OffersBlockedReason".
  */
 export type OffersBlockedReason = "BALANCE_INSUFFICIENT" | "SUBSCRIPTION_REQUIRED";
+/**
+ * Why the server took the driver off the line; absent when the driver left by themselves.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "OfflineReason".
+ */
+export type OfflineReason = "documents_expired" | "verification_rejected";
 /**
  * Who was rated; only the driver today.
  *
@@ -705,6 +712,10 @@ export interface CarrierVerificationChanged {
   event_id: string;
   org_id: string;
   status: VerificationStatus;
+  /**
+   * The organization's members, so a consumer can act on each without its own member list.
+   */
+  user_ids?: string[];
 }
 /**
  * Frame `ping` an app sends to goway-realtime.
@@ -1592,12 +1603,14 @@ export interface OffersUnblockedFrame {
   ts: string;
 }
 /**
- * The driver left the line after `go_offline`.
+ * The driver left the line: after `go_offline`, or taken off it with a `reason`.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "Offline".
  */
-export interface Offline {}
+export interface Offline {
+  reason?: OfflineReason;
+}
 /**
  * Frame `offline` goway-realtime sends to an app.
  *
@@ -1875,6 +1888,24 @@ export interface SupportTicketReplied {
   status: TicketReplyStatus;
 }
 /**
+ * An operator blocked the account; the app shows the reason on its blocked screen.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "UserBlocked".
+ */
+export interface UserBlocked {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  user_id: string;
+  /**
+   * What the operator told the user, in their words.
+   */
+  reason: string;
+  blocked_at: string;
+}
+/**
  * An account came into being. Three paths publish it with different fields: self-signup sends `account_type`; an admin create sends `first_name` and `last_name`, either of which may be null; an admin restore of a soft-deleted account sends `updated_at`. `user_id`, `org_id`, `role`, `phone` and `language` are always sent.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -2005,6 +2036,20 @@ export interface UserSessionsClosed {
    */
   installation_ids: [string, ...string[]];
   reason: SessionsClosedReason;
+}
+/**
+ * An operator lifted the block; the user may sign in again.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "UserUnblocked".
+ */
+export interface UserUnblocked {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  user_id: string;
+  unblocked_at: string;
 }
 /**
  * Something about an account changed. Only what changed is sent, besides `user_id` and `updated_at`, and five paths send five field sets: a confirmed phone change sends `phone`; the account settings screen any of `language`, `currency`, `theme`, `notification_prefs`; a role switch `role`; an admin edit any of `phone`, `language`, `first_name`, `last_name`, plus `role` whenever the admin named one; a profile edit `first_name`, `last_name`, `email` and `avatar_url` together, each of them possibly null.

@@ -88,6 +88,32 @@
     "goway-realtime"
    ]
   },
+  "userBlocked": {
+   "address": "user.blocked",
+   "description": "An operator blocked the account, with the reason the user is shown.\n\nPublished by `goway-auth`; consumed by `goway-notify`.",
+   "messages": {
+    "userBlocked": {
+     "$ref": "#/components/messages/userBlocked"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-notify"
+   ]
+  },
+  "userUnblocked": {
+   "address": "user.unblocked",
+   "description": "An operator lifted the block.\n\nPublished by `goway-auth`; consumed by `goway-notify`.",
+   "messages": {
+    "userUnblocked": {
+     "$ref": "#/components/messages/userUnblocked"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-notify"
+   ]
+  },
   "userSessionsClosed": {
    "address": "user.sessions_closed",
    "description": "Some of the account's sessions were closed from another device.\n\nPublished by `goway-auth`; consumed by `goway-realtime`.",
@@ -639,6 +665,22 @@
     "$ref": "#/channels/userSessionRevoked"
    },
    "description": "Published after a password change or reset, a phone change, an account delete and an admin block.",
+   "title": "goway-auth publishes"
+  },
+  "publishUserBlocked": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/userBlocked"
+   },
+   "description": "Published when an operator blocks an account, after its sessions are closed.",
+   "title": "goway-auth publishes"
+  },
+  "publishUserUnblocked": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/userUnblocked"
+   },
+   "description": "Published when an operator lifts a block.",
    "title": "goway-auth publishes"
   },
   "publishUserSessionsClosed": {
@@ -1476,6 +1518,94 @@
      }
     ]
    },
+   "userBlocked": {
+    "name": "user.blocked",
+    "title": "Account blocked",
+    "payload": {
+     "title": "UserBlocked",
+     "description": "An operator blocked the account; the app shows the reason on its blocked screen.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "reason": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 200,
+       "description": "What the operator told the user, in their words."
+      },
+      "blocked_at": {
+       "type": "string",
+       "format": "date-time"
+      }
+     },
+     "required": [
+      "event_id",
+      "user_id",
+      "reason",
+      "blocked_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Fraud",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "reason": "Soxta hujjatlar yuklangan",
+       "blocked_at": "2026-10-14T09:30:00+00:00"
+      }
+     }
+    ]
+   },
+   "userUnblocked": {
+    "name": "user.unblocked",
+    "title": "Account unblocked",
+    "payload": {
+     "title": "UserUnblocked",
+     "description": "An operator lifted the block; the user may sign in again.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "unblocked_at": {
+       "type": "string",
+       "format": "date-time"
+      }
+     },
+     "required": [
+      "event_id",
+      "user_id",
+      "unblocked_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "unblocked_at": "2026-10-15T09:30:00+00:00"
+      }
+     }
+    ]
+   },
    "userSessionsClosed": {
     "name": "user.sessions_closed",
     "title": "Sessions closed",
@@ -2205,9 +2335,19 @@
        "enum": [
         "pending",
         "approved",
-        "rejected"
+        "rejected",
+        "expired"
        ],
-       "description": "The new verification status."
+       "description": "The new verification status; `expired` when an approved document ran out."
+      },
+      "user_ids": {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "format": "uuid"
+       },
+       "uniqueItems": true,
+       "description": "The organization's members, so a consumer can act on each without its own member list."
       }
      },
      "required": [
@@ -2223,6 +2363,17 @@
        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
        "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
        "status": "approved"
+      }
+     },
+     {
+      "name": "Documents expired",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
+       "status": "expired",
+       "user_ids": [
+        "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06"
+       ]
       }
      }
     ]

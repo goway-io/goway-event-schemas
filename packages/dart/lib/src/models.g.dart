@@ -1318,7 +1318,10 @@ const _$OffersUnblockedFrameTypeEnumMap = {
 OfflineFrame _$OfflineFrameFromJson(Map<String, dynamic> json) =>
     $checkedCreate('OfflineFrame', json, ($checkedConvert) {
       final val = OfflineFrame(
-        data: $checkedConvert('data', (v) => v as Map<String, dynamic>),
+        data: $checkedConvert(
+          'data',
+          (v) => Offline.fromJson(v as Map<String, dynamic>),
+        ),
         ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
         type: $checkedConvert(
           'type',
@@ -1336,6 +1339,26 @@ Map<String, dynamic> _$OfflineFrameToJson(OfflineFrame instance) =>
     };
 
 const _$OfflineFrameTypeEnumMap = {OfflineFrameType.OFFLINE: 'offline'};
+
+Offline _$OfflineFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('Offline', json, ($checkedConvert) {
+      final val = Offline(
+        reason: $checkedConvert(
+          'reason',
+          (v) => $enumDecodeNullable(_$OfflineReasonEnumMap, v),
+        ),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$OfflineToJson(Offline instance) => <String, dynamic>{
+  'reason': ?_$OfflineReasonEnumMap[instance.reason],
+};
+
+const _$OfflineReasonEnumMap = {
+  OfflineReason.DOCUMENTS_EXPIRED: 'documents_expired',
+  OfflineReason.VERIFICATION_REJECTED: 'verification_rejected',
+};
 
 OnlineFrame _$OnlineFrameFromJson(Map<String, dynamic> json) =>
     $checkedCreate('OnlineFrame', json, ($checkedConvert) {

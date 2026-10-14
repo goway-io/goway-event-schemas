@@ -56,6 +56,22 @@ channels:
         $ref: '#/components/messages/userSessionRevoked'
     x-publisher: goway-auth
     x-consumers: [goway-notify, goway-realtime]
+  userBlocked:
+    address: user.blocked
+    description: An operator blocked the account, with the reason the user is shown.
+    messages:
+      userBlocked:
+        $ref: '#/components/messages/userBlocked'
+    x-publisher: goway-auth
+    x-consumers: [goway-notify]
+  userUnblocked:
+    address: user.unblocked
+    description: An operator lifted the block.
+    messages:
+      userUnblocked:
+        $ref: '#/components/messages/userUnblocked'
+    x-publisher: goway-auth
+    x-consumers: [goway-notify]
   userSessionsClosed:
     address: user.sessions_closed
     description: Some of the account's sessions were closed from another device.
@@ -394,6 +410,16 @@ operations:
     channel:
       $ref: '#/channels/userSessionRevoked'
     description: Published after a password change or reset, a phone change, an account delete and an admin block.
+  publishUserBlocked:
+    action: send
+    channel:
+      $ref: '#/channels/userBlocked'
+    description: Published when an operator blocks an account, after its sessions are closed.
+  publishUserUnblocked:
+    action: send
+    channel:
+      $ref: '#/channels/userUnblocked'
+    description: Published when an operator lifts a block.
   publishUserSessionsClosed:
     action: send
     channel:
@@ -616,6 +642,16 @@ components:
       title: Sessions revoked
       payload:
         $ref: '../schemas/events/user.session_revoked.json'
+    userBlocked:
+      name: user.blocked
+      title: Account blocked
+      payload:
+        $ref: '../schemas/events/user.blocked.json'
+    userUnblocked:
+      name: user.unblocked
+      title: Account unblocked
+      payload:
+        $ref: '../schemas/events/user.unblocked.json'
     userSessionsClosed:
       name: user.sessions_closed
       title: Sessions closed

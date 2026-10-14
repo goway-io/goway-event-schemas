@@ -1812,7 +1812,7 @@ final offersUnblockedFrameTypeValues = EnumValues({
 @JsonSerializable()
 class OfflineFrame {
     @JsonKey(name: "data")
-    final Map<String, dynamic> data;
+    final Offline data;
     
     ///When the server sent the frame, RFC 3339 UTC.
     @JsonKey(name: "ts")
@@ -1830,6 +1830,36 @@ class OfflineFrame {
 
     Map<String, dynamic> toJson() => _$OfflineFrameToJson(this);
 }
+
+
+///The driver left the line: after `go_offline`, or taken off it with a `reason`.
+@JsonSerializable()
+class Offline {
+    @JsonKey(name: "reason")
+    final OfflineReason? reason;
+
+    Offline({
+        this.reason,
+    });
+
+    factory Offline.fromJson(Map<String, dynamic> json) => _$OfflineFromJson(json);
+
+    Map<String, dynamic> toJson() => _$OfflineToJson(this);
+}
+
+
+///Why the server took the driver off the line; absent when the driver left by themselves.
+enum OfflineReason {
+    @JsonValue("documents_expired")
+    DOCUMENTS_EXPIRED,
+    @JsonValue("verification_rejected")
+    VERIFICATION_REJECTED
+}
+
+final offlineReasonValues = EnumValues({
+    "documents_expired": OfflineReason.DOCUMENTS_EXPIRED,
+    "verification_rejected": OfflineReason.VERIFICATION_REJECTED
+});
 
 enum OfflineFrameType {
     @JsonValue("offline")

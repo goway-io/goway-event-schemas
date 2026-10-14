@@ -35,11 +35,13 @@
     "settings.changed": "SettingsChanged",
     "support.ticket_created": "SupportTicketCreated",
     "support.ticket_replied": "SupportTicketReplied",
+    "user.blocked": "UserBlocked",
     "user.created": "UserCreated",
     "user.deleted": "UserDeleted",
     "user.login": "UserLogin",
     "user.session_revoked": "UserSessionRevoked",
     "user.sessions_closed": "UserSessionsClosed",
+    "user.unblocked": "UserUnblocked",
     "user.updated": "UserUpdated",
     "vehicle.removed": "VehicleRemoved",
     "vehicle.upserted": "VehicleUpserted",
@@ -981,6 +983,15 @@
         },
         "status": {
           "$ref": "#/definitions/VerificationStatus"
+        },
+        "user_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "uniqueItems": true,
+          "description": "The organization's members, so a consumer can act on each without its own member list."
         }
       },
       "required": [
@@ -2654,10 +2665,14 @@
     },
     "Offline": {
       "title": "Offline",
-      "description": "The driver left the line after `go_offline`.",
+      "description": "The driver left the line: after `go_offline`, or taken off it with a `reason`.",
       "type": "object",
       "additionalProperties": false,
-      "properties": {}
+      "properties": {
+        "reason": {
+          "$ref": "#/definitions/OfflineReason"
+        }
+      }
     },
     "OfflineFrame": {
       "title": "OfflineFrame",
@@ -2683,6 +2698,15 @@
         "data",
         "ts"
       ]
+    },
+    "OfflineReason": {
+      "title": "OfflineReason",
+      "type": "string",
+      "enum": [
+        "documents_expired",
+        "verification_rejected"
+      ],
+      "description": "Why the server took the driver off the line; absent when the driver left by themselves."
     },
     "Online": {
       "title": "Online",
@@ -3410,6 +3434,39 @@
         "data"
       ]
     },
+    "UserBlocked": {
+      "title": "UserBlocked",
+      "description": "An operator blocked the account; the app shows the reason on its blocked screen.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200,
+          "description": "What the operator told the user, in their words."
+        },
+        "blocked_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "event_id",
+        "user_id",
+        "reason",
+        "blocked_at"
+      ]
+    },
     "UserCreated": {
       "title": "UserCreated",
       "description": "An account came into being. Three paths publish it with different fields: self-signup sends `account_type`; an admin create sends `first_name` and `last_name`, either of which may be null; an admin restore of a soft-deleted account sends `updated_at`. `user_id`, `org_id`, `role`, `phone` and `language` are always sent.",
@@ -3638,6 +3695,32 @@
         "user_id",
         "installation_ids",
         "reason"
+      ]
+    },
+    "UserUnblocked": {
+      "title": "UserUnblocked",
+      "description": "An operator lifted the block; the user may sign in again.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "unblocked_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "event_id",
+        "user_id",
+        "unblocked_at"
       ]
     },
     "UserUpdated": {
@@ -3884,9 +3967,10 @@
       "enum": [
         "pending",
         "approved",
-        "rejected"
+        "rejected",
+        "expired"
       ],
-      "description": "The new verification status."
+      "description": "The new verification status; `expired` when an approved document ran out."
     },
     "WalletEligibilityChanged": {
       "title": "WalletEligibilityChanged",

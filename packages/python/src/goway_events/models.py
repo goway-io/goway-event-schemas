@@ -987,30 +987,13 @@ class OffersUnblockedFrame(BaseModel):
     """
 
 
-class Offline(BaseModel):
+class OfflineReason(StrEnum):
     """
-    The driver left the line after `go_offline`.
-    """
-
-    model_config = ConfigDict(
-        extra="ignore",
-    )
-
-
-class OfflineFrame(BaseModel):
-    """
-    Frame `offline` goway-realtime sends to an app.
+    Why the server took the driver off the line; absent when the driver left by themselves.
     """
 
-    model_config = ConfigDict(
-        extra="ignore",
-    )
-    type: Literal["offline"]
-    data: Offline
-    ts: AwareDatetime
-    """
-    When the server sent the frame, RFC 3339 UTC.
-    """
+    DOCUMENTS_EXPIRED = "documents_expired"
+    VERIFICATION_REJECTED = "verification_rejected"
 
 
 class Online(BaseModel):
@@ -1388,6 +1371,26 @@ class UnsubscribeBookingFrame(BaseModel):
     data: UnsubscribeBooking
 
 
+class UserBlocked(BaseModel):
+    """
+    An operator blocked the account; the app shows the reason on its blocked screen.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    user_id: UUID
+    reason: Annotated[str, Field(max_length=200, min_length=1)]
+    """
+    What the operator told the user, in their words.
+    """
+    blocked_at: AwareDatetime
+
+
 class UserCreated(BaseModel):
     """
     An account came into being. Three paths publish it with different fields: self-signup sends `account_type`; an admin create sends `first_name` and `last_name`, either of which may be null; an admin restore of a soft-deleted account sends `updated_at`. `user_id`, `org_id`, `role`, `phone` and `language` are always sent.
@@ -1526,6 +1529,22 @@ class UserSessionsClosed(BaseModel):
     Installs whose sessions were closed; never empty.
     """
     reason: SessionsClosedReason
+
+
+class UserUnblocked(BaseModel):
+    """
+    An operator lifted the block; the user may sign in again.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    user_id: UUID
+    unblocked_at: AwareDatetime
 
 
 class UserUpdated(BaseModel):
@@ -1678,12 +1697,13 @@ class VehicleUpserted(BaseModel):
 
 class VerificationStatus(StrEnum):
     """
-    The new verification status.
+    The new verification status; `expired` when an approved document ran out.
     """
 
     PENDING = "pending"
     APPROVED = "approved"
     REJECTED = "rejected"
+    EXPIRED = "expired"
 
 
 class WalletEligibilityChanged(BaseModel):
@@ -2167,6 +2187,10 @@ class CarrierVerificationChanged(BaseModel):
     """
     org_id: UUID
     status: VerificationStatus
+    user_ids: list[UUID] | None = None
+    """
+    The organization's members, so a consumer can act on each without its own member list.
+    """
 
 
 class ClientFrame(
@@ -2378,6 +2402,33 @@ class OffersBlockedFrame(BaseModel):
     )
     type: Literal["offers_blocked"]
     data: OffersBlocked
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class Offline(BaseModel):
+    """
+    The driver left the line: after `go_offline`, or taken off it with a `reason`.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    reason: OfflineReason | None = None
+
+
+class OfflineFrame(BaseModel):
+    """
+    Frame `offline` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["offline"]
+    data: Offline
     ts: AwareDatetime
     """
     When the server sent the frame, RFC 3339 UTC.

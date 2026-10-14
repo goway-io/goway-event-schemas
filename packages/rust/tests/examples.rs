@@ -42,6 +42,8 @@ fn through(title: &str, value: &Value) -> Result<Value, serde_json::Error> {
         "UserLogin" => round_trip::<goway_events::UserLogin>(value),
         "UserSessionRevoked" => round_trip::<goway_events::UserSessionRevoked>(value),
         "UserSessionsClosed" => round_trip::<goway_events::UserSessionsClosed>(value),
+        "UserBlocked" => round_trip::<goway_events::UserBlocked>(value),
+        "UserUnblocked" => round_trip::<goway_events::UserUnblocked>(value),
         "DeviceUpserted" => round_trip::<goway_events::DeviceUpserted>(value),
         "DeviceRemoved" => round_trip::<goway_events::DeviceRemoved>(value),
         "OrgUpdated" => round_trip::<goway_events::OrgUpdated>(value),

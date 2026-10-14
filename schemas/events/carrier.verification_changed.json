@@ -20,9 +20,19 @@
       "enum": [
         "pending",
         "approved",
-        "rejected"
+        "rejected",
+        "expired"
       ],
-      "description": "The new verification status."
+      "description": "The new verification status; `expired` when an approved document ran out."
+    },
+    "user_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "uniqueItems": true,
+      "description": "The organization's members, so a consumer can act on each without its own member list."
     }
   },
   "required": [

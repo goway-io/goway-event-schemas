@@ -919,10 +919,20 @@
       },
       "data": {
        "title": "Offline",
-       "description": "The driver left the line after `go_offline`.",
+       "description": "The driver left the line: after `go_offline`, or taken off it with a `reason`.",
        "type": "object",
        "additionalProperties": false,
-       "properties": {}
+       "properties": {
+        "reason": {
+         "title": "OfflineReason",
+         "type": "string",
+         "enum": [
+          "documents_expired",
+          "verification_rejected"
+         ],
+         "description": "Why the server took the driver off the line; absent when the driver left by themselves."
+        }
+       }
       },
       "ts": {
        "type": "string",
@@ -937,6 +947,16 @@
      ]
     },
     "examples": [
+     {
+      "name": "Documents expired",
+      "payload": {
+       "type": "offline",
+       "data": {
+        "reason": "documents_expired"
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     },
      {
       "name": "Offline",
       "payload": {

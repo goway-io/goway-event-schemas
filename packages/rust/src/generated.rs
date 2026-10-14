@@ -683,6 +683,9 @@ pub struct CarrierVerificationChanged {
     pub event_id: ::uuid::Uuid,
     pub org_id: ::uuid::Uuid,
     pub status: VerificationStatus,
+    #[doc = "The organization's members, so a consumer can act on each without its own member list."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub user_ids: ::std::option::Option<::std::vec::Vec<::uuid::Uuid>>,
 }
 #[doc = "One priced line of the haul."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
@@ -1950,25 +1953,11 @@ pub struct OffersUnblockedFrame {
     #[serde(rename = "type")]
     pub type_: ::std::string::String,
 }
-#[doc = "The driver left the line after `go_offline`."]
-#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
-#[serde(transparent)]
-pub struct Offline(pub ::serde_json::Map<::std::string::String, ::serde_json::Value>);
-impl ::std::ops::Deref for Offline {
-    type Target = ::serde_json::Map<::std::string::String, ::serde_json::Value>;
-    fn deref(&self) -> &::serde_json::Map<::std::string::String, ::serde_json::Value> {
-        &self.0
-    }
-}
-impl ::std::convert::From<Offline> for ::serde_json::Map<::std::string::String, ::serde_json::Value> {
-    fn from(value: Offline) -> Self {
-        value.0
-    }
-}
-impl ::std::convert::From<::serde_json::Map<::std::string::String, ::serde_json::Value>> for Offline {
-    fn from(value: ::serde_json::Map<::std::string::String, ::serde_json::Value>) -> Self {
-        Self(value)
-    }
+#[doc = "The driver left the line: after `go_offline`, or taken off it with a `reason`."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug, Default)]
+pub struct Offline {
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub reason: ::std::option::Option<OfflineReason>,
 }
 #[doc = "Frame `offline` goway-realtime sends to an app."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
@@ -1978,6 +1967,44 @@ pub struct OfflineFrame {
     pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
     #[serde(rename = "type")]
     pub type_: ::std::string::String,
+}
+#[doc = "Why the server took the driver off the line; absent when the driver left by themselves."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum OfflineReason {
+    #[serde(rename = "documents_expired")]
+    DocumentsExpired,
+    #[serde(rename = "verification_rejected")]
+    VerificationRejected,
+}
+impl ::std::fmt::Display for OfflineReason {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::DocumentsExpired => f.write_str("documents_expired"),
+            Self::VerificationRejected => f.write_str("verification_rejected"),
+        }
+    }
+}
+impl ::std::str::FromStr for OfflineReason {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "documents_expired" => Ok(Self::DocumentsExpired),
+            "verification_rejected" => Ok(Self::VerificationRejected),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for OfflineReason {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for OfflineReason {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
 }
 #[doc = "The driver is on the line after `go_online`."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
@@ -2784,6 +2811,65 @@ pub struct UnsubscribeBookingFrame {
     #[serde(rename = "type")]
     pub type_: ::std::string::String,
 }
+#[doc = "An operator blocked the account; the app shows the reason on its blocked screen."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct UserBlocked {
+    pub blocked_at: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "What the operator told the user, in their words."]
+    pub reason: UserBlockedReason,
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "What the operator told the user, in their words."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct UserBlockedReason(::std::string::String);
+impl ::std::ops::Deref for UserBlockedReason {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<UserBlockedReason> for ::std::string::String {
+    fn from(value: UserBlockedReason) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for UserBlockedReason {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 200usize {
+            return Err("longer than 200 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for UserBlockedReason {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for UserBlockedReason {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for UserBlockedReason {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
 #[doc = "An account came into being. Three paths publish it with different fields: self-signup sends `account_type`; an admin create sends `first_name` and `last_name`, either of which may be null; an admin restore of a soft-deleted account sends `updated_at`. `user_id`, `org_id`, `role`, `phone` and `language` are always sent."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct UserCreated {
@@ -2862,6 +2948,14 @@ pub struct UserSessionsClosed {
     #[doc = "Installs whose sessions were closed; never empty."]
     pub installation_ids: ::std::vec::Vec<::std::string::String>,
     pub reason: SessionsClosedReason,
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "An operator lifted the block; the user may sign in again."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct UserUnblocked {
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub unblocked_at: ::chrono::DateTime<::chrono::offset::Utc>,
     pub user_id: ::uuid::Uuid,
 }
 #[doc = "Something about an account changed. Only what changed is sent, besides `user_id` and `updated_at`, and five paths send five field sets: a confirmed phone change sends `phone`; the account settings screen any of `language`, `currency`, `theme`, `notification_prefs`; a role switch `role`; an admin edit any of `phone`, `language`, `first_name`, `last_name`, plus `role` whenever the admin named one; a profile edit `first_name`, `last_name`, `email` and `avatar_url` together, each of them possibly null."]
@@ -3155,7 +3249,7 @@ impl<'de> ::serde::Deserialize<'de> for VehicleUpsertedModel {
             .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
     }
 }
-#[doc = "The new verification status."]
+#[doc = "The new verification status; `expired` when an approved document ran out."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum VerificationStatus {
     #[serde(rename = "pending")]
@@ -3164,6 +3258,8 @@ pub enum VerificationStatus {
     Approved,
     #[serde(rename = "rejected")]
     Rejected,
+    #[serde(rename = "expired")]
+    Expired,
 }
 impl ::std::fmt::Display for VerificationStatus {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
@@ -3171,6 +3267,7 @@ impl ::std::fmt::Display for VerificationStatus {
             Self::Pending => f.write_str("pending"),
             Self::Approved => f.write_str("approved"),
             Self::Rejected => f.write_str("rejected"),
+            Self::Expired => f.write_str("expired"),
         }
     }
 }
@@ -3181,6 +3278,7 @@ impl ::std::str::FromStr for VerificationStatus {
             "pending" => Ok(Self::Pending),
             "approved" => Ok(Self::Approved),
             "rejected" => Ok(Self::Rejected),
+            "expired" => Ok(Self::Expired),
             _ => Err("invalid value".into()),
         }
     }
