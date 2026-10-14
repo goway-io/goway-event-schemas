@@ -1183,8 +1183,8 @@
         "distance_km": 312.4,
         "duration_min": 330,
         "pickup_distance_km": 2.4,
-        "pickup_from": "2026-10-15T03:00:00+00:00",
-        "pickup_to": "2026-10-15T09:00:00+00:00",
+        "pickup_from": "2026-10-15T03:00:00.000Z",
+        "pickup_to": "2026-10-15T09:00:00.000Z",
         "cargo_category": "food",
         "volume_m3": 24.0,
         "loaders_count": 2,
@@ -1477,8 +1477,8 @@
         "currency": "UZS",
         "source": "instant",
         "shipper_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
-        "pickup_from": "2026-10-15T03:00:00+00:00",
-        "pickup_to": "2026-10-15T09:00:00+00:00",
+        "pickup_from": "2026-10-15T03:00:00.000Z",
+        "pickup_to": "2026-10-15T09:00:00.000Z",
         "duration_min": 330
        },
        "ts": "2026-10-14T09:30:00.123Z"
