@@ -55,7 +55,7 @@ channels:
       userSessionRevoked:
         $ref: '#/components/messages/userSessionRevoked'
     x-publisher: goway-auth
-    x-consumers: [goway-notify, goway-realtime]
+    x-consumers: [goway-realtime]
   userBlocked:
     address: user.blocked
     description: An operator blocked the account, with the reason the user is shown.

@@ -76,7 +76,7 @@
   },
   "userSessionRevoked": {
    "address": "user.session_revoked",
-   "description": "Every session of the account was closed.\n\nPublished by `goway-auth`; consumed by `goway-notify` and `goway-realtime`.",
+   "description": "Every session of the account was closed.\n\nPublished by `goway-auth`; consumed by `goway-realtime`.",
    "messages": {
     "userSessionRevoked": {
      "$ref": "#/components/messages/userSessionRevoked"
@@ -84,7 +84,6 @@
    },
    "x-publisher": "goway-auth",
    "x-consumers": [
-    "goway-notify",
     "goway-realtime"
    ]
   },
