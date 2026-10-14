@@ -1,0 +1,2531 @@
+{
+ "asyncapi": "3.1.0",
+ "info": {
+  "title": "GoWay realtime socket",
+  "version": "0.1.0",
+  "description": "The WebSocket between goway-realtime and the driver and client apps, described from the server's side:\nframes the apps send are `receive`, frames the server sends are `send`.\n\nEvery frame is a JSON object `{\"type\", \"data\"}`; frames from the server also carry `ts`, and `ping` and\n`go_offline` may leave `data` out. The first frame after connecting must be `auth` within five seconds. The\nsocket is a wake-up signal: after a reconnect the app re-reads state over REST, because frames sent while it was\naway are not replayed.\n"
+ },
+ "defaultContentType": "application/json",
+ "servers": {
+  "production": {
+   "host": "api.goroute.uz",
+   "pathname": "/realtime",
+   "protocol": "wss",
+   "description": "Public entry; the proxy forwards `/realtime/v1/ws` to goway-realtime."
+  }
+ },
+ "channels": {
+  "socket": {
+   "address": "/v1/ws",
+   "title": "App socket",
+   "description": "One socket per signed-in app session.",
+   "messages": {
+    "auth": {
+     "$ref": "#/components/messages/auth"
+    },
+    "ping": {
+     "$ref": "#/components/messages/ping"
+    },
+    "goOnline": {
+     "$ref": "#/components/messages/goOnline"
+    },
+    "goOffline": {
+     "$ref": "#/components/messages/goOffline"
+    },
+    "location": {
+     "$ref": "#/components/messages/location"
+    },
+    "offerResponse": {
+     "$ref": "#/components/messages/offerResponse"
+    },
+    "subscribeBooking": {
+     "$ref": "#/components/messages/subscribeBooking"
+    },
+    "unsubscribeBooking": {
+     "$ref": "#/components/messages/unsubscribeBooking"
+    },
+    "connected": {
+     "$ref": "#/components/messages/connected"
+    },
+    "pong": {
+     "$ref": "#/components/messages/pong"
+    },
+    "online": {
+     "$ref": "#/components/messages/online"
+    },
+    "offline": {
+     "$ref": "#/components/messages/offline"
+    },
+    "offerProposed": {
+     "$ref": "#/components/messages/offerProposed"
+    },
+    "offerResult": {
+     "$ref": "#/components/messages/offerResult"
+    },
+    "subscribed": {
+     "$ref": "#/components/messages/subscribed"
+    },
+    "bookingCreated": {
+     "$ref": "#/components/messages/bookingCreated"
+    },
+    "bookingStatus": {
+     "$ref": "#/components/messages/bookingStatus"
+    },
+    "bookingEta": {
+     "$ref": "#/components/messages/bookingEta"
+    },
+    "bookingCompleted": {
+     "$ref": "#/components/messages/bookingCompleted"
+    },
+    "bookingCancelled": {
+     "$ref": "#/components/messages/bookingCancelled"
+    },
+    "driverLocation": {
+     "$ref": "#/components/messages/driverLocation"
+    },
+    "lineExpiring": {
+     "$ref": "#/components/messages/lineExpiring"
+    },
+    "lineExpired": {
+     "$ref": "#/components/messages/lineExpired"
+    },
+    "offersBlocked": {
+     "$ref": "#/components/messages/offersBlocked"
+    },
+    "offersUnblocked": {
+     "$ref": "#/components/messages/offersUnblocked"
+    },
+    "notification": {
+     "$ref": "#/components/messages/notification"
+    },
+    "sessionStarted": {
+     "$ref": "#/components/messages/sessionStarted"
+    },
+    "kicked": {
+     "$ref": "#/components/messages/kicked"
+    },
+    "error": {
+     "$ref": "#/components/messages/error"
+    }
+   },
+   "bindings": {
+    "ws": {
+     "method": "GET",
+     "bindingVersion": "0.1.0"
+    }
+   }
+  }
+ },
+ "operations": {
+  "receiveFromApp": {
+   "title": "From the app",
+   "action": "receive",
+   "channel": {
+    "$ref": "#/channels/socket"
+   },
+   "description": "Frames an app sends.",
+   "messages": [
+    {
+     "$ref": "#/channels/socket/messages/auth"
+    },
+    {
+     "$ref": "#/channels/socket/messages/ping"
+    },
+    {
+     "$ref": "#/channels/socket/messages/goOnline"
+    },
+    {
+     "$ref": "#/channels/socket/messages/goOffline"
+    },
+    {
+     "$ref": "#/channels/socket/messages/location"
+    },
+    {
+     "$ref": "#/channels/socket/messages/offerResponse"
+    },
+    {
+     "$ref": "#/channels/socket/messages/subscribeBooking"
+    },
+    {
+     "$ref": "#/channels/socket/messages/unsubscribeBooking"
+    }
+   ]
+  },
+  "sendToApp": {
+   "title": "To the app",
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/socket"
+   },
+   "description": "Frames goway-realtime sends.",
+   "messages": [
+    {
+     "$ref": "#/channels/socket/messages/connected"
+    },
+    {
+     "$ref": "#/channels/socket/messages/pong"
+    },
+    {
+     "$ref": "#/channels/socket/messages/online"
+    },
+    {
+     "$ref": "#/channels/socket/messages/offline"
+    },
+    {
+     "$ref": "#/channels/socket/messages/offerProposed"
+    },
+    {
+     "$ref": "#/channels/socket/messages/offerResult"
+    },
+    {
+     "$ref": "#/channels/socket/messages/subscribed"
+    },
+    {
+     "$ref": "#/channels/socket/messages/bookingCreated"
+    },
+    {
+     "$ref": "#/channels/socket/messages/bookingStatus"
+    },
+    {
+     "$ref": "#/channels/socket/messages/bookingEta"
+    },
+    {
+     "$ref": "#/channels/socket/messages/bookingCompleted"
+    },
+    {
+     "$ref": "#/channels/socket/messages/bookingCancelled"
+    },
+    {
+     "$ref": "#/channels/socket/messages/driverLocation"
+    },
+    {
+     "$ref": "#/channels/socket/messages/lineExpiring"
+    },
+    {
+     "$ref": "#/channels/socket/messages/lineExpired"
+    },
+    {
+     "$ref": "#/channels/socket/messages/offersBlocked"
+    },
+    {
+     "$ref": "#/channels/socket/messages/offersUnblocked"
+    },
+    {
+     "$ref": "#/channels/socket/messages/notification"
+    },
+    {
+     "$ref": "#/channels/socket/messages/sessionStarted"
+    },
+    {
+     "$ref": "#/channels/socket/messages/kicked"
+    },
+    {
+     "$ref": "#/channels/socket/messages/error"
+    }
+   ]
+  }
+ },
+ "components": {
+  "messages": {
+   "auth": {
+    "name": "auth",
+    "title": "Sign in the socket",
+    "payload": {
+     "title": "AuthFrame",
+     "description": "Frame `auth` an app sends to goway-realtime.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "auth"
+      },
+      "data": {
+       "title": "Auth",
+       "description": "The first frame on a new socket, within five seconds: the access token.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "token": {
+         "type": "string",
+         "description": "Access token (JWT)."
+        },
+        "installation_id": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "description": "The app install's id, the one the device was registered under; lets this socket be signed out on its own when the device is removed."
+        }
+       },
+       "required": [
+        "token"
+       ]
+      }
+     },
+     "required": [
+      "type",
+      "data"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Sign in the socket",
+      "payload": {
+       "type": "auth",
+       "data": {
+        "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTkyZjZhMCJ9.c2lnbmF0dXJl",
+        "installation_id": "c4f1e2d3a5b6c7d8"
+       }
+      }
+     },
+     {
+      "name": "Minimal",
+      "payload": {
+       "type": "auth",
+       "data": {
+        "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwMTkyZjZhMCJ9.c2lnbmF0dXJl"
+       }
+      }
+     }
+    ]
+   },
+   "ping": {
+    "name": "ping",
+    "title": "Ping",
+    "payload": {
+     "title": "PingFrame",
+     "description": "Frame `ping` an app sends to goway-realtime.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "ping"
+      },
+      "data": {
+       "title": "Ping",
+       "description": "Nothing: an empty object, or no `data` at all.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {}
+      }
+     },
+     "required": [
+      "type"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Empty data",
+      "payload": {
+       "type": "ping",
+       "data": {}
+      }
+     },
+     {
+      "name": "Ping",
+      "payload": {
+       "type": "ping"
+      }
+     }
+    ]
+   },
+   "goOnline": {
+    "name": "go_online",
+    "title": "Go online",
+    "payload": {
+     "title": "GoOnlineFrame",
+     "description": "Frame `go_online` an app sends to goway-realtime.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "go_online"
+      },
+      "data": {
+       "title": "GoOnline",
+       "description": "Start receiving instant offers on a line with one vehicle.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "from_region_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "to_region_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "vehicle_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "duration_hours": {
+         "type": "integer",
+         "minimum": 1,
+         "maximum": 48,
+         "default": 12,
+         "description": "How long to stay online; must be one of the allowed durations."
+        },
+        "bidirectional": {
+         "type": "boolean",
+         "default": true,
+         "description": "Also take loads on the way back."
+        }
+       },
+       "required": [
+        "from_region_id",
+        "to_region_id",
+        "vehicle_id"
+       ]
+      }
+     },
+     "required": [
+      "type",
+      "data"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Defaults",
+      "payload": {
+       "type": "go_online",
+       "data": {
+        "from_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
+        "to_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
+        "vehicle_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e09"
+       }
+      }
+     },
+     {
+      "name": "Full",
+      "payload": {
+       "type": "go_online",
+       "data": {
+        "from_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
+        "to_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
+        "vehicle_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e09",
+        "duration_hours": 8,
+        "bidirectional": false
+       }
+      }
+     }
+    ]
+   },
+   "goOffline": {
+    "name": "go_offline",
+    "title": "Go offline",
+    "payload": {
+     "title": "GoOfflineFrame",
+     "description": "Frame `go_offline` an app sends to goway-realtime.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "go_offline"
+      },
+      "data": {
+       "title": "GoOffline",
+       "description": "Leave the line. Nothing to send: an empty object, or no `data` at all.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {}
+      }
+     },
+     "required": [
+      "type"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Go offline",
+      "payload": {
+       "type": "go_offline",
+       "data": {}
+      }
+     }
+    ]
+   },
+   "location": {
+    "name": "location",
+    "title": "Driver position",
+    "payload": {
+     "title": "LocationFrame",
+     "description": "Frame `location` an app sends to goway-realtime.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "location"
+      },
+      "data": {
+       "title": "Location",
+       "description": "The driver's position. Relayed to booking viewers and sampled as evidence only while a booking is active.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "lat": {
+         "type": "number",
+         "minimum": -90,
+         "maximum": 90
+        },
+        "lng": {
+         "type": "number",
+         "minimum": -180,
+         "maximum": 180
+        },
+        "heading": {
+         "type": [
+          "number",
+          "null"
+         ],
+         "description": "Degrees from north, when the device knows it."
+        },
+        "speed": {
+         "type": [
+          "number",
+          "null"
+         ],
+         "description": "Speed the device reports, when it knows it."
+        }
+       },
+       "required": [
+        "lat",
+        "lng"
+       ]
+      }
+     },
+     "required": [
+      "type",
+      "data"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Driver position",
+      "payload": {
+       "type": "location",
+       "data": {
+        "lat": 40.103922,
+        "lng": 65.373398,
+        "heading": 247.5,
+        "speed": 72.4
+       }
+      }
+     },
+     {
+      "name": "Minimal",
+      "payload": {
+       "type": "location",
+       "data": {
+        "lat": 40.103922,
+        "lng": 65.373398
+       }
+      }
+     }
+    ]
+   },
+   "offerResponse": {
+    "name": "offer_response",
+    "title": "Answer an offer",
+    "payload": {
+     "title": "OfferResponseFrame",
+     "description": "Frame `offer_response` an app sends to goway-realtime.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "offer_response"
+      },
+      "data": {
+       "title": "OfferResponse",
+       "description": "The driver's answer to an instant offer.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "load_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "action": {
+         "title": "OfferAction",
+         "type": "string",
+         "enum": [
+          "accept",
+          "decline"
+         ]
+        }
+       },
+       "required": [
+        "load_id",
+        "action"
+       ]
+      }
+     },
+     "required": [
+      "type",
+      "data"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Answer an offer",
+      "payload": {
+       "type": "offer_response",
+       "data": {
+        "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+        "action": "accept"
+       }
+      }
+     }
+    ]
+   },
+   "subscribeBooking": {
+    "name": "subscribe_booking",
+    "title": "Watch a booking",
+    "payload": {
+     "title": "SubscribeBookingFrame",
+     "description": "Frame `subscribe_booking` an app sends to goway-realtime.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "subscribe_booking"
+      },
+      "data": {
+       "title": "SubscribeBooking",
+       "description": "Watch a booking of the caller's organization: status, arrival window and the driver's position.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "booking_id": {
+         "type": "string",
+         "format": "uuid"
+        }
+       },
+       "required": [
+        "booking_id"
+       ]
+      }
+     },
+     "required": [
+      "type",
+      "data"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Watch a booking",
+      "payload": {
+       "type": "subscribe_booking",
+       "data": {
+        "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02"
+       }
+      }
+     }
+    ]
+   },
+   "unsubscribeBooking": {
+    "name": "unsubscribe_booking",
+    "title": "Stop watching a booking",
+    "payload": {
+     "title": "UnsubscribeBookingFrame",
+     "description": "Frame `unsubscribe_booking` an app sends to goway-realtime.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "unsubscribe_booking"
+      },
+      "data": {
+       "title": "UnsubscribeBooking",
+       "description": "Stop watching a booking.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "booking_id": {
+         "type": "string",
+         "format": "uuid"
+        }
+       },
+       "required": [
+        "booking_id"
+       ]
+      }
+     },
+     "required": [
+      "type",
+      "data"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Stop watching a booking",
+      "payload": {
+       "type": "unsubscribe_booking",
+       "data": {
+        "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02"
+       }
+      }
+     }
+    ]
+   },
+   "connected": {
+    "name": "connected",
+    "title": "Connected",
+    "payload": {
+     "title": "ConnectedFrame",
+     "description": "Frame `connected` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "connected"
+      },
+      "data": {
+       "title": "Connected",
+       "description": "The `auth` frame was accepted; the socket is live.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "user_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "conn_id": {
+         "type": "string",
+         "description": "This socket's id, 32 hex characters."
+        },
+        "worker": {
+         "type": "string",
+         "description": "The goway-realtime worker holding the socket, `<host>-<pid>-<suffix>`; for logs."
+        },
+        "config": {
+         "title": "ConnectionConfig",
+         "description": "Current realtime settings the app plays by.",
+         "type": "object",
+         "additionalProperties": false,
+         "properties": {
+          "offer_ttl_seconds": {
+           "type": "integer",
+           "minimum": 0,
+           "description": "Seconds a driver has to answer an offer."
+          },
+          "offer_grace_seconds": {
+           "type": "integer",
+           "minimum": 0,
+           "description": "Extra seconds after the deadline a late answer is still honoured."
+          },
+          "line_changes_per_day": {
+           "type": "integer",
+           "minimum": 0,
+           "description": "Line changes a driver may make per Tashkent day."
+          },
+          "location_sample_seconds": {
+           "type": "integer",
+           "minimum": 0,
+           "description": "Seconds between durable GPS samples."
+          }
+         },
+         "required": [
+          "offer_ttl_seconds",
+          "offer_grace_seconds",
+          "line_changes_per_day",
+          "location_sample_seconds"
+         ]
+        }
+       },
+       "required": [
+        "user_id",
+        "conn_id",
+        "worker",
+        "config"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Connected",
+      "payload": {
+       "type": "connected",
+       "data": {
+        "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+        "conn_id": "6f1c2a9e3b7d4e8f9a0b1c2d3e4f5a6b",
+        "worker": "realtime-7d9f-1-a1b2c3",
+        "config": {
+         "offer_ttl_seconds": 20,
+         "offer_grace_seconds": 3,
+         "line_changes_per_day": 3,
+         "location_sample_seconds": 30
+        }
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "pong": {
+    "name": "pong",
+    "title": "Pong",
+    "payload": {
+     "title": "PongFrame",
+     "description": "Frame `pong` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "pong"
+      },
+      "data": {
+       "title": "Pong",
+       "description": "The answer to `ping`; nothing in it.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {}
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Pong",
+      "payload": {
+       "type": "pong",
+       "data": {},
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "online": {
+    "name": "online",
+    "title": "Online",
+    "payload": {
+     "title": "OnlineFrame",
+     "description": "Frame `online` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "online"
+      },
+      "data": {
+       "title": "Online",
+       "description": "The driver is on the line after `go_online`.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "queue_position": {
+         "type": "integer",
+         "minimum": 1,
+         "description": "Place in the outbound line's queue, from 1."
+        },
+        "expires_at": {
+         "type": "integer",
+         "description": "When the line ends, unix milliseconds."
+        },
+        "offers_blocked": {
+         "anyOf": [
+          {
+           "title": "OffersBlockedReason",
+           "type": "string",
+           "enum": [
+            "BALANCE_INSUFFICIENT",
+            "SUBSCRIPTION_REQUIRED"
+           ]
+          },
+          {
+           "type": "null"
+          }
+         ],
+         "description": "Set when the wallet blocks offers, null otherwise; this frame only ever sends `BALANCE_INSUFFICIENT`."
+        }
+       },
+       "required": [
+        "queue_position",
+        "expires_at",
+        "offers_blocked"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Blocked",
+      "payload": {
+       "type": "online",
+       "data": {
+        "queue_position": 4,
+        "expires_at": 1792013400123,
+        "offers_blocked": "BALANCE_INSUFFICIENT"
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "offline": {
+    "name": "offline",
+    "title": "Offline",
+    "payload": {
+     "title": "OfflineFrame",
+     "description": "Frame `offline` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "offline"
+      },
+      "data": {
+       "title": "Offline",
+       "description": "The driver left the line after `go_offline`.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {}
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Offline",
+      "payload": {
+       "type": "offline",
+       "data": {},
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "offerProposed": {
+    "name": "offer_proposed",
+    "title": "Offer proposed",
+    "payload": {
+     "title": "OfferProposedFrame",
+     "description": "Frame `offer_proposed` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "offer_proposed"
+      },
+      "data": {
+       "title": "OfferProposed",
+       "description": "An instant load offered to this driver; answer before `deadline_at`.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "load_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "from_region_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "to_region_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "truck_class": {
+         "type": "string"
+        },
+        "amount": {
+         "type": "integer",
+         "minimum": 0,
+         "description": "Price in minor units of `currency`."
+        },
+        "currency": {
+         "type": "string",
+         "minLength": 3,
+         "maxLength": 3
+        },
+        "weight_kg": {
+         "type": "integer",
+         "minimum": 0
+        },
+        "deadline_at": {
+         "type": "integer",
+         "description": "Answer deadline, unix milliseconds in server time."
+        },
+        "server_time": {
+         "type": "string",
+         "format": "date-time"
+        }
+       },
+       "required": [
+        "load_id",
+        "from_region_id",
+        "to_region_id",
+        "truck_class",
+        "amount",
+        "currency",
+        "weight_kg",
+        "deadline_at",
+        "server_time"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Offer proposed",
+      "payload": {
+       "type": "offer_proposed",
+       "data": {
+        "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+        "from_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
+        "to_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
+        "truck_class": "tent_20t",
+        "amount": 4500000,
+        "currency": "UZS",
+        "weight_kg": 18000,
+        "deadline_at": 1792055430123,
+        "server_time": "2026-10-14T09:30:00.123Z"
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "offerResult": {
+    "name": "offer_result",
+    "title": "Offer result",
+    "payload": {
+     "title": "OfferResultFrame",
+     "description": "Frame `offer_result` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "offer_result"
+      },
+      "data": {
+       "title": "OfferResult",
+       "description": "How an offer ended for this driver.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "load_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "outcome": {
+         "title": "OfferOutcome",
+         "type": "string",
+         "enum": [
+          "won",
+          "lost",
+          "declined",
+          "expired",
+          "withdrawn"
+         ]
+        },
+        "booking_id": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "format": "uuid",
+         "description": "Sent only when the outcome is `won`; null when goway-loads' answer could not be read."
+        }
+       },
+       "required": [
+        "load_id",
+        "outcome"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Lost",
+      "payload": {
+       "type": "offer_result",
+       "data": {
+        "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+        "outcome": "lost"
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     },
+     {
+      "name": "Won",
+      "payload": {
+       "type": "offer_result",
+       "data": {
+        "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+        "outcome": "won",
+        "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02"
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "subscribed": {
+    "name": "subscribed",
+    "title": "Watching a booking",
+    "payload": {
+     "title": "SubscribedFrame",
+     "description": "Frame `subscribed` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "subscribed"
+      },
+      "data": {
+       "title": "Subscribed",
+       "description": "`subscribe_booking` was accepted.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "booking_id": {
+         "type": "string",
+         "format": "uuid"
+        }
+       },
+       "required": [
+        "booking_id"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Watching a booking",
+      "payload": {
+       "type": "subscribed",
+       "data": {
+        "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02"
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "bookingCreated": {
+    "name": "booking_created",
+    "title": "Booking created",
+    "payload": {
+     "title": "BookingCreatedFrame",
+     "description": "Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "booking_created"
+      },
+      "data": {
+       "title": "BookingCreated",
+       "description": "A load was booked. Two paths: an accepted offer, or an instant claim from dispatch, which adds `source: instant`.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "event_id": {
+         "type": "string",
+         "format": "uuid",
+         "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "booking_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "load_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "shipper_org_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "carrier_org_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "driver_user_id": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "format": "uuid",
+         "description": "The driver; the offer path allows null, a booking always has one."
+        },
+        "agreed_amount": {
+         "type": "integer",
+         "minimum": 0,
+         "description": "Agreed price, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "currency": {
+         "type": "string",
+         "minLength": 3,
+         "maxLength": 3,
+         "description": "ISO 4217 code; `UZS` today."
+        },
+        "source": {
+         "type": "string",
+         "description": "Present only for an instant claim, and then always `instant`."
+        }
+       },
+       "required": [
+        "event_id",
+        "booking_id",
+        "load_id",
+        "shipper_org_id",
+        "carrier_org_id",
+        "driver_user_id",
+        "agreed_amount",
+        "currency"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Booking created",
+      "payload": {
+       "type": "booking_created",
+       "data": {
+        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+        "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+        "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+        "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+        "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+        "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+        "agreed_amount": 4500000,
+        "currency": "UZS",
+        "source": "instant"
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "bookingStatus": {
+    "name": "booking_status",
+    "title": "Haul moved on",
+    "payload": {
+     "title": "BookingStatusFrame",
+     "description": "Frame `booking_status` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.status_changed` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "booking_status"
+      },
+      "data": {
+       "title": "BookingStatusChanged",
+       "description": "The carrier moved the haul one step on: `en_route`, `at_pickup`, `loading`, `in_transit` or `delivered`. Completion and cancellation have their own subjects.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "event_id": {
+         "type": "string",
+         "format": "uuid",
+         "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "booking_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "load_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "status": {
+         "title": "BookingStatus",
+         "type": "string",
+         "enum": [
+          "confirmed",
+          "en_route",
+          "at_pickup",
+          "loading",
+          "in_transit",
+          "delivered",
+          "completed",
+          "cancelled"
+         ]
+        },
+        "shipper_org_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "carrier_org_id": {
+         "type": "string",
+         "format": "uuid"
+        }
+       },
+       "required": [
+        "event_id",
+        "booking_id",
+        "load_id",
+        "status",
+        "shipper_org_id",
+        "carrier_org_id"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Haul moved on",
+      "payload": {
+       "type": "booking_status",
+       "data": {
+        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+        "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+        "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+        "status": "at_pickup",
+        "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+        "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05"
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "bookingEta": {
+    "name": "booking_eta",
+    "title": "Arrival window moved",
+    "payload": {
+     "title": "BookingEtaFrame",
+     "description": "Frame `booking_eta` goway-realtime sends to an app. Sent to the booking's viewers only, and dropped when a socket is slow. It currently forwards the internal `booking.eta_updated` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "booking_eta"
+      },
+      "data": {
+       "title": "BookingEtaUpdated",
+       "description": "The arrival window or the time the truck is free again moved: when the haul is booked (`confirmed`), at every carrier step, and on fresh GPS while `en_route` or `in_transit`.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "event_id": {
+         "type": "string",
+         "format": "uuid",
+         "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "booking_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "load_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "carrier_org_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "driver_user_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "shipper_org_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "status": {
+         "title": "BookingStatus",
+         "type": "string",
+         "enum": [
+          "confirmed",
+          "en_route",
+          "at_pickup",
+          "loading",
+          "in_transit",
+          "delivered",
+          "completed",
+          "cancelled"
+         ]
+        },
+        "eta_stop": {
+         "anyOf": [
+          {
+           "title": "EtaStop",
+           "type": "string",
+           "enum": [
+            "pickup",
+            "dropoff"
+           ]
+          },
+          {
+           "type": "null"
+          }
+         ],
+         "description": "Which stop the window is for; null when no arrival is expected any more."
+        },
+        "eta_from": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "format": "date-time",
+         "description": "Earliest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        },
+        "eta_to": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "format": "date-time",
+         "description": "Latest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        },
+        "free_at": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "format": "date-time",
+         "description": "When the truck is expected to be empty again. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        },
+        "free_region_id": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "format": "uuid",
+         "description": "Where the truck will be free: the drop-off region; null when unknown."
+        },
+        "truck_class": {
+         "type": "string",
+         "description": "The booked vehicle's truck class code."
+        }
+       },
+       "required": [
+        "event_id",
+        "booking_id",
+        "load_id",
+        "carrier_org_id",
+        "driver_user_id",
+        "shipper_org_id",
+        "status",
+        "eta_stop",
+        "eta_from",
+        "eta_to",
+        "free_at",
+        "free_region_id",
+        "truck_class"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Arrival window moved",
+      "payload": {
+       "type": "booking_eta",
+       "data": {
+        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+        "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+        "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+        "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+        "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+        "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+        "status": "en_route",
+        "eta_stop": "pickup",
+        "eta_from": "2026-10-14T10:05:00.123Z",
+        "eta_to": "2026-10-14T10:25:00.123Z",
+        "free_at": "2026-10-14T17:40:00.123Z",
+        "free_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
+        "truck_class": "tent_20t"
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "bookingCompleted": {
+    "name": "booking_completed",
+    "title": "Booking completed",
+    "payload": {
+     "title": "BookingCompletedFrame",
+     "description": "Frame `booking_completed` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.completed` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "booking_completed"
+      },
+      "data": {
+       "title": "BookingCompleted",
+       "description": "A delivered haul was closed: by the shipper, by an operator, or by the auto-complete sweep. All three send the same fields. Billing charges its commission from this event.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "event_id": {
+         "type": "string",
+         "format": "uuid",
+         "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "booking_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "load_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "carrier_org_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "shipper_org_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "driver_user_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "agreed_amount": {
+         "type": "integer",
+         "minimum": 0,
+         "description": "Price agreed at booking, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "settled_amount": {
+         "type": "integer",
+         "minimum": 0,
+         "description": "What the haul actually settled at: the agreed price unless another sum was confirmed, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "completed_at": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "format": "date-time",
+         "description": "When the haul was closed; the code allows null, it is always set. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        },
+        "completed_by": {
+         "title": "CompletedBy",
+         "type": "string",
+         "enum": [
+          "shipper",
+          "operator",
+          "system"
+         ],
+         "description": "Who closed the haul; `system` is the auto-complete sweep."
+        },
+        "charges": {
+         "type": "array",
+         "items": {
+          "title": "ChargeLine",
+          "description": "One priced line of the haul.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+           "code": {
+            "type": "string",
+            "description": "`tariff`, `loaders` or `req:<requirement code>`."
+           },
+           "amount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Line total, whole so'm (a bare integer; `currency` is UZS today)."
+           },
+           "qty": {
+            "type": "integer",
+            "minimum": 1
+           }
+          },
+          "required": [
+           "code",
+           "amount",
+           "qty"
+          ]
+         },
+         "description": "Price lines; the first is always the agreed tariff."
+        },
+        "waiting_minutes": {
+         "type": "integer",
+         "minimum": 0,
+         "description": "Billable minutes the driver waited at pickup."
+        },
+        "waiting_amount": {
+         "type": "integer",
+         "minimum": 0,
+         "description": "What the waiting costs, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "waiting_billable": {
+         "type": "boolean",
+         "description": "Whether the waiting is charged to the shipper."
+        },
+        "total_amount": {
+         "type": [
+          "integer",
+          "null"
+         ],
+         "minimum": 0,
+         "description": "Charges plus waiting, whole so'm (a bare integer; `currency` is UZS today); the code allows null."
+        },
+        "currency": {
+         "type": "string",
+         "minLength": 3,
+         "maxLength": 3,
+         "description": "ISO 4217 code; `UZS` today."
+        }
+       },
+       "required": [
+        "event_id",
+        "booking_id",
+        "load_id",
+        "carrier_org_id",
+        "shipper_org_id",
+        "driver_user_id",
+        "agreed_amount",
+        "settled_amount",
+        "completed_at",
+        "completed_by",
+        "charges",
+        "waiting_minutes",
+        "waiting_amount",
+        "waiting_billable",
+        "total_amount",
+        "currency"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Booking completed",
+      "payload": {
+       "type": "booking_completed",
+       "data": {
+        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+        "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+        "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+        "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+        "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+        "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+        "agreed_amount": 4350000,
+        "settled_amount": 4350000,
+        "completed_at": "2026-10-14T09:30:00.123Z",
+        "completed_by": "shipper",
+        "charges": [
+         {
+          "code": "tariff",
+          "amount": 4350000,
+          "qty": 1
+         },
+         {
+          "code": "loaders",
+          "amount": 200000,
+          "qty": 2
+         }
+        ],
+        "waiting_minutes": 25,
+        "waiting_amount": 50000,
+        "waiting_billable": true,
+        "total_amount": 4600000,
+        "currency": "UZS"
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "bookingCancelled": {
+    "name": "booking_cancelled",
+    "title": "Booking cancelled",
+    "payload": {
+     "title": "BookingCancelledFrame",
+     "description": "Frame `booking_cancelled` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.cancelled` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "booking_cancelled"
+      },
+      "data": {
+       "title": "BookingCancelled",
+       "description": "A booking ended before the cargo was loaded. The load goes back to the board. Two paths send the same fields: either side cancelling (`by` is `shipper` or `carrier`) and an operator (`by` is `operator`).",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "event_id": {
+         "type": "string",
+         "format": "uuid",
+         "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "booking_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "load_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "by": {
+         "title": "CancelledBy",
+         "type": "string",
+         "enum": [
+          "shipper",
+          "carrier",
+          "operator"
+         ],
+         "description": "Who cancelled."
+        },
+        "reason": {
+         "type": "string",
+         "description": "What the canceller wrote; empty when nothing was written."
+        },
+        "shipper_org_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "carrier_org_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "driver_user_id": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "format": "uuid",
+         "description": "Null when no driver was assigned."
+        }
+       },
+       "required": [
+        "event_id",
+        "booking_id",
+        "load_id",
+        "by",
+        "reason",
+        "shipper_org_id",
+        "carrier_org_id",
+        "driver_user_id"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Booking cancelled",
+      "payload": {
+       "type": "booking_cancelled",
+       "data": {
+        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+        "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+        "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+        "by": "shipper",
+        "reason": "Yuk tayyor emas",
+        "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+        "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+        "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06"
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "driverLocation": {
+    "name": "driver_location",
+    "title": "Driver position",
+    "payload": {
+     "title": "DriverLocationFrame",
+     "description": "Frame `driver_location` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "driver_location"
+      },
+      "data": {
+       "title": "DriverLocation",
+       "description": "The booked driver's live position, relayed to the booking's viewers as it arrives; dropped when a socket is slow.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "booking_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "lat": {
+         "type": "number",
+         "minimum": -90,
+         "maximum": 90
+        },
+        "lng": {
+         "type": "number",
+         "minimum": -180,
+         "maximum": 180
+        },
+        "heading": {
+         "type": [
+          "number",
+          "null"
+         ],
+         "description": "Degrees from north; null when the driver's device did not send it."
+        },
+        "speed": {
+         "type": [
+          "number",
+          "null"
+         ],
+         "description": "Null when the driver's device did not send it."
+        }
+       },
+       "required": [
+        "booking_id",
+        "lat",
+        "lng",
+        "heading",
+        "speed"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Driver position",
+      "payload": {
+       "type": "driver_location",
+       "data": {
+        "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+        "lat": 40.103922,
+        "lng": 65.373398,
+        "heading": 247.5,
+        "speed": 72.4
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "lineExpiring": {
+    "name": "line_expiring",
+    "title": "Line ends soon",
+    "payload": {
+     "title": "LineExpiringFrame",
+     "description": "Frame `line_expiring` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "line_expiring"
+      },
+      "data": {
+       "title": "LineExpiring",
+       "description": "The driver's line ends soon (`line_expiry_warning_minutes` before).",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "expires_at": {
+         "type": "integer",
+         "description": "When the line ends, unix milliseconds."
+        }
+       },
+       "required": [
+        "expires_at"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Line ends soon",
+      "payload": {
+       "type": "line_expiring",
+       "data": {
+        "expires_at": 1791972000123
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "lineExpired": {
+    "name": "line_expired",
+    "title": "Line ended",
+    "payload": {
+     "title": "LineExpiredFrame",
+     "description": "Frame `line_expired` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "line_expired"
+      },
+      "data": {
+       "title": "LineExpired",
+       "description": "The driver's line ended and the driver is offline; open a line again to get offers.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "expired_at": {
+         "type": "integer",
+         "description": "When the line ended, unix milliseconds."
+        }
+       },
+       "required": [
+        "expired_at"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Line ended",
+      "payload": {
+       "type": "line_expired",
+       "data": {
+        "expired_at": 1791970200123
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "offersBlocked": {
+    "name": "offers_blocked",
+    "title": "Offers blocked",
+    "payload": {
+     "title": "OffersBlockedFrame",
+     "description": "Frame `offers_blocked` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "offers_blocked"
+      },
+      "data": {
+       "title": "OffersBlocked",
+       "description": "The wallet stopped being eligible; no offers until it is settled.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "reason": {
+         "title": "OffersBlockedReason",
+         "type": "string",
+         "enum": [
+          "BALANCE_INSUFFICIENT",
+          "SUBSCRIPTION_REQUIRED"
+         ]
+        }
+       },
+       "required": [
+        "reason"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Offers blocked",
+      "payload": {
+       "type": "offers_blocked",
+       "data": {
+        "reason": "BALANCE_INSUFFICIENT"
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     },
+     {
+      "name": "Subscription",
+      "payload": {
+       "type": "offers_blocked",
+       "data": {
+        "reason": "SUBSCRIPTION_REQUIRED"
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "offersUnblocked": {
+    "name": "offers_unblocked",
+    "title": "Offers unblocked",
+    "payload": {
+     "title": "OffersUnblockedFrame",
+     "description": "Frame `offers_unblocked` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "offers_unblocked"
+      },
+      "data": {
+       "title": "OffersUnblocked",
+       "description": "The wallet is eligible again after being blocked; nothing in it.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {}
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Offers unblocked",
+      "payload": {
+       "type": "offers_unblocked",
+       "data": {},
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "notification": {
+    "name": "notification",
+    "title": "Notification",
+    "payload": {
+     "title": "NotificationFrame",
+     "description": "Frame `notification` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "notification"
+      },
+      "data": {
+       "title": "Notification",
+       "description": "Something landed in the user's notification feed; refresh the badge. Copied from `notification.created`; a field that event lacked or sent empty arrives as null.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "notification_id": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "format": "uuid"
+        },
+        "kind": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "description": "Template kind, for example `driver_found` or `announcement`."
+        },
+        "title": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "description": "Title in the user's language."
+        },
+        "body": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "description": "Text in the user's language."
+        }
+       },
+       "required": [
+        "notification_id",
+        "kind",
+        "title",
+        "body"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Notification",
+      "payload": {
+       "type": "notification",
+       "data": {
+        "notification_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0e",
+        "kind": "driver_found",
+        "title": "Haydovchi topildi",
+        "body": "Yukingiz 4 350 000 so'mga band qilindi"
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "sessionStarted": {
+    "name": "session_started",
+    "title": "Signed in elsewhere",
+    "payload": {
+     "title": "SessionStartedFrame",
+     "description": "Frame `session_started` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "session_started"
+      },
+      "data": {
+       "title": "SessionStarted",
+       "description": "Somebody signed in to this account; ignore it when `installation_id` is this app's own. Copied from `user.login`; a field that event lacked or sent empty arrives as null.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "device_id": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "format": "uuid"
+        },
+        "installation_id": {
+         "type": [
+          "string",
+          "null"
+         ]
+        },
+        "platform": {
+         "anyOf": [
+          {
+           "title": "DevicePlatform",
+           "type": "string",
+           "enum": [
+            "android",
+            "ios",
+            "web"
+           ]
+          },
+          {
+           "type": "null"
+          }
+         ],
+         "description": "Device platform."
+        },
+        "model": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "description": "Device model."
+        },
+        "new_device": {
+         "type": "boolean"
+        },
+        "at": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "format": "date-time",
+         "description": "When the sign-in happened, as `user.login` wrote it."
+        }
+       },
+       "required": [
+        "device_id",
+        "installation_id",
+        "platform",
+        "model",
+        "new_device",
+        "at"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Signed in elsewhere",
+      "payload": {
+       "type": "session_started",
+       "data": {
+        "device_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0d",
+        "installation_id": "c4f1e2d3a5b6c7d8",
+        "platform": "android",
+        "model": "Samsung SM-A525F",
+        "new_device": true,
+        "at": "2026-10-14T09:30:00.123Z"
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "kicked": {
+    "name": "kicked",
+    "title": "Signed out",
+    "payload": {
+     "title": "KickedFrame",
+     "description": "Frame `kicked` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "kicked"
+      },
+      "data": {
+       "title": "Kicked",
+       "description": "This socket is being closed by the server; sign in again.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "reason": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "description": "`device_removed`, `logout` (closed from another device), the `user.session_revoked` reason, or what a service passed to `/internal/kick`; null when none was given."
+        }
+       },
+       "required": [
+        "reason"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Signed out",
+      "payload": {
+       "type": "kicked",
+       "data": {
+        "reason": "device_removed"
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "error": {
+    "name": "error",
+    "title": "Frame refused",
+    "payload": {
+     "title": "ErrorFrame",
+     "description": "Frame `error` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "error"
+      },
+      "data": {
+       "title": "FrameError",
+       "description": "A frame was refused; the same problem shape as REST errors. Two forms are sent: a first frame that is not `auth`, an unreadable frame and a refused booking subscription send only `code` and `key`; every other refusal sends the full problem body with `type`, `title`, `status` and `code`, plus `detail`, `key` and `params` when set.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "type": {
+         "type": "string",
+         "description": "Problem type URI, `https://api.goway.uz/problems/<code>`."
+        },
+        "title": {
+         "type": "string",
+         "description": "HTTP status phrase, for example `Conflict`."
+        },
+        "code": {
+         "type": "string",
+         "description": "Stable code the app branches on."
+        },
+        "key": {
+         "type": "string",
+         "description": "Translation key for the message."
+        },
+        "status": {
+         "type": "integer"
+        },
+        "detail": {
+         "type": "string"
+        },
+        "params": {
+         "type": "object",
+         "additionalProperties": true,
+         "description": "Values for the translated message."
+        }
+       },
+       "required": [
+        "code"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Frame",
+      "payload": {
+       "type": "error",
+       "data": {
+        "code": "BAD_FRAME",
+        "key": "ws.bad_frame"
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     },
+     {
+      "name": "Frame refused",
+      "payload": {
+       "type": "error",
+       "data": {
+        "code": "vehicle_not_found",
+        "key": "errors.vehicle.not_found",
+        "status": 404,
+        "detail": "Vehicle not found",
+        "params": {
+         "vehicle_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e09"
+        }
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     },
+     {
+      "name": "Minimal",
+      "payload": {
+       "type": "error",
+       "data": {
+        "code": "rate_limited"
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     },
+     {
+      "name": "Problem",
+      "payload": {
+       "type": "error",
+       "data": {
+        "type": "https://api.goway.uz/problems/offer-not-pending",
+        "title": "Conflict",
+        "status": 409,
+        "code": "OFFER_NOT_PENDING",
+        "detail": "No pending offer for this load",
+        "key": "dispatch.not_pending"
+       },
+       "ts": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   }
+  }
+ }
+}

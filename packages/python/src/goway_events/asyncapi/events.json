@@ -1,0 +1,4513 @@
+{
+ "asyncapi": "3.1.0",
+ "info": {
+  "title": "GoWay events",
+  "version": "0.1.0",
+  "description": "Domain events the GoWay services publish to NATS JetStream (stream `GOWAY`). A Python service writes the event\ninto its outbox inside the same transaction as the change, and a relay publishes it with the outbox row id as\n`event_id`; goway-realtime publishes straight to JetStream and stamps a random `event_id` itself. Delivery is at\nleast once, so every consumer dedupes on `event_id`. Payloads only grow within a version: a field is never\nrenamed, retyped or removed, and a breaking change gets a new subject ending in `.v2`. `x-consumers` lists the\nservices whose handlers act on a subject; a wildcard subscription that only passes it by is not listed.\n"
+ },
+ "defaultContentType": "application/json",
+ "servers": {
+  "nats": {
+   "host": "nats:4222",
+   "protocol": "nats",
+   "description": "NATS JetStream inside the GoWay network."
+  }
+ },
+ "channels": {
+  "userCreated": {
+   "address": "user.created",
+   "description": "An account came into being: self-signup, admin create, or admin restore.\n\nPublished by `goway-auth`; consumed by `goway-loads`, `goway-billing`, `goway-notify`, `goway-realtime`.",
+   "messages": {
+    "userCreated": {
+     "$ref": "#/components/messages/userCreated"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-loads",
+    "goway-billing",
+    "goway-notify",
+    "goway-realtime"
+   ]
+  },
+  "userUpdated": {
+   "address": "user.updated",
+   "description": "Something about an account changed; only what changed is sent.\n\nPublished by `goway-auth`; consumed by `goway-loads`, `goway-billing`, `goway-notify`.",
+   "messages": {
+    "userUpdated": {
+     "$ref": "#/components/messages/userUpdated"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-loads",
+    "goway-billing",
+    "goway-notify"
+   ]
+  },
+  "userDeleted": {
+   "address": "user.deleted",
+   "description": "An account was deleted by its owner or by an admin.\n\nPublished by `goway-auth`; consumed by `goway-loads`, `goway-billing`, `goway-notify`.",
+   "messages": {
+    "userDeleted": {
+     "$ref": "#/components/messages/userDeleted"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-loads",
+    "goway-billing",
+    "goway-notify"
+   ]
+  },
+  "userLogin": {
+   "address": "user.login",
+   "description": "Somebody signed in to the account.\n\nPublished by `goway-auth`; consumed by `goway-notify`, `goway-realtime`.",
+   "messages": {
+    "userLogin": {
+     "$ref": "#/components/messages/userLogin"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-notify",
+    "goway-realtime"
+   ]
+  },
+  "userSessionRevoked": {
+   "address": "user.session_revoked",
+   "description": "Every session of the account was closed.\n\nPublished by `goway-auth`; consumed by `goway-notify`, `goway-realtime`.",
+   "messages": {
+    "userSessionRevoked": {
+     "$ref": "#/components/messages/userSessionRevoked"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-notify",
+    "goway-realtime"
+   ]
+  },
+  "userSessionsClosed": {
+   "address": "user.sessions_closed",
+   "description": "Some of the account's sessions were closed from another device.\n\nPublished by `goway-auth`; consumed by `goway-realtime`.",
+   "messages": {
+    "userSessionsClosed": {
+     "$ref": "#/components/messages/userSessionsClosed"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-realtime"
+   ]
+  },
+  "deviceUpserted": {
+   "address": "device.upserted",
+   "description": "A device was registered, came back, or its push token changed or was cleared.\n\nPublished by `goway-auth`; consumed by `goway-notify`.",
+   "messages": {
+    "deviceUpserted": {
+     "$ref": "#/components/messages/deviceUpserted"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-notify"
+   ]
+  },
+  "deviceRemoved": {
+   "address": "device.removed",
+   "description": "The owner removed a device.\n\nPublished by `goway-auth`; consumed by `goway-notify`, `goway-realtime`.",
+   "messages": {
+    "deviceRemoved": {
+     "$ref": "#/components/messages/deviceRemoved"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-notify",
+    "goway-realtime"
+   ]
+  },
+  "orgUpdated": {
+   "address": "org.updated",
+   "description": "An organization's details changed; only what changed is sent.\n\nPublished by `goway-auth`; consumed by no service yet.",
+   "messages": {
+    "orgUpdated": {
+     "$ref": "#/components/messages/orgUpdated"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": []
+  },
+  "vehicleUpserted": {
+   "address": "vehicle.upserted",
+   "description": "A fleet vehicle was added or changed; the whole vehicle is sent.\n\nPublished by `goway-auth`; consumed by `goway-loads`, `goway-realtime`.",
+   "messages": {
+    "vehicleUpserted": {
+     "$ref": "#/components/messages/vehicleUpserted"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-loads",
+    "goway-realtime"
+   ]
+  },
+  "vehicleRemoved": {
+   "address": "vehicle.removed",
+   "description": "A fleet vehicle was removed.\n\nPublished by `goway-auth`; consumed by `goway-loads`, `goway-realtime`.",
+   "messages": {
+    "vehicleRemoved": {
+     "$ref": "#/components/messages/vehicleRemoved"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-loads",
+    "goway-realtime"
+   ]
+  },
+  "carrierDocumentUpdated": {
+   "address": "carrier.document_updated",
+   "description": "A carrier submitted a new version of a document.\n\nPublished by `goway-auth`; consumed by no service yet.",
+   "messages": {
+    "carrierDocumentUpdated": {
+     "$ref": "#/components/messages/carrierDocumentUpdated"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": []
+  },
+  "carrierDocumentReviewed": {
+   "address": "carrier.document_reviewed",
+   "description": "An operator approved or rejected a carrier's document.\n\nPublished by `goway-auth`; consumed by `goway-notify`.",
+   "messages": {
+    "carrierDocumentReviewed": {
+     "$ref": "#/components/messages/carrierDocumentReviewed"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-notify"
+   ]
+  },
+  "carrierDocumentExpired": {
+   "address": "carrier.document_expired",
+   "description": "A carrier's document passed its expiry date.\n\nPublished by `goway-auth`; consumed by `goway-notify`.",
+   "messages": {
+    "carrierDocumentExpired": {
+     "$ref": "#/components/messages/carrierDocumentExpired"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-notify"
+   ]
+  },
+  "carrierDocumentExpiring": {
+   "address": "carrier.document_expiring",
+   "description": "A carrier's document expires soon.\n\nPublished by `goway-auth`; consumed by `goway-notify`.",
+   "messages": {
+    "carrierDocumentExpiring": {
+     "$ref": "#/components/messages/carrierDocumentExpiring"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-notify"
+   ]
+  },
+  "carrierVerificationChanged": {
+   "address": "carrier.verification_changed",
+   "description": "A carrier organization's verification status moved.\n\nPublished by `goway-auth`; consumed by `goway-loads`, `goway-notify`, `goway-realtime`.",
+   "messages": {
+    "carrierVerificationChanged": {
+     "$ref": "#/components/messages/carrierVerificationChanged"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-loads",
+    "goway-notify",
+    "goway-realtime"
+   ]
+  },
+  "supportTicketCreated": {
+   "address": "support.ticket_created",
+   "description": "A user opened a support ticket.\n\nPublished by `goway-auth`; consumed by no service yet.",
+   "messages": {
+    "supportTicketCreated": {
+     "$ref": "#/components/messages/supportTicketCreated"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": []
+  },
+  "supportTicketReplied": {
+   "address": "support.ticket_replied",
+   "description": "Support answered or closed a ticket.\n\nPublished by `goway-auth`; consumed by `goway-notify`.",
+   "messages": {
+    "supportTicketReplied": {
+     "$ref": "#/components/messages/supportTicketReplied"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-notify"
+   ]
+  },
+  "driverStatsChanged": {
+   "address": "driver.stats_changed",
+   "description": "A driver's completed-haul count or rating changed.\n\nPublished by `goway-auth`; consumed by `goway-loads`.",
+   "messages": {
+    "driverStatsChanged": {
+     "$ref": "#/components/messages/driverStatsChanged"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-loads"
+   ]
+  },
+  "loadPosted": {
+   "address": "load.posted",
+   "description": "A load is open on the board: newly posted, or back after a cancelled booking.\n\nPublished by `goway-loads`; consumed by `goway-realtime`.",
+   "messages": {
+    "loadPosted": {
+     "$ref": "#/components/messages/loadPosted"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-realtime"
+   ]
+  },
+  "loadCancelled": {
+   "address": "load.cancelled",
+   "description": "The shipper withdrew an open load.\n\nPublished by `goway-loads`; consumed by `goway-billing`, `goway-realtime`.",
+   "messages": {
+    "loadCancelled": {
+     "$ref": "#/components/messages/loadCancelled"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-billing",
+    "goway-realtime"
+   ]
+  },
+  "loadExpired": {
+   "address": "load.expired",
+   "description": "An open load passed its expiry unbooked.\n\nPublished by `goway-loads`; consumed by `goway-billing`, `goway-realtime`.",
+   "messages": {
+    "loadExpired": {
+     "$ref": "#/components/messages/loadExpired"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-billing",
+    "goway-realtime"
+   ]
+  },
+  "offerCreated": {
+   "address": "offer.created",
+   "description": "A carrier asked for a load, or either side countered.\n\nPublished by `goway-loads`; consumed by `goway-notify`.",
+   "messages": {
+    "offerCreated": {
+     "$ref": "#/components/messages/offerCreated"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-notify"
+   ]
+  },
+  "offerAccepted": {
+   "address": "offer.accepted",
+   "description": "An offer was accepted and became a booking.\n\nPublished by `goway-loads`; consumed by `goway-notify`.",
+   "messages": {
+    "offerAccepted": {
+     "$ref": "#/components/messages/offerAccepted"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-notify"
+   ]
+  },
+  "bookingCreated": {
+   "address": "booking.created",
+   "description": "A load was booked, from an accepted offer or an instant claim.\n\nPublished by `goway-loads`; consumed by `goway-notify`, `goway-realtime`.",
+   "messages": {
+    "bookingCreated": {
+     "$ref": "#/components/messages/bookingCreated"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-notify",
+    "goway-realtime"
+   ]
+  },
+  "bookingStatusChanged": {
+   "address": "booking.status_changed",
+   "description": "The carrier moved the haul one step on.\n\nPublished by `goway-loads`; consumed by `goway-notify`, `goway-realtime`.",
+   "messages": {
+    "bookingStatusChanged": {
+     "$ref": "#/components/messages/bookingStatusChanged"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-notify",
+    "goway-realtime"
+   ]
+  },
+  "bookingEtaUpdated": {
+   "address": "booking.eta_updated",
+   "description": "The arrival window or the time the truck is free again moved.\n\nPublished by `goway-loads`; consumed by `goway-realtime`.",
+   "messages": {
+    "bookingEtaUpdated": {
+     "$ref": "#/components/messages/bookingEtaUpdated"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-realtime"
+   ]
+  },
+  "bookingCompleted": {
+   "address": "booking.completed",
+   "description": "A delivered haul was closed; billing charges its commission from it.\n\nPublished by `goway-loads`; consumed by `goway-auth`, `goway-billing`, `goway-notify`, `goway-realtime`.",
+   "messages": {
+    "bookingCompleted": {
+     "$ref": "#/components/messages/bookingCompleted"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-auth",
+    "goway-billing",
+    "goway-notify",
+    "goway-realtime"
+   ]
+  },
+  "bookingCancelled": {
+   "address": "booking.cancelled",
+   "description": "A booking ended before loading. The load returns to the board in the same transaction.\n\nPublished by `goway-loads`; consumed by `goway-notify`, `goway-realtime`.",
+   "messages": {
+    "bookingCancelled": {
+     "$ref": "#/components/messages/bookingCancelled"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-notify",
+    "goway-realtime"
+   ]
+  },
+  "bookingAmountClaimed": {
+   "address": "booking.amount_claimed",
+   "description": "One side says a delivered haul settled at another sum.\n\nPublished by `goway-loads`; consumed by no service yet.",
+   "messages": {
+    "bookingAmountClaimed": {
+     "$ref": "#/components/messages/bookingAmountClaimed"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": []
+  },
+  "bookingAmountSettled": {
+   "address": "booking.amount_settled",
+   "description": "An operator accepted an amount claim.\n\nPublished by `goway-loads`; consumed by `goway-billing`, `goway-notify`.",
+   "messages": {
+    "bookingAmountSettled": {
+     "$ref": "#/components/messages/bookingAmountSettled"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-billing",
+    "goway-notify"
+   ]
+  },
+  "bookingReturnLoads": {
+   "address": "booking.return_loads",
+   "description": "Loads wait in the region where a truck will soon be empty.\n\nPublished by `goway-loads`; consumed by `goway-notify`.",
+   "messages": {
+    "bookingReturnLoads": {
+     "$ref": "#/components/messages/bookingReturnLoads"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-notify"
+   ]
+  },
+  "ratingCreated": {
+   "address": "rating.created",
+   "description": "The shipper rated a completed haul.\n\nPublished by `goway-loads`; consumed by `goway-auth`.",
+   "messages": {
+    "ratingCreated": {
+     "$ref": "#/components/messages/ratingCreated"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-auth"
+   ]
+  },
+  "walletEntryPosted": {
+   "address": "wallet.entry_posted",
+   "description": "A line was written to an organization's wallet ledger.\n\nPublished by `goway-billing`; consumed by no service yet.",
+   "messages": {
+    "walletEntryPosted": {
+     "$ref": "#/components/messages/walletEntryPosted"
+    }
+   },
+   "x-publisher": "goway-billing",
+   "x-consumers": []
+  },
+  "walletEligibilityChanged": {
+   "address": "wallet.eligibility_changed",
+   "description": "An organization's wallet started or stopped being allowed to receive offers.\n\nPublished by `goway-billing`; consumed by `goway-loads`, `goway-notify`, `goway-realtime`.",
+   "messages": {
+    "walletEligibilityChanged": {
+     "$ref": "#/components/messages/walletEligibilityChanged"
+    }
+   },
+   "x-publisher": "goway-billing",
+   "x-consumers": [
+    "goway-loads",
+    "goway-notify",
+    "goway-realtime"
+   ]
+  },
+  "walletToppedUp": {
+   "address": "wallet.topped_up",
+   "description": "An operator took cash for a wallet.\n\nPublished by `goway-billing`; consumed by `goway-notify`.",
+   "messages": {
+    "walletToppedUp": {
+     "$ref": "#/components/messages/walletToppedUp"
+    }
+   },
+   "x-publisher": "goway-billing",
+   "x-consumers": [
+    "goway-notify"
+   ]
+  },
+  "notificationCreated": {
+   "address": "notification.created",
+   "description": "A message landed in a user's notification feed.\n\nPublished by `goway-notify`; consumed by `goway-realtime`.",
+   "messages": {
+    "notificationCreated": {
+     "$ref": "#/components/messages/notificationCreated"
+    }
+   },
+   "x-publisher": "goway-notify",
+   "x-consumers": [
+    "goway-realtime"
+   ]
+  },
+  "devicePushFailed": {
+   "address": "device.push_failed",
+   "description": "The push provider rejected a device's token as dead.\n\nPublished by `goway-notify`; consumed by `goway-auth`.",
+   "messages": {
+    "devicePushFailed": {
+     "$ref": "#/components/messages/devicePushFailed"
+    }
+   },
+   "x-publisher": "goway-notify",
+   "x-consumers": [
+    "goway-auth"
+   ]
+  },
+  "regionChanged": {
+   "address": "region.changed",
+   "description": "An admin opened or closed a region for the marketplace.\n\nPublished by `goway-geo`; consumed by no service yet.",
+   "messages": {
+    "regionChanged": {
+     "$ref": "#/components/messages/regionChanged"
+    }
+   },
+   "x-publisher": "goway-geo",
+   "x-consumers": []
+  },
+  "settingsChanged": {
+   "address": "settings.changed",
+   "description": "An admin changed or reset runtime settings of one service.\n\nPublished by `['goway-auth', 'goway-loads', 'goway-billing', 'goway-notify', 'goway-realtime']`; consumed by no service yet.",
+   "messages": {
+    "settingsChanged": {
+     "$ref": "#/components/messages/settingsChanged"
+    }
+   },
+   "x-publisher": [
+    "goway-auth",
+    "goway-loads",
+    "goway-billing",
+    "goway-notify",
+    "goway-realtime"
+   ],
+   "x-consumers": []
+  },
+  "driverOnline": {
+   "address": "driver.online",
+   "description": "A driver opened or changed a line.\n\nPublished by `goway-realtime`; consumed by no service yet.",
+   "messages": {
+    "driverOnline": {
+     "$ref": "#/components/messages/driverOnline"
+    }
+   },
+   "x-publisher": "goway-realtime",
+   "x-consumers": []
+  },
+  "driverOffline": {
+   "address": "driver.offline",
+   "description": "A driver left the line.\n\nPublished by `goway-realtime`; consumed by no service yet.",
+   "messages": {
+    "driverOffline": {
+     "$ref": "#/components/messages/driverOffline"
+    }
+   },
+   "x-publisher": "goway-realtime",
+   "x-consumers": []
+  },
+  "locationSampled": {
+   "address": "location.sampled",
+   "description": "A driver's GPS position during an active booking, kept as evidence.\n\nPublished by `goway-realtime`; consumed by `goway-loads`.",
+   "messages": {
+    "locationSampled": {
+     "$ref": "#/components/messages/locationSampled"
+    }
+   },
+   "x-publisher": "goway-realtime",
+   "x-consumers": [
+    "goway-loads"
+   ]
+  },
+  "dispatchOffered": {
+   "address": "dispatch.offered",
+   "description": "An instant load was offered to a wave of drivers.\n\nPublished by `goway-realtime`; consumed by `goway-notify`.",
+   "messages": {
+    "dispatchOffered": {
+     "$ref": "#/components/messages/dispatchOffered"
+    }
+   },
+   "x-publisher": "goway-realtime",
+   "x-consumers": [
+    "goway-notify"
+   ]
+  }
+ },
+ "operations": {
+  "publishUserCreated": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/userCreated"
+   },
+   "description": "Published by self-signup (with `account_type`), an admin create (with `first_name`, `last_name`) and an admin restore (with `updated_at`).",
+   "title": "goway-auth publishes"
+  },
+  "publishUserUpdated": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/userUpdated"
+   },
+   "description": "Published by a confirmed phone change, the account settings screen, a role switch, an admin edit and a profile edit, each with its own field set.",
+   "title": "goway-auth publishes"
+  },
+  "publishUserDeleted": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/userDeleted"
+   },
+   "description": "Published when the owner deletes the account, and on an admin soft or hard delete (with `updated_at`).",
+   "title": "goway-auth publishes"
+  },
+  "publishUserLogin": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/userLogin"
+   },
+   "description": "Published on every issued session: code, password, password reset, phone change.",
+   "title": "goway-auth publishes"
+  },
+  "publishUserSessionRevoked": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/userSessionRevoked"
+   },
+   "description": "Published after a password change or reset, a phone change, an account delete and an admin block.",
+   "title": "goway-auth publishes"
+  },
+  "publishUserSessionsClosed": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/userSessionsClosed"
+   },
+   "description": "Published when a user closes one or all other sessions and at least one install is affected.",
+   "title": "goway-auth publishes"
+  },
+  "publishDeviceUpserted": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/deviceUpserted"
+   },
+   "description": "Published on a new device, a restored device, a new push token, and on sign-out, which clears the token.",
+   "title": "goway-auth publishes"
+  },
+  "publishDeviceRemoved": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/deviceRemoved"
+   },
+   "description": "Published when the owner removes a device from the account.",
+   "title": "goway-auth publishes"
+  },
+  "publishOrgUpdated": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/orgUpdated"
+   },
+   "description": "Published by a role switch (`kind`, `account_type`) and by the organization screen (company details).",
+   "title": "goway-auth publishes"
+  },
+  "publishVehicleUpserted": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/vehicleUpserted"
+   },
+   "description": "Published when a vehicle is added and whenever one of its fields changes.",
+   "title": "goway-auth publishes"
+  },
+  "publishVehicleRemoved": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/vehicleRemoved"
+   },
+   "description": "Published when a carrier removes a vehicle.",
+   "title": "goway-auth publishes"
+  },
+  "publishCarrierDocumentUpdated": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/carrierDocumentUpdated"
+   },
+   "description": "Published when a carrier uploads a document; it waits for review.",
+   "title": "goway-auth publishes"
+  },
+  "publishCarrierDocumentReviewed": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/carrierDocumentReviewed"
+   },
+   "description": "Published on an operator's document decision.",
+   "title": "goway-auth publishes"
+  },
+  "publishCarrierDocumentExpired": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/carrierDocumentExpired"
+   },
+   "description": "Published by the hourly document sweep.",
+   "title": "goway-auth publishes"
+  },
+  "publishCarrierDocumentExpiring": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/carrierDocumentExpiring"
+   },
+   "description": "Published by the hourly document sweep, once per document.",
+   "title": "goway-auth publishes"
+  },
+  "publishCarrierVerificationChanged": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/carrierVerificationChanged"
+   },
+   "description": "Published when a carrier submits for verification, when a replaced document reopens it, and on an operator's decision.",
+   "title": "goway-auth publishes"
+  },
+  "publishSupportTicketCreated": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/supportTicketCreated"
+   },
+   "description": "Published when a ticket is opened.",
+   "title": "goway-auth publishes"
+  },
+  "publishSupportTicketReplied": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/supportTicketReplied"
+   },
+   "description": "Published when an admin replies to a ticket.",
+   "title": "goway-auth publishes"
+  },
+  "publishDriverStatsChanged": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/driverStatsChanged"
+   },
+   "description": "Published after a completed haul or a new rating is counted.",
+   "title": "goway-auth publishes"
+  },
+  "publishLoadPosted": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/loadPosted"
+   },
+   "description": "Published once per truck of a new post, and again with `reposted: true` when a booking is cancelled.",
+   "title": "goway-loads publishes"
+  },
+  "publishLoadCancelled": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/loadCancelled"
+   },
+   "description": "Published when the shipper cancels a load that is not booked.",
+   "title": "goway-loads publishes"
+  },
+  "publishLoadExpired": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/loadExpired"
+   },
+   "description": "Published by the expiry sweep, every five minutes.",
+   "title": "goway-loads publishes"
+  },
+  "publishOfferCreated": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/offerCreated"
+   },
+   "description": "Published on a carrier request and on every counter-offer.",
+   "title": "goway-loads publishes"
+  },
+  "publishOfferAccepted": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/offerAccepted"
+   },
+   "description": "Published with `booking.created` when either side accepts an offer.",
+   "title": "goway-loads publishes"
+  },
+  "publishBookingCreated": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/bookingCreated"
+   },
+   "description": "Published on an accepted offer and on an instant claim from dispatch (with `source: instant`).",
+   "title": "goway-loads publishes"
+  },
+  "publishBookingStatusChanged": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/bookingStatusChanged"
+   },
+   "description": "Published at every carrier step from `confirmed` to `delivered`.",
+   "title": "goway-loads publishes"
+  },
+  "publishBookingEtaUpdated": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/bookingEtaUpdated"
+   },
+   "description": "Published at booking, at every carrier step, and on fresh GPS while the truck is moving.",
+   "title": "goway-loads publishes"
+  },
+  "publishBookingCompleted": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/bookingCompleted"
+   },
+   "description": "Published when the shipper confirms, an operator completes, or the auto-complete sweep closes the haul.",
+   "title": "goway-loads publishes"
+  },
+  "publishBookingCancelled": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/bookingCancelled"
+   },
+   "description": "Published when either side or an operator cancels a booking.",
+   "title": "goway-loads publishes"
+  },
+  "publishBookingAmountClaimed": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/bookingAmountClaimed"
+   },
+   "description": "Published when a shipper or carrier claims another sum.",
+   "title": "goway-loads publishes"
+  },
+  "publishBookingAmountSettled": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/bookingAmountSettled"
+   },
+   "description": "Published when an operator accepts a claim; a rejected claim publishes nothing.",
+   "title": "goway-loads publishes"
+  },
+  "publishBookingReturnLoads": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/bookingReturnLoads"
+   },
+   "description": "Published by the return-offer sweep, every ten minutes, once per haul.",
+   "title": "goway-loads publishes"
+  },
+  "publishRatingCreated": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/ratingCreated"
+   },
+   "description": "Published once per haul when the shipper rates it.",
+   "title": "goway-loads publishes"
+  },
+  "publishWalletEntryPosted": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/walletEntryPosted"
+   },
+   "description": "Published for every new ledger line: commissions, cash, adjustments, subscriptions, promos, referrals and bonus moves.",
+   "title": "goway-billing publishes"
+  },
+  "publishWalletEligibilityChanged": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/walletEligibilityChanged"
+   },
+   "description": "Published once per user of the organization whenever the wallet's eligibility flips, or once with a null `user_id` when billing knows no user of it.",
+   "title": "goway-billing publishes"
+  },
+  "publishWalletToppedUp": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/walletToppedUp"
+   },
+   "description": "Published when an operator records a cash payment.",
+   "title": "goway-billing publishes"
+  },
+  "publishNotificationCreated": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/notificationCreated"
+   },
+   "description": "Published for every feed row: from an event's delivery plan, or from an admin announcement.",
+   "title": "goway-notify publishes"
+  },
+  "publishDevicePushFailed": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/devicePushFailed"
+   },
+   "description": "Published when a push comes back with a dead-token answer.",
+   "title": "goway-notify publishes"
+  },
+  "publishRegionChanged": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/regionChanged"
+   },
+   "description": "Published when an admin sets a region's active flag.",
+   "title": "goway-geo publishes"
+  },
+  "publishSettingsChanged": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/settingsChanged"
+   },
+   "description": "Published by goway-lib in every Python service with runtime settings, and by goway-realtime, on change or reset.",
+   "title": "['goway-auth', 'goway-loads', 'goway-billing', 'goway-notify', 'goway-realtime'] publishes"
+  },
+  "publishDriverOnline": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/driverOnline"
+   },
+   "description": "Published on every accepted `go_online` frame.",
+   "title": "goway-realtime publishes"
+  },
+  "publishDriverOffline": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/driverOffline"
+   },
+   "description": "Published on `go_offline`, line expiry, the end of the disconnect grace, and session revocation.",
+   "title": "goway-realtime publishes"
+  },
+  "publishLocationSampled": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/locationSampled"
+   },
+   "description": "Published at most every `location_sample_seconds` while the driver has an active booking.",
+   "title": "goway-realtime publishes"
+  },
+  "publishDispatchOffered": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/dispatchOffered"
+   },
+   "description": "Published after every offer wave that reached at least one driver.",
+   "title": "goway-realtime publishes"
+  }
+ },
+ "components": {
+  "messages": {
+   "userCreated": {
+    "name": "user.created",
+    "title": "User created",
+    "payload": {
+     "title": "UserCreated",
+     "description": "An account came into being. Three paths publish it with different fields: self-signup sends `account_type`; an admin create sends `first_name` and `last_name`, either of which may be null; an admin restore of a soft-deleted account sends `updated_at`. `user_id`, `org_id`, `role`, `phone` and `language` are always sent.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "role": {
+       "type": "string",
+       "description": "Role name. Self-signup sends `shipper` or `carrier`, an admin create the role it picked, a restore the stored role or an empty string when the user has none."
+      },
+      "account_type": {
+       "title": "AccountType",
+       "type": "string",
+       "enum": [
+        "individual",
+        "business"
+       ]
+      },
+      "phone": {
+       "type": "string",
+       "description": "E.164 number, `+998…`. A restore sends the stored value, which is `del:…` for an account its owner deleted."
+      },
+      "language": {
+       "type": "string",
+       "description": "App language code: uz, uzc, ru, en, kaa or zh."
+      },
+      "first_name": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "description": "Admin create only; null when the admin gave none."
+      },
+      "last_name": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "description": "Admin create only; null when the admin gave none."
+      },
+      "updated_at": {
+       "type": "string",
+       "format": "date-time",
+       "description": "Admin restore only: when the account came back. ISO 8601 with offset, as Python's `isoformat()` writes it."
+      }
+     },
+     "required": [
+      "event_id",
+      "user_id",
+      "org_id",
+      "role",
+      "phone",
+      "language"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Admin create",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e14",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e15",
+       "role": "operator",
+       "phone": "+998935551122",
+       "language": "ru",
+       "first_name": "Dilnoza",
+       "last_name": null
+      }
+     },
+     {
+      "name": "Restore",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e14",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e15",
+       "phone": "+998901234567",
+       "role": "shipper",
+       "language": "uzc",
+       "updated_at": "2026-10-14T09:30:00.123456+00:00"
+      }
+     },
+     {
+      "name": "Signup",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e14",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e15",
+       "role": "carrier",
+       "account_type": "individual",
+       "phone": "+998901234567",
+       "language": "uz"
+      }
+     }
+    ]
+   },
+   "userUpdated": {
+    "name": "user.updated",
+    "title": "User updated",
+    "payload": {
+     "title": "UserUpdated",
+     "description": "Something about an account changed. Only what changed is sent, besides `user_id` and `updated_at`, and five paths send five field sets: a confirmed phone change sends `phone`; the account settings screen any of `language`, `currency`, `theme`, `notification_prefs`; a role switch `role`; an admin edit any of `phone`, `language`, `first_name`, `last_name`, plus `role` whenever the admin named one; a profile edit `first_name`, `last_name`, `email` and `avatar_url` together, each of them possibly null.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "phone": {
+       "type": "string",
+       "description": "New E.164 number, `+998…`."
+      },
+      "language": {
+       "type": "string",
+       "description": "App language code: uz, uzc, ru, en, kaa or zh."
+      },
+      "currency": {
+       "title": "DisplayCurrency",
+       "type": "string",
+       "enum": [
+        "UZS",
+        "USD",
+        "RUB",
+        "KZT"
+       ],
+       "description": "Display currency; charges stay in UZS."
+      },
+      "theme": {
+       "title": "Theme",
+       "type": "string",
+       "enum": [
+        "light",
+        "dark",
+        "system"
+       ],
+       "description": "App theme."
+      },
+      "notification_prefs": {
+       "title": "NotificationPrefs",
+       "description": "Every switch, sent whole whenever one of them changed.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "offers": {
+         "type": "boolean",
+         "description": "Push for new offers and dispatch results."
+        },
+        "orders": {
+         "type": "boolean",
+         "description": "Push for booking status changes."
+        },
+        "marketing": {
+         "type": "boolean",
+         "description": "Promotions and news."
+        },
+        "sms": {
+         "type": "boolean",
+         "description": "SMS fallback for critical events."
+        }
+       },
+       "required": [
+        "offers",
+        "orders",
+        "marketing",
+        "sms"
+       ]
+      },
+      "role": {
+       "type": "string",
+       "description": "Role name: `shipper` or `carrier` from a role switch, any role from an admin edit."
+      },
+      "first_name": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "description": "Null only from a profile edit, when the profile has no first name."
+      },
+      "last_name": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "description": "Null only from a profile edit, when the profile has no last name."
+      },
+      "email": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "description": "Profile edit only; null when the profile has no email."
+      },
+      "avatar_url": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "description": "Profile edit only. Public avatar address; null when there is none or it would expire."
+      },
+      "updated_at": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the change was made. ISO 8601 with offset, as Python's `isoformat()` writes it."
+      }
+     },
+     "required": [
+      "event_id",
+      "user_id",
+      "updated_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Admin edit",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "phone": "+998977001122",
+       "first_name": "Sardor",
+       "role": "carrier",
+       "updated_at": "2026-10-14T09:30:00.123456+00:00"
+      }
+     },
+     {
+      "name": "Phone change",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "phone": "+998977001122",
+       "updated_at": "2026-10-14T09:30:00.123456+00:00"
+      }
+     },
+     {
+      "name": "Profile",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "first_name": "Sardor",
+       "last_name": "Rahimov",
+       "email": null,
+       "avatar_url": null,
+       "updated_at": "2026-10-14T09:30:00.123456+00:00"
+      }
+     },
+     {
+      "name": "Role switch",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "role": "shipper",
+       "updated_at": "2026-10-14T09:30:00.123456+00:00"
+      }
+     },
+     {
+      "name": "Settings",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "language": "kaa",
+       "currency": "UZS",
+       "theme": "dark",
+       "notification_prefs": {
+        "offers": true,
+        "orders": true,
+        "marketing": false,
+        "sms": true
+       },
+       "updated_at": "2026-10-14T09:30:00.123456+00:00"
+      }
+     }
+    ]
+   },
+   "userDeleted": {
+    "name": "user.deleted",
+    "title": "User deleted",
+    "payload": {
+     "title": "UserDeleted",
+     "description": "An account was deleted: by its owner, without `updated_at`, or by an admin, soft or hard, with `updated_at`.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "updated_at": {
+       "type": "string",
+       "format": "date-time",
+       "description": "Admin deletes only: when the account was deleted. ISO 8601 with offset, as Python's `isoformat()` writes it."
+      }
+     },
+     "required": [
+      "event_id",
+      "user_id",
+      "org_id"
+     ]
+    },
+    "examples": [
+     {
+      "name": "By admin",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "updated_at": "2026-10-14T09:30:00.123456+00:00"
+      }
+     },
+     {
+      "name": "By owner",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05"
+      }
+     }
+    ]
+   },
+   "userLogin": {
+    "name": "user.login",
+    "title": "User signed in",
+    "payload": {
+     "title": "UserLogin",
+     "description": "Somebody signed in to the account: by code, password, password reset or phone change. The device fields are null when the app sent no device.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "device_id": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "uuid",
+       "description": "Device row the session belongs to."
+      },
+      "installation_id": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "description": "The app install's own id."
+      },
+      "platform": {
+       "anyOf": [
+        {
+         "title": "DevicePlatform",
+         "type": "string",
+         "enum": [
+          "android",
+          "ios",
+          "web"
+         ]
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Device platform."
+      },
+      "model": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "description": "Device model as the app reported it."
+      },
+      "new_device": {
+       "type": "boolean",
+       "description": "True the first time this install signs in, or when a removed device comes back."
+      },
+      "ip": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "description": "Client address."
+      },
+      "at": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the sign-in happened. ISO 8601 with offset, as Python's `isoformat()` writes it."
+      }
+     },
+     "required": [
+      "event_id",
+      "user_id",
+      "device_id",
+      "installation_id",
+      "platform",
+      "model",
+      "new_device",
+      "ip",
+      "at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "New device",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "device_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0d",
+       "installation_id": "c4f1e2d3a5b6c7d8",
+       "platform": "android",
+       "model": "Samsung SM-A525F",
+       "new_device": true,
+       "ip": "213.230.97.14",
+       "at": "2026-10-14T09:30:00.123456+00:00"
+      }
+     },
+     {
+      "name": "No device",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "device_id": null,
+       "installation_id": null,
+       "platform": null,
+       "model": null,
+       "new_device": false,
+       "ip": "213.230.97.14",
+       "at": "2026-10-14T09:30:00.123456+00:00"
+      }
+     }
+    ]
+   },
+   "userSessionRevoked": {
+    "name": "user.session_revoked",
+    "title": "Sessions revoked",
+    "payload": {
+     "title": "UserSessionRevoked",
+     "description": "Every session of the account was closed; each app must sign in again.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "reason": {
+       "type": "string",
+       "description": "Why: `password_change`, `password_reset`, `phone_change`, `deleted`, `blocked`, or the free text an admin wrote when blocking the account."
+      }
+     },
+     "required": [
+      "event_id",
+      "user_id",
+      "reason"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Blocked by admin",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "reason": "Soxta hujjatlar"
+      }
+     },
+     {
+      "name": "Password change",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "reason": "password_change"
+      }
+     }
+    ]
+   },
+   "userSessionsClosed": {
+    "name": "user.sessions_closed",
+    "title": "Sessions closed",
+    "payload": {
+     "title": "UserSessionsClosed",
+     "description": "Some of the account's sessions were closed from another device; those installs must sign in again.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "installation_ids": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "minItems": 1,
+       "description": "Installs whose sessions were closed; never empty."
+      },
+      "reason": {
+       "type": "string",
+       "description": "Always `logout` today."
+      }
+     },
+     "required": [
+      "event_id",
+      "user_id",
+      "installation_ids",
+      "reason"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "installation_ids": [
+        "c4f1e2d3a5b6c7d8",
+        "9a8b7c6d5e4f3a2b"
+       ],
+       "reason": "logout"
+      }
+     }
+    ]
+   },
+   "deviceUpserted": {
+    "name": "device.upserted",
+    "title": "Device registered",
+    "payload": {
+     "title": "DeviceUpserted",
+     "description": "A device was registered or came back after removal, or its push token changed or was cleared (signing out clears it).",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "device_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "platform": {
+       "title": "DevicePlatform",
+       "type": "string",
+       "enum": [
+        "android",
+        "ios",
+        "web"
+       ]
+      },
+      "push_token": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "description": "FCM registration token; null when the device can no longer be pushed."
+      }
+     },
+     "required": [
+      "event_id",
+      "device_id",
+      "user_id",
+      "platform",
+      "push_token"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "device_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0d",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "platform": "ios",
+       "push_token": "fcm:APA91bH-x7"
+      }
+     },
+     {
+      "name": "Signed out",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "device_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0d",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "platform": "ios",
+       "push_token": null
+      }
+     }
+    ]
+   },
+   "deviceRemoved": {
+    "name": "device.removed",
+    "title": "Device removed",
+    "payload": {
+     "title": "DeviceRemoved",
+     "description": "The owner removed a device; its sessions are closed and it is pushed no more.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "device_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "installation_id": {
+       "type": "string",
+       "description": "The app install's own id."
+      }
+     },
+     "required": [
+      "event_id",
+      "device_id",
+      "user_id",
+      "installation_id"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "device_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0d",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "installation_id": "c4f1e2d3a5b6c7d8"
+      }
+     }
+    ]
+   },
+   "orgUpdated": {
+    "name": "org.updated",
+    "title": "Organization updated",
+    "payload": {
+     "title": "OrgUpdated",
+     "description": "An organization's details changed. Only what changed is sent, besides `org_id` and `updated_at`: a role switch sends `kind` and `account_type`; the organization screen any of `name`, `legal_name`, `inn`, `contact_phone`, `address`.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "kind": {
+       "type": "string",
+       "description": "Market side: `shipper` or `carrier`."
+      },
+      "account_type": {
+       "title": "AccountType",
+       "type": "string",
+       "enum": [
+        "individual",
+        "business"
+       ]
+      },
+      "name": {
+       "type": "string",
+       "description": "Display name."
+      },
+      "legal_name": {
+       "type": "string",
+       "description": "Registered company name."
+      },
+      "inn": {
+       "type": "string",
+       "description": "Tax id (STIR/INN), 9 digits."
+      },
+      "contact_phone": {
+       "type": "string",
+       "description": "E.164 number, `+998…`."
+      },
+      "address": {
+       "type": "string"
+      },
+      "updated_at": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the change was made. ISO 8601 with offset, as Python's `isoformat()` writes it."
+      }
+     },
+     "required": [
+      "event_id",
+      "org_id",
+      "updated_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Details",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "name": "Samarqand Agro",
+       "inn": "305123456",
+       "contact_phone": "+998662345678",
+       "updated_at": "2026-10-14T09:30:00.123456+00:00"
+      }
+     },
+     {
+      "name": "Role switch",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "kind": "shipper",
+       "account_type": "business",
+       "updated_at": "2026-10-14T09:30:00.123456+00:00"
+      }
+     }
+    ]
+   },
+   "vehicleUpserted": {
+    "name": "vehicle.upserted",
+    "title": "Vehicle saved",
+    "payload": {
+     "title": "VehicleUpserted",
+     "description": "A fleet vehicle was added or changed; the whole vehicle is sent every time.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "vehicle_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "plate_number": {
+       "type": "string",
+       "description": "Normalized plate: no spaces, upper case."
+      },
+      "truck_class": {
+       "type": "string",
+       "description": "Truck class code from the reference list."
+      },
+      "capabilities": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "description": "Capability codes: rear_ramp, open_top, side_curtain, tail_lift, refrigerated."
+      },
+      "loading_method": {
+       "type": "string",
+       "description": "How the vehicle is loaded: `top`, `rear` or `both`."
+      },
+      "capacity_kg": {
+       "type": [
+        "integer",
+        "null"
+       ],
+       "minimum": 0,
+       "description": "Payload in kilograms; null when not given."
+      },
+      "updated_at": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the vehicle was saved. ISO 8601 with offset, as Python's `isoformat()` writes it."
+      }
+     },
+     "required": [
+      "event_id",
+      "vehicle_id",
+      "org_id",
+      "plate_number",
+      "truck_class",
+      "capabilities",
+      "loading_method",
+      "capacity_kg",
+      "updated_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "vehicle_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e09",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "plate_number": "01A777AA",
+       "truck_class": "tent_20t",
+       "capabilities": [
+        "side_curtain",
+        "tail_lift"
+       ],
+       "loading_method": "both",
+       "capacity_kg": 20000,
+       "updated_at": "2026-10-14T09:30:00.123456+00:00"
+      }
+     }
+    ]
+   },
+   "vehicleRemoved": {
+    "name": "vehicle.removed",
+    "title": "Vehicle removed",
+    "payload": {
+     "title": "VehicleRemoved",
+     "description": "A fleet vehicle was removed.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "vehicle_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid"
+      }
+     },
+     "required": [
+      "event_id",
+      "vehicle_id",
+      "org_id"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "vehicle_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e09",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05"
+      }
+     }
+    ]
+   },
+   "carrierDocumentUpdated": {
+    "name": "carrier.document_updated",
+    "title": "Document submitted",
+    "payload": {
+     "title": "CarrierDocumentUpdated",
+     "description": "A carrier submitted a new version of a document; it waits for review.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "kind": {
+       "title": "DocumentKind",
+       "type": "string",
+       "enum": [
+        "passport",
+        "driver_license",
+        "tech_passport",
+        "vehicle_photo",
+        "power_of_attorney"
+       ]
+      },
+      "status": {
+       "type": "string",
+       "description": "Always `pending` today."
+      },
+      "version": {
+       "type": "integer",
+       "minimum": 1,
+       "description": "Version of this document kind, from 1."
+      }
+     },
+     "required": [
+      "event_id",
+      "org_id",
+      "kind",
+      "status",
+      "version"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "kind": "driver_license",
+       "status": "pending",
+       "version": 2
+      }
+     }
+    ]
+   },
+   "carrierDocumentReviewed": {
+    "name": "carrier.document_reviewed",
+    "title": "Document reviewed",
+    "payload": {
+     "title": "CarrierDocumentReviewed",
+     "description": "An operator approved or rejected a carrier's document.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "kind": {
+       "title": "DocumentKind",
+       "type": "string",
+       "enum": [
+        "passport",
+        "driver_license",
+        "tech_passport",
+        "vehicle_photo",
+        "power_of_attorney"
+       ]
+      },
+      "status": {
+       "title": "ReviewDecision",
+       "type": "string",
+       "enum": [
+        "approved",
+        "rejected"
+       ],
+       "description": "The decision."
+      },
+      "note": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "description": "What the operator wrote; a rejection always has one."
+      }
+     },
+     "required": [
+      "event_id",
+      "org_id",
+      "kind",
+      "status",
+      "note"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Approved",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "kind": "passport",
+       "status": "approved",
+       "note": null
+      }
+     },
+     {
+      "name": "Rejected",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "kind": "tech_passport",
+       "status": "rejected",
+       "note": "Rasm xira, qaytadan yuklang"
+      }
+     }
+    ]
+   },
+   "carrierDocumentExpired": {
+    "name": "carrier.document_expired",
+    "title": "Document expired",
+    "payload": {
+     "title": "CarrierDocumentExpired",
+     "description": "A carrier's document passed its expiry date; the hourly sweep marked it expired.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "kind": {
+       "title": "DocumentKind",
+       "type": "string",
+       "enum": [
+        "passport",
+        "driver_license",
+        "tech_passport",
+        "vehicle_photo",
+        "power_of_attorney"
+       ]
+      },
+      "expired_at": {
+       "type": "string",
+       "format": "date-time",
+       "description": "The document's expiry date. ISO 8601 with offset, as Python's `isoformat()` writes it."
+      }
+     },
+     "required": [
+      "event_id",
+      "org_id",
+      "kind",
+      "expired_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "kind": "power_of_attorney",
+       "expired_at": "2026-10-14T00:00:00+00:00"
+      }
+     }
+    ]
+   },
+   "carrierDocumentExpiring": {
+    "name": "carrier.document_expiring",
+    "title": "Document expiring",
+    "payload": {
+     "title": "CarrierDocumentExpiring",
+     "description": "A carrier's document expires within the warning window; sent once per document.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "kind": {
+       "title": "DocumentKind",
+       "type": "string",
+       "enum": [
+        "passport",
+        "driver_license",
+        "tech_passport",
+        "vehicle_photo",
+        "power_of_attorney"
+       ]
+      },
+      "expires_at": {
+       "type": "string",
+       "format": "date-time",
+       "description": "The document's expiry date. ISO 8601 with offset, as Python's `isoformat()` writes it."
+      }
+     },
+     "required": [
+      "event_id",
+      "org_id",
+      "kind",
+      "expires_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "kind": "power_of_attorney",
+       "expires_at": "2026-10-28T00:00:00+00:00"
+      }
+     }
+    ]
+   },
+   "carrierVerificationChanged": {
+    "name": "carrier.verification_changed",
+    "title": "Verification changed",
+    "payload": {
+     "title": "CarrierVerificationChanged",
+     "description": "A carrier organization's verification moved: submitted or reopened by a replaced document (`pending`), or decided by an operator.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "status": {
+       "title": "VerificationStatus",
+       "type": "string",
+       "enum": [
+        "pending",
+        "approved",
+        "rejected"
+       ],
+       "description": "The new verification status."
+      }
+     },
+     "required": [
+      "event_id",
+      "org_id",
+      "status"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "status": "approved"
+      }
+     }
+    ]
+   },
+   "supportTicketCreated": {
+    "name": "support.ticket_created",
+    "title": "Ticket opened",
+    "payload": {
+     "title": "SupportTicketCreated",
+     "description": "A user opened a support ticket.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "ticket_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "number": {
+       "type": "string",
+       "description": "Reference the user sees: `T-` and six characters, for example `T-7KQ2MZ`."
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "topic": {
+       "title": "SupportTopic",
+       "type": "string",
+       "enum": [
+        "suggestion",
+        "complaint",
+        "bug",
+        "payment",
+        "order",
+        "driver",
+        "app",
+        "documents",
+        "other"
+       ],
+       "description": "What the ticket is about."
+      },
+      "order_id": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "uuid",
+       "description": "The haul the ticket is about; null when none was named."
+      }
+     },
+     "required": [
+      "event_id",
+      "ticket_id",
+      "number",
+      "user_id",
+      "topic",
+      "order_id"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "ticket_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e11",
+       "number": "T-7KQ2MZ",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0c",
+       "topic": "payment",
+       "order_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02"
+      }
+     },
+     {
+      "name": "No order",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "ticket_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e11",
+       "number": "T-7KQ2MZ",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0c",
+       "topic": "app",
+       "order_id": null
+      }
+     }
+    ]
+   },
+   "supportTicketReplied": {
+    "name": "support.ticket_replied",
+    "title": "Ticket answered",
+    "payload": {
+     "title": "SupportTicketReplied",
+     "description": "Support answered or closed a ticket.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "ticket_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "number": {
+       "type": "string",
+       "description": "Reference the user sees: `T-` and six characters, for example `T-7KQ2MZ`."
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Who opened the ticket."
+      },
+      "status": {
+       "title": "TicketReplyStatus",
+       "type": "string",
+       "enum": [
+        "answered",
+        "closed"
+       ],
+       "description": "The ticket's status after the reply."
+      }
+     },
+     "required": [
+      "event_id",
+      "ticket_id",
+      "number",
+      "user_id",
+      "status"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "ticket_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e11",
+       "number": "T-7KQ2MZ",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0c",
+       "status": "answered"
+      }
+     }
+    ]
+   },
+   "driverStatsChanged": {
+    "name": "driver.stats_changed",
+    "title": "Driver stats changed",
+    "payload": {
+     "title": "DriverStatsChanged",
+     "description": "A driver's completed-haul count or rating changed. Counters only grow, so a late older event is recognisable.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "completed_count": {
+       "type": "integer",
+       "minimum": 0
+      },
+      "rating_avg": {
+       "type": [
+        "number",
+        "null"
+       ],
+       "minimum": 1,
+       "maximum": 5,
+       "description": "Null until the first rating."
+      },
+      "rating_count": {
+       "type": "integer",
+       "minimum": 0
+      }
+     },
+     "required": [
+      "event_id",
+      "user_id",
+      "completed_count",
+      "rating_avg",
+      "rating_count"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "completed_count": 42,
+       "rating_avg": 4.75,
+       "rating_count": 40
+      }
+     },
+     {
+      "name": "Null rating",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "completed_count": 0,
+       "rating_avg": null,
+       "rating_count": 0
+      }
+     }
+    ]
+   },
+   "loadPosted": {
+    "name": "load.posted",
+    "title": "Load posted",
+    "payload": {
+     "title": "LoadPosted",
+     "description": "A load is open on the board: just posted (one event per truck of a multi-truck post), or back on the board after its booking was cancelled, which adds `reposted: true`.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "load_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The shipper organization."
+      },
+      "from_region_id": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "uuid",
+       "description": "Pickup region; null when the address resolved to none."
+      },
+      "to_region_id": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "uuid",
+       "description": "Drop-off region; null when the address resolved to none."
+      },
+      "truck_class": {
+       "type": "string",
+       "description": "Truck class code from the reference list."
+      },
+      "loading_method": {
+       "type": "string",
+       "description": "How the cargo goes in: `top` or `rear`."
+      },
+      "needs_refrigeration": {
+       "type": "boolean"
+      },
+      "allow_instant": {
+       "type": "boolean",
+       "description": "Whether instant dispatch may offer the load."
+      },
+      "price_mode": {
+       "title": "PriceMode",
+       "type": "string",
+       "enum": [
+        "fixed",
+        "negotiable"
+       ]
+      },
+      "asking_amount": {
+       "type": [
+        "integer",
+        "null"
+       ],
+       "minimum": 0,
+       "description": "The shipper's price, whole so'm (a bare integer; `currency` is UZS today); null when it asks for offers."
+      },
+      "bonus_amount": {
+       "type": [
+        "integer",
+        "null"
+       ],
+       "minimum": 0,
+       "description": "Shipper bonus set aside for this truck, whole so'm (a bare integer; `currency` is UZS today); null when none."
+      },
+      "suggested_amount": {
+       "type": [
+        "integer",
+        "null"
+       ],
+       "minimum": 0,
+       "description": "Market price GoWay suggested, whole so'm (a bare integer; `currency` is UZS today); null when there was none."
+      },
+      "currency": {
+       "type": "string",
+       "minLength": 3,
+       "maxLength": 3,
+       "description": "ISO 4217 code; `UZS` today."
+      },
+      "weight_kg": {
+       "type": "integer",
+       "minimum": 0
+      },
+      "pickup_from": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "date-time",
+       "description": "Earliest pickup; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it."
+      },
+      "pickup_to": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "date-time",
+       "description": "Latest pickup, also the posting's expiry; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it."
+      },
+      "pickup_lat": {
+       "type": [
+        "number",
+        "null"
+       ],
+       "description": "Pickup point latitude; null only when the load has no stops."
+      },
+      "pickup_lng": {
+       "type": [
+        "number",
+        "null"
+       ],
+       "description": "Pickup point longitude; null only when the load has no stops."
+      },
+      "group_id": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "uuid",
+       "description": "Shared by the sibling loads of one multi-truck post; null for a single truck."
+      },
+      "is_urgent": {
+       "type": "boolean"
+      },
+      "payment_method": {
+       "title": "PaymentMethod",
+       "type": "string",
+       "enum": [
+        "cash",
+        "transfer",
+        "card",
+        "mixed"
+       ]
+      },
+      "reposted": {
+       "type": "boolean",
+       "description": "Present, and true, only when a cancelled booking put the load back."
+      }
+     },
+     "required": [
+      "event_id",
+      "load_id",
+      "org_id",
+      "from_region_id",
+      "to_region_id",
+      "truck_class",
+      "loading_method",
+      "needs_refrigeration",
+      "allow_instant",
+      "price_mode",
+      "asking_amount",
+      "bonus_amount",
+      "suggested_amount",
+      "currency",
+      "weight_kg",
+      "pickup_from",
+      "pickup_to",
+      "pickup_lat",
+      "pickup_lng",
+      "group_id",
+      "is_urgent",
+      "payment_method"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Fixed",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "from_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
+       "to_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
+       "truck_class": "tent_20t",
+       "loading_method": "rear",
+       "needs_refrigeration": false,
+       "allow_instant": true,
+       "price_mode": "fixed",
+       "asking_amount": 4500000,
+       "bonus_amount": null,
+       "suggested_amount": 4300000,
+       "currency": "UZS",
+       "weight_kg": 18000,
+       "pickup_from": "2026-10-15T03:00:00+00:00",
+       "pickup_to": "2026-10-15T09:00:00+00:00",
+       "pickup_lat": 41.311081,
+       "pickup_lng": 69.240562,
+       "group_id": null,
+       "is_urgent": false,
+       "payment_method": "cash"
+      }
+     },
+     {
+      "name": "Negotiable reposted",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "from_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
+       "to_region_id": null,
+       "truck_class": "tent_20t",
+       "loading_method": "rear",
+       "needs_refrigeration": false,
+       "allow_instant": false,
+       "price_mode": "negotiable",
+       "asking_amount": null,
+       "bonus_amount": 150000,
+       "suggested_amount": null,
+       "currency": "UZS",
+       "weight_kg": 18000,
+       "pickup_from": null,
+       "pickup_to": null,
+       "pickup_lat": 41.311081,
+       "pickup_lng": 69.240562,
+       "group_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e12",
+       "is_urgent": true,
+       "payment_method": "transfer",
+       "reposted": true
+      }
+     }
+    ]
+   },
+   "loadCancelled": {
+    "name": "load.cancelled",
+    "title": "Load cancelled",
+    "payload": {
+     "title": "LoadCancelled",
+     "description": "The shipper withdrew an open load.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "load_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The shipper organization."
+      }
+     },
+     "required": [
+      "event_id",
+      "load_id",
+      "org_id"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04"
+      }
+     }
+    ]
+   },
+   "loadExpired": {
+    "name": "load.expired",
+    "title": "Load expired",
+    "payload": {
+     "title": "LoadExpired",
+     "description": "An open load passed its expiry unbooked; the sweep closed it.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "load_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The shipper organization."
+      }
+     },
+     "required": [
+      "event_id",
+      "load_id",
+      "org_id"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04"
+      }
+     }
+    ]
+   },
+   "offerCreated": {
+    "name": "offer.created",
+    "title": "Offer made",
+    "payload": {
+     "title": "OfferCreated",
+     "description": "A carrier asked for a load, or either side countered the other's price.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "offer_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "load_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "kind": {
+       "title": "OfferKind",
+       "type": "string",
+       "enum": [
+        "carrier_request",
+        "carrier_counter",
+        "shipper_counter"
+       ],
+       "description": "Who made the offer and how."
+      },
+      "carrier_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "shipper_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "amount": {
+       "type": "integer",
+       "minimum": 0,
+       "description": "Offered price, whole so'm (a bare integer; `currency` is UZS today)."
+      },
+      "currency": {
+       "type": "string",
+       "minLength": 3,
+       "maxLength": 3,
+       "description": "ISO 4217 code; `UZS` today."
+      }
+     },
+     "required": [
+      "event_id",
+      "offer_id",
+      "load_id",
+      "kind",
+      "carrier_org_id",
+      "shipper_org_id",
+      "amount",
+      "currency"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Carrier request",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "offer_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "kind": "carrier_request",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "amount": 4200000,
+       "currency": "UZS"
+      }
+     },
+     {
+      "name": "Shipper counter",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "offer_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "kind": "shipper_counter",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "amount": 4350000,
+       "currency": "UZS"
+      }
+     }
+    ]
+   },
+   "offerAccepted": {
+    "name": "offer.accepted",
+    "title": "Offer accepted",
+    "payload": {
+     "title": "OfferAccepted",
+     "description": "An offer was accepted and became a booking; published together with `booking.created`.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "offer_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "load_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "booking_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "shipper_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "carrier_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "driver_user_id": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "uuid",
+       "description": "The driver who made the offer; the code allows null, an offer always has one."
+      }
+     },
+     "required": [
+      "event_id",
+      "offer_id",
+      "load_id",
+      "booking_id",
+      "shipper_org_id",
+      "carrier_org_id",
+      "driver_user_id"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "offer_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06"
+      }
+     }
+    ]
+   },
+   "bookingCreated": {
+    "name": "booking.created",
+    "title": "Booking created",
+    "payload": {
+     "title": "BookingCreated",
+     "description": "A load was booked. Two paths: an accepted offer, or an instant claim from dispatch, which adds `source: instant`.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "booking_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "load_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "shipper_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "carrier_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "driver_user_id": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "uuid",
+       "description": "The driver; the offer path allows null, a booking always has one."
+      },
+      "agreed_amount": {
+       "type": "integer",
+       "minimum": 0,
+       "description": "Agreed price, whole so'm (a bare integer; `currency` is UZS today)."
+      },
+      "currency": {
+       "type": "string",
+       "minLength": 3,
+       "maxLength": 3,
+       "description": "ISO 4217 code; `UZS` today."
+      },
+      "source": {
+       "type": "string",
+       "description": "Present only for an instant claim, and then always `instant`."
+      }
+     },
+     "required": [
+      "event_id",
+      "booking_id",
+      "load_id",
+      "shipper_org_id",
+      "carrier_org_id",
+      "driver_user_id",
+      "agreed_amount",
+      "currency"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Instant",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "agreed_amount": 4500000,
+       "currency": "UZS",
+       "source": "instant"
+      }
+     },
+     {
+      "name": "Offer",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "agreed_amount": 4350000,
+       "currency": "UZS"
+      }
+     }
+    ]
+   },
+   "bookingStatusChanged": {
+    "name": "booking.status_changed",
+    "title": "Haul moved on",
+    "payload": {
+     "title": "BookingStatusChanged",
+     "description": "The carrier moved the haul one step on: `en_route`, `at_pickup`, `loading`, `in_transit` or `delivered`. Completion and cancellation have their own subjects.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "booking_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "load_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "status": {
+       "title": "BookingStatus",
+       "type": "string",
+       "enum": [
+        "confirmed",
+        "en_route",
+        "at_pickup",
+        "loading",
+        "in_transit",
+        "delivered",
+        "completed",
+        "cancelled"
+       ]
+      },
+      "shipper_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "carrier_org_id": {
+       "type": "string",
+       "format": "uuid"
+      }
+     },
+     "required": [
+      "event_id",
+      "booking_id",
+      "load_id",
+      "status",
+      "shipper_org_id",
+      "carrier_org_id"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "status": "at_pickup",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05"
+      }
+     }
+    ]
+   },
+   "bookingEtaUpdated": {
+    "name": "booking.eta_updated",
+    "title": "Arrival window moved",
+    "payload": {
+     "title": "BookingEtaUpdated",
+     "description": "The arrival window or the time the truck is free again moved: when the haul is booked (`confirmed`), at every carrier step, and on fresh GPS while `en_route` or `in_transit`.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "booking_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "load_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "carrier_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "driver_user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "shipper_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "status": {
+       "title": "BookingStatus",
+       "type": "string",
+       "enum": [
+        "confirmed",
+        "en_route",
+        "at_pickup",
+        "loading",
+        "in_transit",
+        "delivered",
+        "completed",
+        "cancelled"
+       ]
+      },
+      "eta_stop": {
+       "anyOf": [
+        {
+         "title": "EtaStop",
+         "type": "string",
+         "enum": [
+          "pickup",
+          "dropoff"
+         ]
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Which stop the window is for; null when no arrival is expected any more."
+      },
+      "eta_from": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "date-time",
+       "description": "Earliest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's `isoformat()` writes it."
+      },
+      "eta_to": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "date-time",
+       "description": "Latest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's `isoformat()` writes it."
+      },
+      "free_at": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "date-time",
+       "description": "When the truck is expected to be empty again. ISO 8601 with offset, as Python's `isoformat()` writes it."
+      },
+      "free_region_id": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "uuid",
+       "description": "Where the truck will be free: the drop-off region; null when unknown."
+      },
+      "truck_class": {
+       "type": "string",
+       "description": "The booked vehicle's truck class code."
+      }
+     },
+     "required": [
+      "event_id",
+      "booking_id",
+      "load_id",
+      "carrier_org_id",
+      "driver_user_id",
+      "shipper_org_id",
+      "status",
+      "eta_stop",
+      "eta_from",
+      "eta_to",
+      "free_at",
+      "free_region_id",
+      "truck_class"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Delivered",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "status": "delivered",
+       "eta_stop": null,
+       "eta_from": null,
+       "eta_to": null,
+       "free_at": "2026-10-14T09:30:00.123456+00:00",
+       "free_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
+       "truck_class": "tent_20t"
+      }
+     },
+     {
+      "name": "En route",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "status": "en_route",
+       "eta_stop": "pickup",
+       "eta_from": "2026-10-14T10:05:00.123456+00:00",
+       "eta_to": "2026-10-14T10:25:00.123456+00:00",
+       "free_at": "2026-10-14T17:40:00.123456+00:00",
+       "free_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
+       "truck_class": "tent_20t"
+      }
+     }
+    ]
+   },
+   "bookingCompleted": {
+    "name": "booking.completed",
+    "title": "Booking completed",
+    "payload": {
+     "title": "BookingCompleted",
+     "description": "A delivered haul was closed: by the shipper, by an operator, or by the auto-complete sweep. All three send the same fields. Billing charges its commission from this event.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "booking_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "load_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "carrier_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "shipper_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "driver_user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "agreed_amount": {
+       "type": "integer",
+       "minimum": 0,
+       "description": "Price agreed at booking, whole so'm (a bare integer; `currency` is UZS today)."
+      },
+      "settled_amount": {
+       "type": "integer",
+       "minimum": 0,
+       "description": "What the haul actually settled at: the agreed price unless another sum was confirmed, whole so'm (a bare integer; `currency` is UZS today)."
+      },
+      "completed_at": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "date-time",
+       "description": "When the haul was closed; the code allows null, it is always set. ISO 8601 with offset, as Python's `isoformat()` writes it."
+      },
+      "completed_by": {
+       "title": "CompletedBy",
+       "type": "string",
+       "enum": [
+        "shipper",
+        "operator",
+        "system"
+       ],
+       "description": "Who closed the haul; `system` is the auto-complete sweep."
+      },
+      "charges": {
+       "type": "array",
+       "items": {
+        "title": "ChargeLine",
+        "description": "One priced line of the haul.",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+         "code": {
+          "type": "string",
+          "description": "`tariff`, `loaders` or `req:<requirement code>`."
+         },
+         "amount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Line total, whole so'm (a bare integer; `currency` is UZS today)."
+         },
+         "qty": {
+          "type": "integer",
+          "minimum": 1
+         }
+        },
+        "required": [
+         "code",
+         "amount",
+         "qty"
+        ]
+       },
+       "description": "Price lines; the first is always the agreed tariff."
+      },
+      "waiting_minutes": {
+       "type": "integer",
+       "minimum": 0,
+       "description": "Billable minutes the driver waited at pickup."
+      },
+      "waiting_amount": {
+       "type": "integer",
+       "minimum": 0,
+       "description": "What the waiting costs, whole so'm (a bare integer; `currency` is UZS today)."
+      },
+      "waiting_billable": {
+       "type": "boolean",
+       "description": "Whether the waiting is charged to the shipper."
+      },
+      "total_amount": {
+       "type": [
+        "integer",
+        "null"
+       ],
+       "minimum": 0,
+       "description": "Charges plus waiting, whole so'm (a bare integer; `currency` is UZS today); the code allows null."
+      },
+      "currency": {
+       "type": "string",
+       "minLength": 3,
+       "maxLength": 3,
+       "description": "ISO 4217 code; `UZS` today."
+      }
+     },
+     "required": [
+      "event_id",
+      "booking_id",
+      "load_id",
+      "carrier_org_id",
+      "shipper_org_id",
+      "driver_user_id",
+      "agreed_amount",
+      "settled_amount",
+      "completed_at",
+      "completed_by",
+      "charges",
+      "waiting_minutes",
+      "waiting_amount",
+      "waiting_billable",
+      "total_amount",
+      "currency"
+     ]
+    },
+    "examples": [
+     {
+      "name": "By shipper",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "agreed_amount": 4350000,
+       "settled_amount": 4350000,
+       "completed_at": "2026-10-14T09:30:00.123456+00:00",
+       "completed_by": "shipper",
+       "charges": [
+        {
+         "code": "tariff",
+         "amount": 4350000,
+         "qty": 1
+        },
+        {
+         "code": "loaders",
+         "amount": 200000,
+         "qty": 2
+        }
+       ],
+       "waiting_minutes": 25,
+       "waiting_amount": 50000,
+       "waiting_billable": true,
+       "total_amount": 4600000,
+       "currency": "UZS"
+      }
+     },
+     {
+      "name": "By sweep",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "agreed_amount": 4350000,
+       "settled_amount": 4100000,
+       "completed_at": "2026-10-14T09:30:00.123456+00:00",
+       "completed_by": "system",
+       "charges": [
+        {
+         "code": "tariff",
+         "amount": 4350000,
+         "qty": 1
+        }
+       ],
+       "waiting_minutes": 0,
+       "waiting_amount": 0,
+       "waiting_billable": true,
+       "total_amount": null,
+       "currency": "UZS"
+      }
+     }
+    ]
+   },
+   "bookingCancelled": {
+    "name": "booking.cancelled",
+    "title": "Booking cancelled",
+    "payload": {
+     "title": "BookingCancelled",
+     "description": "A booking ended before the cargo was loaded. The load goes back to the board. Two paths send the same fields: either side cancelling (`by` is `shipper` or `carrier`) and an operator (`by` is `operator`).",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "booking_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "load_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "by": {
+       "title": "CancelledBy",
+       "type": "string",
+       "enum": [
+        "shipper",
+        "carrier",
+        "operator"
+       ],
+       "description": "Who cancelled."
+      },
+      "reason": {
+       "type": "string",
+       "description": "What the canceller wrote; empty when nothing was written."
+      },
+      "shipper_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "carrier_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "driver_user_id": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "uuid",
+       "description": "Null when no driver was assigned."
+      }
+     },
+     "required": [
+      "event_id",
+      "booking_id",
+      "load_id",
+      "by",
+      "reason",
+      "shipper_org_id",
+      "carrier_org_id",
+      "driver_user_id"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "by": "carrier",
+       "reason": "truck broke down",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06"
+      }
+     },
+     {
+      "name": "Null driver",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "by": "operator",
+       "reason": "",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "driver_user_id": null
+      }
+     }
+    ]
+   },
+   "bookingAmountClaimed": {
+    "name": "booking.amount_claimed",
+    "title": "Amount claimed",
+    "payload": {
+     "title": "BookingAmountClaimed",
+     "description": "One side of a delivered haul says it settled at another sum; nothing changes until an operator decides.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "claim_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "booking_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "side": {
+       "title": "BookingSide",
+       "type": "string",
+       "enum": [
+        "shipper",
+        "carrier"
+       ],
+       "description": "Which side claims."
+      },
+      "amount": {
+       "type": "integer",
+       "minimum": 0,
+       "description": "The claimed sum, whole so'm (a bare integer; `currency` is UZS today)."
+      },
+      "recorded_amount": {
+       "type": "integer",
+       "minimum": 0,
+       "description": "The sum on record now, whole so'm (a bare integer; `currency` is UZS today)."
+      },
+      "currency": {
+       "type": "string",
+       "minLength": 3,
+       "maxLength": 3,
+       "description": "ISO 4217 code; `UZS` today."
+      }
+     },
+     "required": [
+      "event_id",
+      "claim_id",
+      "booking_id",
+      "side",
+      "amount",
+      "recorded_amount",
+      "currency"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "claim_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0b",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "side": "carrier",
+       "amount": 4600000,
+       "recorded_amount": 4350000,
+       "currency": "UZS"
+      }
+     }
+    ]
+   },
+   "bookingAmountSettled": {
+    "name": "booking.amount_settled",
+    "title": "Amount settled",
+    "payload": {
+     "title": "BookingAmountSettled",
+     "description": "An operator accepted an amount claim; the haul now settles at `settled_amount` and billing adjusts its commission.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "booking_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "load_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "carrier_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "shipper_org_id": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "uuid",
+       "description": "Null only when the load could not be read."
+      },
+      "driver_user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "status": {
+       "title": "BookingStatus",
+       "type": "string",
+       "enum": [
+        "confirmed",
+        "en_route",
+        "at_pickup",
+        "loading",
+        "in_transit",
+        "delivered",
+        "completed",
+        "cancelled"
+       ]
+      },
+      "previous_amount": {
+       "type": "integer",
+       "minimum": 0,
+       "description": "The sum on record before, whole so'm (a bare integer; `currency` is UZS today)."
+      },
+      "settled_amount": {
+       "type": "integer",
+       "minimum": 0,
+       "description": "The sum the operator settled on, whole so'm (a bare integer; `currency` is UZS today)."
+      },
+      "currency": {
+       "type": "string",
+       "minLength": 3,
+       "maxLength": 3,
+       "description": "ISO 4217 code; `UZS` today."
+      }
+     },
+     "required": [
+      "event_id",
+      "booking_id",
+      "load_id",
+      "carrier_org_id",
+      "shipper_org_id",
+      "driver_user_id",
+      "status",
+      "previous_amount",
+      "settled_amount",
+      "currency"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "status": "completed",
+       "previous_amount": 4350000,
+       "settled_amount": 4600000,
+       "currency": "UZS"
+      }
+     },
+     {
+      "name": "Load gone",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "shipper_org_id": null,
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "status": "delivered",
+       "previous_amount": 4350000,
+       "settled_amount": 4600000,
+       "currency": "UZS"
+      }
+     }
+    ]
+   },
+   "bookingReturnLoads": {
+    "name": "booking.return_loads",
+    "title": "Return loads waiting",
+    "payload": {
+     "title": "BookingReturnLoads",
+     "description": "Hours before a truck is empty: loads are waiting in the region where it unloads. Sent once per haul.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "booking_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "driver_user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "carrier_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "region_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The drop-off region, where the truck will be free."
+      },
+      "count": {
+       "type": "integer",
+       "minimum": 1,
+       "description": "Matching loads waiting there."
+      },
+      "heads_home": {
+       "type": "integer",
+       "minimum": 0,
+       "description": "How many of them go back to the haul's pickup region."
+      },
+      "free_at": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the truck is expected to be empty. ISO 8601 with offset, as Python's `isoformat()` writes it."
+      }
+     },
+     "required": [
+      "event_id",
+      "booking_id",
+      "driver_user_id",
+      "carrier_org_id",
+      "region_id",
+      "count",
+      "heads_home",
+      "free_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
+       "count": 7,
+       "heads_home": 3,
+       "free_at": "2026-10-14T17:40:00.123456+00:00"
+      }
+     }
+    ]
+   },
+   "ratingCreated": {
+    "name": "rating.created",
+    "title": "Haul rated",
+    "payload": {
+     "title": "RatingCreated",
+     "description": "The shipper rated a completed haul; sent once per haul.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "booking_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "load_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "target": {
+       "type": "string",
+       "description": "Who was rated; always `driver` today."
+      },
+      "driver_user_id": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "uuid",
+       "description": "The rated driver; the code allows null, a booking always has one."
+      },
+      "carrier_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "shipper_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "stars": {
+       "type": "integer",
+       "minimum": 1,
+       "description": "1 to 5."
+      }
+     },
+     "required": [
+      "event_id",
+      "booking_id",
+      "load_id",
+      "target",
+      "driver_user_id",
+      "carrier_org_id",
+      "shipper_org_id",
+      "stars"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "target": "driver",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "stars": 5
+      }
+     }
+    ]
+   },
+   "walletEntryPosted": {
+    "name": "wallet.entry_posted",
+    "title": "Ledger entry posted",
+    "payload": {
+     "title": "WalletEntryPosted",
+     "description": "A line was written to an organization's wallet ledger.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "entry_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "kind": {
+       "type": "string",
+       "description": "Ledger line kind: commission, commission_adjustment, cash_topup, cash_void, adjustment, subscription_fee, promo, referral, bonus_hold, bonus_release or bonus_discount."
+      },
+      "amount": {
+       "type": "integer",
+       "description": "Signed change of the balance, whole so'm (a bare integer; `currency` is UZS today)."
+      },
+      "balance": {
+       "type": "integer",
+       "description": "Balance after the line, whole so'm (a bare integer; `currency` is UZS today); negative means debt."
+      },
+      "booking_id": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "uuid",
+       "description": "The haul the line is for; null for lines not tied to a haul."
+      },
+      "currency": {
+       "type": "string",
+       "minLength": 3,
+       "maxLength": 3,
+       "description": "ISO 4217 code; `UZS` today."
+      }
+     },
+     "required": [
+      "event_id",
+      "org_id",
+      "entry_id",
+      "kind",
+      "amount",
+      "balance",
+      "booking_id",
+      "currency"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Cash topup",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "entry_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0f",
+       "kind": "cash_topup",
+       "amount": 100000,
+       "balance": 81500,
+       "booking_id": null,
+       "currency": "UZS"
+      }
+     },
+     {
+      "name": "Commission",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "entry_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0f",
+       "kind": "commission",
+       "amount": -43500,
+       "balance": -18500,
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "currency": "UZS"
+      }
+     }
+    ]
+   },
+   "walletEligibilityChanged": {
+    "name": "wallet.eligibility_changed",
+    "title": "Wallet eligibility changed",
+    "payload": {
+     "title": "WalletEligibilityChanged",
+     "description": "An organization's wallet started or stopped being allowed to receive offers. One event per user of the organization, or a single event with a null `user_id` when billing knows no user of it yet.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "user_id": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "uuid",
+       "description": "Null when billing's replica holds no user of the organization."
+      },
+      "eligible": {
+       "type": "boolean"
+      },
+      "balance": {
+       "type": "integer",
+       "description": "Wallet balance in so'm; negative means debt."
+      },
+      "debt_limit": {
+       "type": "integer",
+       "minimum": 0,
+       "description": "How far below zero the balance may go, so'm."
+      },
+      "reason": {
+       "anyOf": [
+        {
+         "title": "IneligibleReason",
+         "type": "string",
+         "enum": [
+          "debt",
+          "subscription"
+         ]
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "description": "Why offers stopped; null when the wallet is eligible."
+      }
+     },
+     "required": [
+      "event_id",
+      "org_id",
+      "user_id",
+      "eligible",
+      "balance",
+      "debt_limit",
+      "reason"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "eligible": false,
+       "balance": -150000,
+       "debt_limit": 100000,
+       "reason": "debt"
+      }
+     },
+     {
+      "name": "No user yet",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "user_id": null,
+       "eligible": false,
+       "balance": -150000,
+       "debt_limit": 100000,
+       "reason": "debt"
+      }
+     },
+     {
+      "name": "Null reason",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "eligible": true,
+       "balance": 25000,
+       "debt_limit": 100000,
+       "reason": null
+      }
+     }
+    ]
+   },
+   "walletToppedUp": {
+    "name": "wallet.topped_up",
+    "title": "Wallet topped up",
+    "payload": {
+     "title": "WalletToppedUp",
+     "description": "An operator took cash for an organization's wallet and issued a receipt.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "payment_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "receipt_no": {
+       "type": "string",
+       "description": "Receipt number, `GW-<year>-<6 digits>`, for example `GW-2026-000123`."
+      },
+      "amount": {
+       "type": "integer",
+       "minimum": 0,
+       "description": "Cash received, whole so'm (a bare integer; `currency` is UZS today)."
+      },
+      "balance": {
+       "type": "integer",
+       "description": "Balance after the top-up, whole so'm (a bare integer; `currency` is UZS today); negative means debt."
+      },
+      "currency": {
+       "type": "string",
+       "minLength": 3,
+       "maxLength": 3,
+       "description": "ISO 4217 code; `UZS` today."
+      }
+     },
+     "required": [
+      "event_id",
+      "org_id",
+      "payment_id",
+      "receipt_no",
+      "amount",
+      "balance",
+      "currency"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "payment_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e10",
+       "receipt_no": "GW-2026-000123",
+       "amount": 100000,
+       "balance": 81500,
+       "currency": "UZS"
+      }
+     }
+    ]
+   },
+   "notificationCreated": {
+    "name": "notification.created",
+    "title": "Notification created",
+    "payload": {
+     "title": "NotificationCreated",
+     "description": "A message landed in a user's notification feed: from an event, or from an admin announcement (`kind: announcement`).",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "notification_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "kind": {
+       "type": "string",
+       "description": "Template kind, for example `driver_found`, `booking_status` or `announcement`."
+      },
+      "title": {
+       "type": "string",
+       "description": "Title in the user's language."
+      },
+      "body": {
+       "type": "string",
+       "description": "Text in the user's language."
+      }
+     },
+     "required": [
+      "event_id",
+      "notification_id",
+      "user_id",
+      "kind",
+      "title",
+      "body"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "notification_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0e",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0c",
+       "kind": "driver_found",
+       "title": "Haydovchi topildi",
+       "body": "Yukingiz 4 350 000 so'mga band qilindi"
+      }
+     }
+    ]
+   },
+   "devicePushFailed": {
+    "name": "device.push_failed",
+    "title": "Push token dead",
+    "payload": {
+     "title": "DevicePushFailed",
+     "description": "The push provider rejected a device's token as dead; the device should be shown as unreachable.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "device_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid"
+      }
+     },
+     "required": [
+      "event_id",
+      "device_id",
+      "user_id"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "device_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0d",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06"
+      }
+     }
+    ]
+   },
+   "regionChanged": {
+    "name": "region.changed",
+    "title": "Region opened or closed",
+    "payload": {
+     "title": "RegionChanged",
+     "description": "An admin opened or closed a region for the marketplace.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "region_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "is_active": {
+       "type": "boolean"
+      }
+     },
+     "required": [
+      "event_id",
+      "region_id",
+      "is_active"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e16",
+       "is_active": true
+      }
+     }
+    ]
+   },
+   "settingsChanged": {
+    "name": "settings.changed",
+    "title": "Runtime settings changed",
+    "payload": {
+     "title": "SettingsChanged",
+     "description": "An admin changed or reset runtime settings of one service. Published by goway-lib for goway-auth, goway-loads, goway-billing and goway-notify, and by goway-realtime itself, with the same fields.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event: the outbox row id from a Python service, a random UUID from goway-realtime. Consumers dedupe on it."
+      },
+      "service": {
+       "type": "string",
+       "description": "The service whose settings changed, for example `goway-loads`."
+      },
+      "keys": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "description": "Setting keys that changed."
+      },
+      "by": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "uuid",
+       "description": "The admin who changed them; null when not known."
+      }
+     },
+     "required": [
+      "event_id",
+      "service",
+      "keys",
+      "by"
+     ]
+    },
+    "examples": [
+     {
+      "name": "From loads",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "service": "goway-loads",
+       "keys": [
+        "auto_complete_hours",
+        "free_waiting_minutes"
+       ],
+       "by": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e13"
+      }
+     },
+     {
+      "name": "From realtime",
+      "payload": {
+       "event_id": "6f1c2a9e-3b7d-4e8f-9a0b-1c2d3e4f5a6b",
+       "service": "goway-realtime",
+       "keys": [
+        "offer_ttl_seconds"
+       ],
+       "by": null
+      }
+     }
+    ]
+   },
+   "driverOnline": {
+    "name": "driver.online",
+    "title": "Driver online",
+    "payload": {
+     "title": "DriverOnline",
+     "description": "A driver opened or changed a line and waits for instant offers.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it."
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "from_region_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "to_region_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "vehicle_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "bidirectional": {
+       "type": "boolean",
+       "description": "Also takes loads on the way back."
+      },
+      "expires_at": {
+       "type": "integer",
+       "description": "When the line ends, unix milliseconds."
+      }
+     },
+     "required": [
+      "event_id",
+      "user_id",
+      "org_id",
+      "from_region_id",
+      "to_region_id",
+      "vehicle_id",
+      "bidirectional",
+      "expires_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "6f1c2a9e-3b7d-4e8f-9a0b-1c2d3e4f5a6b",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "from_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
+       "to_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
+       "vehicle_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e09",
+       "bidirectional": true,
+       "expires_at": 1792013400123
+      }
+     }
+    ]
+   },
+   "driverOffline": {
+    "name": "driver.offline",
+    "title": "Driver offline",
+    "payload": {
+     "title": "DriverOffline",
+     "description": "A driver left the line: went offline, the line expired, the grace after a disconnect ran out, or the sessions were revoked.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it."
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "From the presence record, which always has it."
+      }
+     },
+     "required": [
+      "event_id",
+      "user_id",
+      "org_id"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "6f1c2a9e-3b7d-4e8f-9a0b-1c2d3e4f5a6b",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05"
+      }
+     }
+    ]
+   },
+   "locationSampled": {
+    "name": "location.sampled",
+    "title": "Location sampled",
+    "payload": {
+     "title": "LocationSampled",
+     "description": "A driver's GPS position during an active booking, sampled every `location_sample_seconds` as evidence of the haul.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it."
+      },
+      "booking_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "driver_user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "lat": {
+       "type": "number",
+       "minimum": -90,
+       "maximum": 90
+      },
+      "lng": {
+       "type": "number",
+       "minimum": -180,
+       "maximum": 180
+      },
+      "recorded_at": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the position was sampled, RFC 3339 UTC with milliseconds."
+      }
+     },
+     "required": [
+      "event_id",
+      "booking_id",
+      "driver_user_id",
+      "lat",
+      "lng",
+      "recorded_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "6f1c2a9e-3b7d-4e8f-9a0b-1c2d3e4f5a6b",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "lat": 40.103922,
+       "lng": 65.373398,
+       "recorded_at": "2026-10-14T09:30:00.123Z"
+      }
+     }
+    ]
+   },
+   "dispatchOffered": {
+    "name": "dispatch.offered",
+    "title": "Offer wave sent",
+    "payload": {
+     "title": "DispatchOffered",
+     "description": "An instant load was offered to a wave of drivers on its line, so a driver whose app is in the background still sees it. Loss-tolerant: the socket frame is the offer itself.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, a random UUID stamped by goway-lib-rs when it publishes. Consumers dedupe on it."
+      },
+      "load_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "drivers": {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "format": "uuid"
+       },
+       "minItems": 1,
+       "description": "Drivers the wave reached."
+      },
+      "from_region_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "to_region_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "truck_class": {
+       "type": "string",
+       "description": "Truck class code from the reference list."
+      },
+      "amount": {
+       "type": "integer",
+       "minimum": 0,
+       "description": "The load's fixed price, whole so'm (a bare integer; `currency` is UZS today)."
+      },
+      "currency": {
+       "type": "string",
+       "minLength": 3,
+       "maxLength": 3,
+       "description": "ISO 4217 code; `UZS` today."
+      },
+      "weight_kg": {
+       "type": "integer",
+       "minimum": 0
+      },
+      "deadline_at": {
+       "type": "integer",
+       "description": "Answer deadline, unix milliseconds in server time."
+      }
+     },
+     "required": [
+      "event_id",
+      "load_id",
+      "drivers",
+      "from_region_id",
+      "to_region_id",
+      "truck_class",
+      "amount",
+      "currency",
+      "weight_kg",
+      "deadline_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "6f1c2a9e-3b7d-4e8f-9a0b-1c2d3e4f5a6b",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "drivers": [
+        "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+        "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e17",
+        "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e18"
+       ],
+       "from_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
+       "to_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
+       "truck_class": "tent_20t",
+       "amount": 4500000,
+       "currency": "UZS",
+       "weight_kg": 18000,
+       "deadline_at": 1791970220123
+      }
+     }
+    ]
+   }
+  }
+ }
+}

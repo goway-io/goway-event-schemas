@@ -87,6 +87,7 @@ channels:
         bindingVersion: 0.1.0
 operations:
   receiveFromApp:
+    title: From the app
     action: receive
     channel:
       $ref: '#/channels/socket'
@@ -101,6 +102,7 @@ operations:
       - $ref: '#/channels/socket/messages/subscribeBooking'
       - $ref: '#/channels/socket/messages/unsubscribeBooking'
   sendToApp:
+    title: To the app
     action: send
     channel:
       $ref: '#/channels/socket'

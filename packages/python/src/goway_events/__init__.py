@@ -125,6 +125,7 @@ from goway_events.models import (
     WalletEntryPosted,
     WalletToppedUp,
 )
+from goway_events.reference import asyncapi
 from goway_events.validation import check, check_event, check_frame, problems
 
 __all__ = [
@@ -251,6 +252,7 @@ __all__ = [
     "WalletEligibilityChanged",
     "WalletEntryPosted",
     "WalletToppedUp",
+    "asyncapi",
     "check",
     "check_event",
     "check_frame",

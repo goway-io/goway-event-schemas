@@ -6,6 +6,7 @@ BIN=node_modules/.bin
 CODEGEN=build/codegen.json
 
 cp build/schemas.json packages/python/src/goway_events/schemas.json
+uv run --quiet scripts/docs.py >/dev/null
 (cd packages/python && uv run --quiet datamodel-codegen --input ../../build/schemas.json --input-file-type jsonschema \
   --output src/goway_events/models.py --output-model-type pydantic_v2.BaseModel --target-python-version 3.14 \
   --use-title-as-name --use-annotated --field-constraints --use-standard-collections --use-union-operator \
