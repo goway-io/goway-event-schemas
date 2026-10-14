@@ -28,7 +28,11 @@ def inline(node, base: pathlib.Path):
         return node
     ref = node.get("$ref")
     if isinstance(ref, str) and not ref.startswith("#"):
+        if "#" in ref:
+            sys.exit(f"$ref {ref!r} from {base.relative_to(ROOT)} points inside a file; refer to the whole file")
         path = (base / ref).resolve()
+        if not path.is_file():
+            sys.exit(f"$ref {ref!r} from {base.relative_to(ROOT)}: no such file")
         schema = {key: value for key, value in json.loads(path.read_text()).items() if key != "$schema"}
         return inline(schema, path.parent)
     return {key: inline(value, base) for key, value in node.items()}
@@ -61,14 +65,29 @@ def examples_for(message: dict) -> list[dict]:
     ]
 
 
+def publishers(channel: dict) -> list[str]:
+    """`x-publisher` is one service, or a list when several services publish the same subject."""
+    publisher = channel.get("x-publisher") or []
+    return [publisher] if isinstance(publisher, str) else list(publisher)
+
+
+def listed(names: list[str]) -> str:
+    quoted = [f"`{name}`" for name in names]
+    return quoted[0] if len(quoted) == 1 else f"{', '.join(quoted[:-1])} and {quoted[-1]}"
+
+
 def who(channel: dict) -> str:
     """The publisher and consumers live in x- fields that viewers do not show, so they are written into the text."""
-    publisher = channel.get("x-publisher")
-    if not publisher:
+    by = publishers(channel)
+    if not by:
         return ""
     consumers = channel.get("x-consumers") or []
-    heard = ", ".join(f"`{name}`" for name in consumers) if consumers else "no service yet"
-    return f"Published by `{publisher}`; consumed by {heard}."
+    heard = listed(consumers) if consumers else "no service yet"
+    return f"Published by {listed(by)}; consumed by {heard}."
+
+
+def operation_title(by: list[str]) -> str:
+    return f"{by[0]} publishes" if len(by) == 1 else f"{len(by)} services publish"
 
 
 def build(name: str) -> dict:
@@ -80,9 +99,9 @@ def build(name: str) -> dict:
         if line:
             channel["description"] = f"{channel.get('description', '').rstrip()}\n\n{line}".strip()
     for operation in document.get("operations", {}).values():
-        publisher = channels.get(operation["channel"]["$ref"].rsplit("/", 1)[-1], {}).get("x-publisher")
-        if publisher and "title" not in operation:
-            operation["title"] = f"{publisher} publishes"
+        by = publishers(channels.get(operation["channel"]["$ref"].rsplit("/", 1)[-1], {}))
+        if by and "title" not in operation:
+            operation["title"] = operation_title(by)
     missing = []
     for key, message in document.get("components", {}).get("messages", {}).items():
         examples = examples_for(message)

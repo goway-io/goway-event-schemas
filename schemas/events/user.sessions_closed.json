@@ -23,8 +23,12 @@
       "description": "Installs whose sessions were closed; never empty."
     },
     "reason": {
+      "title": "SessionsClosedReason",
       "type": "string",
-      "description": "Always `logout` today."
+      "enum": [
+        "logout"
+      ],
+      "description": "Why the sessions were closed; only a sign-out from another device today."
     }
   },
   "required": [

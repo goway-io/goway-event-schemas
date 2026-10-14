@@ -26,8 +26,12 @@
       ]
     },
     "status": {
+      "title": "SubmittedDocumentStatus",
       "type": "string",
-      "description": "Always `pending` today."
+      "enum": [
+        "pending"
+      ],
+      "description": "A new version always waits for review."
     },
     "version": {
       "type": "integer",

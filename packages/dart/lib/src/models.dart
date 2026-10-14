@@ -841,10 +841,8 @@ class BookingCreated {
     final String loadId;
     @JsonKey(name: "shipper_org_id")
     final String shipperOrgId;
-    
-    ///Present only for an instant claim, and then always `instant`.
     @JsonKey(name: "source")
-    final String? source;
+    final BookingSource? source;
 
     BookingCreated({
         required this.agreedAmount,
@@ -862,6 +860,17 @@ class BookingCreated {
 
     Map<String, dynamic> toJson() => _$BookingCreatedToJson(this);
 }
+
+
+///Present only for an instant claim from dispatch; an accepted offer leaves it out.
+enum BookingSource {
+    @JsonValue("instant")
+    INSTANT
+}
+
+final bookingSourceValues = EnumValues({
+    "instant": BookingSource.INSTANT
+});
 
 enum BookingCreatedFrameType {
     @JsonValue("booking_created")

@@ -321,9 +321,8 @@ pub struct BookingCreated {
     pub event_id: ::uuid::Uuid,
     pub load_id: ::uuid::Uuid,
     pub shipper_org_id: ::uuid::Uuid,
-    #[doc = "Present only for an instant claim, and then always `instant`."]
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
-    pub source: ::std::option::Option<::std::string::String>,
+    pub source: ::std::option::Option<BookingSource>,
 }
 #[doc = "ISO 4217 code; `UZS` today."]
 #[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -471,6 +470,40 @@ impl ::std::convert::TryFrom<&str> for BookingSide {
     }
 }
 impl ::std::convert::TryFrom<::std::string::String> for BookingSide {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "Present only for an instant claim from dispatch; an accepted offer leaves it out."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum BookingSource {
+    #[serde(rename = "instant")]
+    Instant,
+}
+impl ::std::fmt::Display for BookingSource {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Instant => f.write_str("instant"),
+        }
+    }
+}
+impl ::std::str::FromStr for BookingSource {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "instant" => Ok(Self::Instant),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BookingSource {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BookingSource {
     type Error = self::error::ConversionError;
     fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
@@ -639,8 +672,7 @@ pub struct CarrierDocumentUpdated {
     pub event_id: ::uuid::Uuid,
     pub kind: DocumentKind,
     pub org_id: ::uuid::Uuid,
-    #[doc = "Always `pending` today."]
-    pub status: ::std::string::String,
+    pub status: SubmittedDocumentStatus,
     #[doc = "Version of this document kind, from 1."]
     pub version: ::std::num::NonZeroU64,
 }
@@ -1326,8 +1358,7 @@ pub struct LoadPosted {
     pub group_id: ::std::option::Option<::uuid::Uuid>,
     pub is_urgent: bool,
     pub load_id: ::uuid::Uuid,
-    #[doc = "How the cargo goes in: `top` or `rear`."]
-    pub loading_method: ::std::string::String,
+    pub loading_method: LoadingMethod,
     pub needs_refrigeration: bool,
     #[doc = "The shipper organization."]
     pub org_id: ::uuid::Uuid,
@@ -1405,6 +1436,44 @@ impl<'de> ::serde::Deserialize<'de> for LoadPostedCurrency {
         ::std::string::String::deserialize(deserializer)?
             .parse()
             .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+#[doc = "How the cargo goes in."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum LoadingMethod {
+    #[serde(rename = "top")]
+    Top,
+    #[serde(rename = "rear")]
+    Rear,
+}
+impl ::std::fmt::Display for LoadingMethod {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Top => f.write_str("top"),
+            Self::Rear => f.write_str("rear"),
+        }
+    }
+}
+impl ::std::str::FromStr for LoadingMethod {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "top" => Ok(Self::Top),
+            "rear" => Ok(Self::Rear),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for LoadingMethod {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for LoadingMethod {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
     }
 }
 #[doc = "The driver's position. Relayed to booking viewers and sampled as evidence only while a booking is active."]
@@ -2113,8 +2182,41 @@ pub struct RatingCreated {
     pub shipper_org_id: ::uuid::Uuid,
     #[doc = "1 to 5."]
     pub stars: ::std::num::NonZeroU64,
-    #[doc = "Who was rated; always `driver` today."]
-    pub target: ::std::string::String,
+    pub target: RatingTarget,
+}
+#[doc = "Who was rated; only the driver today."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum RatingTarget {
+    #[serde(rename = "driver")]
+    Driver,
+}
+impl ::std::fmt::Display for RatingTarget {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Driver => f.write_str("driver"),
+        }
+    }
+}
+impl ::std::str::FromStr for RatingTarget {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "driver" => Ok(Self::Driver),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for RatingTarget {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for RatingTarget {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
 }
 #[doc = "An admin opened or closed a region for the marketplace."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
@@ -2314,6 +2416,56 @@ pub enum ServerFrame {
         ts: ::chrono::DateTime<::chrono::offset::Utc>,
     },
 }
+#[doc = "Why every session of the user was closed. An operator's own note on a block stays with staff."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum SessionRevokedReason {
+    #[serde(rename = "password_change")]
+    PasswordChange,
+    #[serde(rename = "password_reset")]
+    PasswordReset,
+    #[serde(rename = "phone_change")]
+    PhoneChange,
+    #[serde(rename = "deleted")]
+    Deleted,
+    #[serde(rename = "blocked")]
+    Blocked,
+}
+impl ::std::fmt::Display for SessionRevokedReason {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::PasswordChange => f.write_str("password_change"),
+            Self::PasswordReset => f.write_str("password_reset"),
+            Self::PhoneChange => f.write_str("phone_change"),
+            Self::Deleted => f.write_str("deleted"),
+            Self::Blocked => f.write_str("blocked"),
+        }
+    }
+}
+impl ::std::str::FromStr for SessionRevokedReason {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "password_change" => Ok(Self::PasswordChange),
+            "password_reset" => Ok(Self::PasswordReset),
+            "phone_change" => Ok(Self::PhoneChange),
+            "deleted" => Ok(Self::Deleted),
+            "blocked" => Ok(Self::Blocked),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for SessionRevokedReason {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for SessionRevokedReason {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
 #[doc = "Somebody signed in to this account; ignore it when `installation_id` is this app's own. Copied from `user.login`; a field that event lacked or sent empty arrives as null."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct SessionStarted {
@@ -2341,6 +2493,40 @@ pub struct SessionStartedFrame {
     #[serde(rename = "type")]
     pub type_: ::std::string::String,
 }
+#[doc = "Why the sessions were closed; only a sign-out from another device today."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum SessionsClosedReason {
+    #[serde(rename = "logout")]
+    Logout,
+}
+impl ::std::fmt::Display for SessionsClosedReason {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Logout => f.write_str("logout"),
+        }
+    }
+}
+impl ::std::str::FromStr for SessionsClosedReason {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "logout" => Ok(Self::Logout),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for SessionsClosedReason {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for SessionsClosedReason {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
 #[doc = "An admin changed or reset runtime settings of one service. Published by goway-lib for goway-auth, goway-loads, goway-billing and goway-notify, and by goway-realtime itself, with the same fields."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct SettingsChanged {
@@ -2353,6 +2539,40 @@ pub struct SettingsChanged {
     pub keys: ::std::vec::Vec<::std::string::String>,
     #[doc = "The service whose settings changed, for example `goway-loads`."]
     pub service: ::std::string::String,
+}
+#[doc = "A new version always waits for review."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum SubmittedDocumentStatus {
+    #[serde(rename = "pending")]
+    Pending,
+}
+impl ::std::fmt::Display for SubmittedDocumentStatus {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Pending => f.write_str("pending"),
+        }
+    }
+}
+impl ::std::str::FromStr for SubmittedDocumentStatus {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "pending" => Ok(Self::Pending),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for SubmittedDocumentStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for SubmittedDocumentStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
 }
 #[doc = "Watch a booking of the caller's organization: status, arrival window and the driver's position."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
@@ -2631,8 +2851,7 @@ pub struct UserLogin {
 pub struct UserSessionRevoked {
     #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
     pub event_id: ::uuid::Uuid,
-    #[doc = "Why: `password_change`, `password_reset`, `phone_change`, `deleted`, `blocked`, or the free text an admin wrote when blocking the account."]
-    pub reason: ::std::string::String,
+    pub reason: SessionRevokedReason,
     pub user_id: ::uuid::Uuid,
 }
 #[doc = "Some of the account's sessions were closed from another device; those installs must sign in again."]
@@ -2642,8 +2861,7 @@ pub struct UserSessionsClosed {
     pub event_id: ::uuid::Uuid,
     #[doc = "Installs whose sessions were closed; never empty."]
     pub installation_ids: ::std::vec::Vec<::std::string::String>,
-    #[doc = "Always `logout` today."]
-    pub reason: ::std::string::String,
+    pub reason: SessionsClosedReason,
     pub user_id: ::uuid::Uuid,
 }
 #[doc = "Something about an account changed. Only what changed is sent, besides `user_id` and `updated_at`, and five paths send five field sets: a confirmed phone change sends `phone`; the account settings screen any of `language`, `currency`, `theme`, `notification_prefs`; a role switch `role`; an admin edit any of `phone`, `language`, `first_name`, `last_name`, plus `role` whenever the admin named one; a profile edit `first_name`, `last_name`, `email` and `avatar_url` together, each of them possibly null."]
@@ -2682,6 +2900,48 @@ pub struct UserUpdated {
     pub updated_at: ::chrono::DateTime<::chrono::offset::Utc>,
     pub user_id: ::uuid::Uuid,
 }
+#[doc = "How the vehicle is loaded."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum VehicleLoadingMethod {
+    #[serde(rename = "top")]
+    Top,
+    #[serde(rename = "rear")]
+    Rear,
+    #[serde(rename = "both")]
+    Both,
+}
+impl ::std::fmt::Display for VehicleLoadingMethod {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Top => f.write_str("top"),
+            Self::Rear => f.write_str("rear"),
+            Self::Both => f.write_str("both"),
+        }
+    }
+}
+impl ::std::str::FromStr for VehicleLoadingMethod {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "top" => Ok(Self::Top),
+            "rear" => Ok(Self::Rear),
+            "both" => Ok(Self::Both),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for VehicleLoadingMethod {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for VehicleLoadingMethod {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
 #[doc = "A fleet vehicle was removed."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct VehicleRemoved {
@@ -2700,8 +2960,7 @@ pub struct VehicleUpserted {
     pub capacity_kg: ::std::option::Option<u64>,
     #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
     pub event_id: ::uuid::Uuid,
-    #[doc = "How the vehicle is loaded: `top`, `rear` or `both`."]
-    pub loading_method: ::std::string::String,
+    pub loading_method: VehicleLoadingMethod,
     pub org_id: ::uuid::Uuid,
     #[doc = "Normalized plate: no spaces, upper case."]
     pub plate_number: ::std::string::String,
@@ -2771,6 +3030,80 @@ pub struct WalletEligibilityChanged {
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub user_id: ::std::option::Option<::uuid::Uuid>,
 }
+#[doc = "Ledger line kind."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum WalletEntryKind {
+    #[serde(rename = "commission")]
+    Commission,
+    #[serde(rename = "commission_adjustment")]
+    CommissionAdjustment,
+    #[serde(rename = "cash_topup")]
+    CashTopup,
+    #[serde(rename = "cash_void")]
+    CashVoid,
+    #[serde(rename = "adjustment")]
+    Adjustment,
+    #[serde(rename = "subscription_fee")]
+    SubscriptionFee,
+    #[serde(rename = "promo")]
+    Promo,
+    #[serde(rename = "referral")]
+    Referral,
+    #[serde(rename = "bonus_hold")]
+    BonusHold,
+    #[serde(rename = "bonus_release")]
+    BonusRelease,
+    #[serde(rename = "bonus_discount")]
+    BonusDiscount,
+}
+impl ::std::fmt::Display for WalletEntryKind {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Commission => f.write_str("commission"),
+            Self::CommissionAdjustment => f.write_str("commission_adjustment"),
+            Self::CashTopup => f.write_str("cash_topup"),
+            Self::CashVoid => f.write_str("cash_void"),
+            Self::Adjustment => f.write_str("adjustment"),
+            Self::SubscriptionFee => f.write_str("subscription_fee"),
+            Self::Promo => f.write_str("promo"),
+            Self::Referral => f.write_str("referral"),
+            Self::BonusHold => f.write_str("bonus_hold"),
+            Self::BonusRelease => f.write_str("bonus_release"),
+            Self::BonusDiscount => f.write_str("bonus_discount"),
+        }
+    }
+}
+impl ::std::str::FromStr for WalletEntryKind {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "commission" => Ok(Self::Commission),
+            "commission_adjustment" => Ok(Self::CommissionAdjustment),
+            "cash_topup" => Ok(Self::CashTopup),
+            "cash_void" => Ok(Self::CashVoid),
+            "adjustment" => Ok(Self::Adjustment),
+            "subscription_fee" => Ok(Self::SubscriptionFee),
+            "promo" => Ok(Self::Promo),
+            "referral" => Ok(Self::Referral),
+            "bonus_hold" => Ok(Self::BonusHold),
+            "bonus_release" => Ok(Self::BonusRelease),
+            "bonus_discount" => Ok(Self::BonusDiscount),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for WalletEntryKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for WalletEntryKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
 #[doc = "A line was written to an organization's wallet ledger."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct WalletEntryPosted {
@@ -2786,8 +3119,7 @@ pub struct WalletEntryPosted {
     pub entry_id: ::uuid::Uuid,
     #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
     pub event_id: ::uuid::Uuid,
-    #[doc = "Ledger line kind: commission, commission_adjustment, cash_topup, cash_void, adjustment, subscription_fee, promo, referral, bonus_hold, bonus_release or bonus_discount."]
-    pub kind: ::std::string::String,
+    pub kind: WalletEntryKind,
     pub org_id: ::uuid::Uuid,
 }
 #[doc = "ISO 4217 code; `UZS` today."]

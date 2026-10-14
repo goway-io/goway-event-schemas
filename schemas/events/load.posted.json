@@ -40,8 +40,13 @@
       "description": "Truck class code from the reference list."
     },
     "loading_method": {
+      "title": "LoadingMethod",
       "type": "string",
-      "description": "How the cargo goes in: `top` or `rear`."
+      "enum": [
+        "top",
+        "rear"
+      ],
+      "description": "How the cargo goes in."
     },
     "needs_refrigeration": {
       "type": "boolean"

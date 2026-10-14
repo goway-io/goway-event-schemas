@@ -561,7 +561,10 @@ BookingCreated _$BookingCreatedFromJson(Map<String, dynamic> json) =>
           eventId: $checkedConvert('event_id', (v) => v as String),
           loadId: $checkedConvert('load_id', (v) => v as String),
           shipperOrgId: $checkedConvert('shipper_org_id', (v) => v as String),
-          source: $checkedConvert('source', (v) => v as String?),
+          source: $checkedConvert(
+            'source',
+            (v) => $enumDecodeNullable(_$BookingSourceEnumMap, v),
+          ),
         );
         return val;
       },
@@ -586,8 +589,10 @@ Map<String, dynamic> _$BookingCreatedToJson(BookingCreated instance) =>
       'event_id': instance.eventId,
       'load_id': instance.loadId,
       'shipper_org_id': instance.shipperOrgId,
-      'source': ?instance.source,
+      'source': ?_$BookingSourceEnumMap[instance.source],
     };
+
+const _$BookingSourceEnumMap = {BookingSource.INSTANT: 'instant'};
 
 BookingEtaFrame _$BookingEtaFrameFromJson(Map<String, dynamic> json) =>
     $checkedCreate('BookingEtaFrame', json, ($checkedConvert) {

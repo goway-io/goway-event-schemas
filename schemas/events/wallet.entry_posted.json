@@ -19,8 +19,22 @@
       "format": "uuid"
     },
     "kind": {
+      "title": "WalletEntryKind",
       "type": "string",
-      "description": "Ledger line kind: commission, commission_adjustment, cash_topup, cash_void, adjustment, subscription_fee, promo, referral, bonus_hold, bonus_release or bonus_discount."
+      "enum": [
+        "commission",
+        "commission_adjustment",
+        "cash_topup",
+        "cash_void",
+        "adjustment",
+        "subscription_fee",
+        "promo",
+        "referral",
+        "bonus_hold",
+        "bonus_release",
+        "bonus_discount"
+      ],
+      "description": "Ledger line kind."
     },
     "amount": {
       "type": "integer",

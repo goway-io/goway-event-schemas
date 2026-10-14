@@ -19,8 +19,12 @@
       "format": "uuid"
     },
     "target": {
+      "title": "RatingTarget",
       "type": "string",
-      "description": "Who was rated; always `driver` today."
+      "enum": [
+        "driver"
+      ],
+      "description": "Who was rated; only the driver today."
     },
     "driver_user_id": {
       "type": [
@@ -41,6 +45,7 @@
     "stars": {
       "type": "integer",
       "minimum": 1,
+      "maximum": 5,
       "description": "1 to 5."
     }
   },

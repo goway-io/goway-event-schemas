@@ -47,75 +47,6 @@ class AuthFrame(BaseModel):
     data: Auth
 
 
-class ChargeLine(BaseModel):
-    """
-    One priced line of the haul.
-    """
-
-    model_config = ConfigDict(
-        extra="ignore",
-    )
-    code: str
-    """
-    `tariff`, `loaders` or `req:<requirement code>`.
-    """
-    amount: Annotated[int, Field(ge=0)]
-    """
-    Line total, whole so'm (a bare integer; `currency` is UZS today).
-    """
-    qty: Annotated[int, Field(ge=1)]
-
-
-class BookingCreated(BaseModel):
-    """
-    A load was booked. Two paths: an accepted offer, or an instant claim from dispatch, which adds `source: instant`.
-    """
-
-    model_config = ConfigDict(
-        extra="ignore",
-    )
-    event_id: UUID
-    """
-    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
-    """
-    booking_id: UUID
-    load_id: UUID
-    shipper_org_id: UUID
-    carrier_org_id: UUID
-    driver_user_id: UUID | None
-    """
-    The driver; the offer path allows null, a booking always has one.
-    """
-    agreed_amount: Annotated[int, Field(ge=0)]
-    """
-    Agreed price, whole so'm (a bare integer; `currency` is UZS today).
-    """
-    currency: Annotated[str, Field(max_length=3, min_length=3)]
-    """
-    ISO 4217 code; `UZS` today.
-    """
-    source: str | None = None
-    """
-    Present only for an instant claim, and then always `instant`.
-    """
-
-
-class BookingCreatedFrame(BaseModel):
-    """
-    Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
-    """
-
-    model_config = ConfigDict(
-        extra="ignore",
-    )
-    type: Literal["booking_created"]
-    data: BookingCreated
-    ts: AwareDatetime
-    """
-    When the server sent the frame, RFC 3339 UTC.
-    """
-
-
 class BookingReturnLoads(BaseModel):
     """
     Hours before a truck is empty: loads are waiting in the region where it unloads. Sent once per haul.
@@ -156,6 +87,14 @@ class BookingSide(StrEnum):
 
     SHIPPER = "shipper"
     CARRIER = "carrier"
+
+
+class BookingSource(StrEnum):
+    """
+    Present only for an instant claim from dispatch; an accepted offer leaves it out.
+    """
+
+    INSTANT = "instant"
 
 
 class BookingStatus(StrEnum):
@@ -212,6 +151,25 @@ class CancelledBy(StrEnum):
     SHIPPER = "shipper"
     CARRIER = "carrier"
     OPERATOR = "operator"
+
+
+class ChargeLine(BaseModel):
+    """
+    One priced line of the haul.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    code: str
+    """
+    `tariff`, `loaders` or `req:<requirement code>`.
+    """
+    amount: Annotated[int, Field(ge=0)]
+    """
+    Line total, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    qty: Annotated[int, Field(ge=1)]
 
 
 class CompletedBy(StrEnum):
@@ -697,6 +655,15 @@ class LoadExpired(BaseModel):
     """
     The shipper organization.
     """
+
+
+class LoadingMethod(StrEnum):
+    """
+    How the cargo goes in.
+    """
+
+    TOP = "top"
+    REAR = "rear"
 
 
 class Location(BaseModel):
@@ -1185,34 +1152,12 @@ class PriceMode(StrEnum):
     NEGOTIABLE = "negotiable"
 
 
-class RatingCreated(BaseModel):
+class RatingTarget(StrEnum):
     """
-    The shipper rated a completed haul; sent once per haul.
+    Who was rated; only the driver today.
     """
 
-    model_config = ConfigDict(
-        extra="ignore",
-    )
-    event_id: UUID
-    """
-    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
-    """
-    booking_id: UUID
-    load_id: UUID
-    target: str
-    """
-    Who was rated; always `driver` today.
-    """
-    driver_user_id: UUID | None
-    """
-    The rated driver; the code allows null, a booking always has one.
-    """
-    carrier_org_id: UUID
-    shipper_org_id: UUID
-    stars: Annotated[int, Field(ge=1)]
-    """
-    1 to 5.
-    """
+    DRIVER = "driver"
 
 
 class RegionChanged(BaseModel):
@@ -1238,6 +1183,18 @@ class ReviewDecision(StrEnum):
 
     APPROVED = "approved"
     REJECTED = "rejected"
+
+
+class SessionRevokedReason(StrEnum):
+    """
+    Why every session of the user was closed. An operator's own note on a block stays with staff.
+    """
+
+    PASSWORD_CHANGE = "password_change"
+    PASSWORD_RESET = "password_reset"
+    PHONE_CHANGE = "phone_change"
+    DELETED = "deleted"
+    BLOCKED = "blocked"
 
 
 class SessionStarted(BaseModel):
@@ -1281,6 +1238,14 @@ class SessionStartedFrame(BaseModel):
     """
 
 
+class SessionsClosedReason(StrEnum):
+    """
+    Why the sessions were closed; only a sign-out from another device today.
+    """
+
+    LOGOUT = "logout"
+
+
 class SettingsChanged(BaseModel):
     """
     An admin changed or reset runtime settings of one service. Published by goway-lib for goway-auth, goway-loads, goway-billing and goway-notify, and by goway-realtime itself, with the same fields.
@@ -1305,6 +1270,14 @@ class SettingsChanged(BaseModel):
     """
     The admin who changed them; null when not known.
     """
+
+
+class SubmittedDocumentStatus(StrEnum):
+    """
+    A new version always waits for review.
+    """
+
+    PENDING = "pending"
 
 
 class SubscribeBooking(BaseModel):
@@ -1532,10 +1505,7 @@ class UserSessionRevoked(BaseModel):
     Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
     """
     user_id: UUID
-    reason: str
-    """
-    Why: `password_change`, `password_reset`, `phone_change`, `deleted`, `blocked`, or the free text an admin wrote when blocking the account.
-    """
+    reason: SessionRevokedReason
 
 
 class UserSessionsClosed(BaseModel):
@@ -1555,10 +1525,7 @@ class UserSessionsClosed(BaseModel):
     """
     Installs whose sessions were closed; never empty.
     """
-    reason: str
-    """
-    Always `logout` today.
-    """
+    reason: SessionsClosedReason
 
 
 class UserUpdated(BaseModel):
@@ -1611,6 +1578,16 @@ class UserUpdated(BaseModel):
     """
 
 
+class VehicleLoadingMethod(StrEnum):
+    """
+    How the vehicle is loaded.
+    """
+
+    TOP = "top"
+    REAR = "rear"
+    BOTH = "both"
+
+
 class VehicleRemoved(BaseModel):
     """
     A fleet vehicle was removed.
@@ -1653,10 +1630,7 @@ class VehicleUpserted(BaseModel):
     """
     Capability codes: rear_ramp, open_top, side_curtain, tail_lift, refrigerated.
     """
-    loading_method: str
-    """
-    How the vehicle is loaded: `top`, `rear` or `both`.
-    """
+    loading_method: VehicleLoadingMethod
     capacity_kg: Annotated[int | None, Field(ge=0)]
     """
     Payload in kilograms; null when not given.
@@ -1709,6 +1683,24 @@ class WalletEligibilityChanged(BaseModel):
     """
 
 
+class WalletEntryKind(StrEnum):
+    """
+    Ledger line kind.
+    """
+
+    COMMISSION = "commission"
+    COMMISSION_ADJUSTMENT = "commission_adjustment"
+    CASH_TOPUP = "cash_topup"
+    CASH_VOID = "cash_void"
+    ADJUSTMENT = "adjustment"
+    SUBSCRIPTION_FEE = "subscription_fee"
+    PROMO = "promo"
+    REFERRAL = "referral"
+    BONUS_HOLD = "bonus_hold"
+    BONUS_RELEASE = "bonus_release"
+    BONUS_DISCOUNT = "bonus_discount"
+
+
 class WalletEntryPosted(BaseModel):
     """
     A line was written to an organization's wallet ledger.
@@ -1723,10 +1715,7 @@ class WalletEntryPosted(BaseModel):
     """
     org_id: UUID
     entry_id: UUID
-    kind: str
-    """
-    Ledger line kind: commission, commission_adjustment, cash_topup, cash_void, adjustment, subscription_fee, promo, referral, bonus_hold, bonus_release or bonus_discount.
-    """
+    kind: WalletEntryKind
     amount: int
     """
     Signed change of the balance, whole so'm (a bare integer; `currency` is UZS today).
@@ -1956,6 +1945,53 @@ class BookingCompletedFrame(BaseModel):
     """
 
 
+class BookingCreated(BaseModel):
+    """
+    A load was booked. Two paths: an accepted offer, or an instant claim from dispatch, which adds `source: instant`.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    booking_id: UUID
+    load_id: UUID
+    shipper_org_id: UUID
+    carrier_org_id: UUID
+    driver_user_id: UUID | None
+    """
+    The driver; the offer path allows null, a booking always has one.
+    """
+    agreed_amount: Annotated[int, Field(ge=0)]
+    """
+    Agreed price, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    """
+    ISO 4217 code; `UZS` today.
+    """
+    source: BookingSource | None = None
+
+
+class BookingCreatedFrame(BaseModel):
+    """
+    Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["booking_created"]
+    data: BookingCreated
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
 class BookingEtaUpdated(BaseModel):
     """
     The arrival window or the time the truck is free again moved: when the haul is booked (`confirmed`), at every carrier step, and on fresh GPS while `en_route` or `in_transit`.
@@ -2075,10 +2111,7 @@ class CarrierDocumentUpdated(BaseModel):
     """
     org_id: UUID
     kind: DocumentKind
-    status: str
-    """
-    Always `pending` today.
-    """
+    status: SubmittedDocumentStatus
     version: Annotated[int, Field(ge=1)]
     """
     Version of this document kind, from 1.
@@ -2210,10 +2243,7 @@ class LoadPosted(BaseModel):
     """
     Truck class code from the reference list.
     """
-    loading_method: str
-    """
-    How the cargo goes in: `top` or `rear`.
-    """
+    loading_method: LoadingMethod
     needs_refrigeration: bool
     allow_instant: bool
     """
@@ -2316,6 +2346,33 @@ class OffersBlockedFrame(BaseModel):
     ts: AwareDatetime
     """
     When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class RatingCreated(BaseModel):
+    """
+    The shipper rated a completed haul; sent once per haul.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    booking_id: UUID
+    load_id: UUID
+    target: RatingTarget
+    driver_user_id: UUID | None
+    """
+    The rated driver; the code allows null, a booking always has one.
+    """
+    carrier_org_id: UUID
+    shipper_org_id: UUID
+    stars: Annotated[int, Field(ge=1, le=5)]
+    """
+    1 to 5.
     """
 
 

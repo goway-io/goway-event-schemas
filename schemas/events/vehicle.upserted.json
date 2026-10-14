@@ -34,8 +34,14 @@
       "description": "Capability codes: rear_ramp, open_top, side_curtain, tail_lift, refrigerated."
     },
     "loading_method": {
+      "title": "VehicleLoadingMethod",
       "type": "string",
-      "description": "How the vehicle is loaded: `top`, `rear` or `both`."
+      "enum": [
+        "top",
+        "rear",
+        "both"
+      ],
+      "description": "How the vehicle is loaded."
     },
     "capacity_kg": {
       "type": [

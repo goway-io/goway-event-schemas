@@ -33,6 +33,13 @@ export type CancelledBy = "shipper" | "carrier" | "operator";
  */
 export type CompletedBy = "shipper" | "operator" | "system";
 /**
+ * Present only for an instant claim from dispatch; an accepted offer leaves it out.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BookingSource".
+ */
+export type BookingSource = "instant";
+/**
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "EtaStop".
  */
@@ -49,6 +56,13 @@ export type DocumentKind = "passport" | "driver_license" | "tech_passport" | "ve
  * via the `definition` "ReviewDecision".
  */
 export type ReviewDecision = "approved" | "rejected";
+/**
+ * A new version always waits for review.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "SubmittedDocumentStatus".
+ */
+export type SubmittedDocumentStatus = "pending";
 /**
  * The new verification status.
  *
@@ -94,6 +108,13 @@ export type DisplayCurrency = "UZS" | "USD" | "RUB" | "KZT";
  */
 export type IneligibleReason = "debt" | "subscription";
 /**
+ * How the cargo goes in.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "LoadingMethod".
+ */
+export type LoadingMethod = "top" | "rear";
+/**
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "PriceMode".
  */
@@ -120,6 +141,13 @@ export type OfferOutcome = "won" | "lost" | "declined" | "expired" | "withdrawn"
  * via the `definition` "OffersBlockedReason".
  */
 export type OffersBlockedReason = "BALANCE_INSUFFICIENT" | "SUBSCRIPTION_REQUIRED";
+/**
+ * Who was rated; only the driver today.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "RatingTarget".
+ */
+export type RatingTarget = "driver";
 /**
  * Any frame goway-realtime may send; `type` tells which.
  *
@@ -149,6 +177,20 @@ export type ServerFrame =
   | KickedFrame
   | ErrorFrame;
 /**
+ * Why every session of the user was closed. An operator's own note on a block stays with staff.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "SessionRevokedReason".
+ */
+export type SessionRevokedReason = "password_change" | "password_reset" | "phone_change" | "deleted" | "blocked";
+/**
+ * Why the sessions were closed; only a sign-out from another device today.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "SessionsClosedReason".
+ */
+export type SessionsClosedReason = "logout";
+/**
  * What the ticket is about.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -170,6 +212,31 @@ export type TicketReplyStatus = "answered" | "closed";
  * via the `definition` "Theme".
  */
 export type Theme = "light" | "dark" | "system";
+/**
+ * How the vehicle is loaded.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "VehicleLoadingMethod".
+ */
+export type VehicleLoadingMethod = "top" | "rear" | "both";
+/**
+ * Ledger line kind.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "WalletEntryKind".
+ */
+export type WalletEntryKind =
+  | "commission"
+  | "commission_adjustment"
+  | "cash_topup"
+  | "cash_void"
+  | "adjustment"
+  | "subscription_fee"
+  | "promo"
+  | "referral"
+  | "bonus_hold"
+  | "bonus_release"
+  | "bonus_discount";
 
 export interface GowayEventSchemas {
   [k: string]: unknown;
@@ -355,6 +422,9 @@ export interface BookingCompleted {
 }
 /**
  * One priced line of the haul.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "ChargeLine".
  */
 export interface ChargeLine {
   /**
@@ -408,10 +478,7 @@ export interface BookingCreated {
    * ISO 4217 code; `UZS` today.
    */
   currency: string;
-  /**
-   * Present only for an instant claim, and then always `instant`.
-   */
-  source?: string;
+  source?: BookingSource;
 }
 /**
  * Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
@@ -613,10 +680,7 @@ export interface CarrierDocumentUpdated {
   event_id: string;
   org_id: string;
   kind: DocumentKind;
-  /**
-   * Always `pending` today.
-   */
-  status: string;
+  status: SubmittedDocumentStatus;
   /**
    * Version of this document kind, from 1.
    */
@@ -1210,10 +1274,7 @@ export interface LoadPosted {
    * Truck class code from the reference list.
    */
   truck_class: string;
-  /**
-   * How the cargo goes in: `top` or `rear`.
-   */
-  loading_method: string;
+  loading_method: LoadingMethod;
   needs_refrigeration: boolean;
   /**
    * Whether instant dispatch may offer the load.
@@ -1652,10 +1713,7 @@ export interface RatingCreated {
   event_id: string;
   booking_id: string;
   load_id: string;
-  /**
-   * Who was rated; always `driver` today.
-   */
-  target: string;
+  target: RatingTarget;
   /**
    * The rated driver; the code allows null, a booking always has one.
    */
@@ -1920,10 +1978,7 @@ export interface UserSessionRevoked {
    */
   event_id: string;
   user_id: string;
-  /**
-   * Why: `password_change`, `password_reset`, `phone_change`, `deleted`, `blocked`, or the free text an admin wrote when blocking the account.
-   */
-  reason: string;
+  reason: SessionRevokedReason;
 }
 /**
  * Some of the account's sessions were closed from another device; those installs must sign in again.
@@ -1943,10 +1998,7 @@ export interface UserSessionsClosed {
    * @minItems 1
    */
   installation_ids: [string, ...string[]];
-  /**
-   * Always `logout` today.
-   */
-  reason: string;
+  reason: SessionsClosedReason;
 }
 /**
  * Something about an account changed. Only what changed is sent, besides `user_id` and `updated_at`, and five paths send five field sets: a confirmed phone change sends `phone`; the account settings screen any of `language`, `currency`, `theme`, `notification_prefs`; a role switch `role`; an admin edit any of `phone`, `language`, `first_name`, `last_name`, plus `role` whenever the admin named one; a profile edit `first_name`, `last_name`, `email` and `avatar_url` together, each of them possibly null.
@@ -2035,10 +2087,7 @@ export interface VehicleUpserted {
    * Capability codes: rear_ramp, open_top, side_curtain, tail_lift, refrigerated.
    */
   capabilities: string[];
-  /**
-   * How the vehicle is loaded: `top`, `rear` or `both`.
-   */
-  loading_method: string;
+  loading_method: VehicleLoadingMethod;
   /**
    * Payload in kilograms; null when not given.
    */
@@ -2091,10 +2140,7 @@ export interface WalletEntryPosted {
   event_id: string;
   org_id: string;
   entry_id: string;
-  /**
-   * Ledger line kind: commission, commission_adjustment, cash_topup, cash_void, adjustment, subscription_fee, promo, referral, bonus_hold, bonus_release or bonus_discount.
-   */
-  kind: string;
+  kind: WalletEntryKind;
   /**
    * Signed change of the balance, whole so'm (a bare integer; `currency` is UZS today).
    */

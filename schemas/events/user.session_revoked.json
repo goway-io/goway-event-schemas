@@ -15,8 +15,16 @@
       "format": "uuid"
     },
     "reason": {
+      "title": "SessionRevokedReason",
       "type": "string",
-      "description": "Why: `password_change`, `password_reset`, `phone_change`, `deleted`, `blocked`, or the free text an admin wrote when blocking the account."
+      "enum": [
+        "password_change",
+        "password_reset",
+        "phone_change",
+        "deleted",
+        "blocked"
+      ],
+      "description": "Why every session of the user was closed. An operator's own note on a block stays with staff."
     }
   },
   "required": [

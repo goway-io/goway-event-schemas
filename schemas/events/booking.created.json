@@ -46,8 +46,12 @@
       "description": "ISO 4217 code; `UZS` today."
     },
     "source": {
+      "title": "BookingSource",
       "type": "string",
-      "description": "Present only for an instant claim, and then always `instant`."
+      "enum": [
+        "instant"
+      ],
+      "description": "Present only for an instant claim from dispatch; an accepted offer leaves it out."
     }
   },
   "required": [

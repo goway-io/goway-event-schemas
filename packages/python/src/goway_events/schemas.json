@@ -383,30 +383,7 @@
         "charges": {
           "type": "array",
           "items": {
-            "title": "ChargeLine",
-            "description": "One priced line of the haul.",
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "code": {
-                "type": "string",
-                "description": "`tariff`, `loaders` or `req:<requirement code>`."
-              },
-              "amount": {
-                "type": "integer",
-                "minimum": 0,
-                "description": "Line total, whole so'm (a bare integer; `currency` is UZS today)."
-              },
-              "qty": {
-                "type": "integer",
-                "minimum": 1
-              }
-            },
-            "required": [
-              "code",
-              "amount",
-              "qty"
-            ]
+            "$ref": "#/definitions/ChargeLine"
           },
           "description": "Price lines; the first is always the agreed tariff."
         },
@@ -530,8 +507,7 @@
           "description": "ISO 4217 code; `UZS` today."
         },
         "source": {
-          "type": "string",
-          "description": "Present only for an instant claim, and then always `instant`."
+          "$ref": "#/definitions/BookingSource"
         }
       },
       "required": [
@@ -757,6 +733,14 @@
       ],
       "description": "Which side claims."
     },
+    "BookingSource": {
+      "title": "BookingSource",
+      "type": "string",
+      "enum": [
+        "instant"
+      ],
+      "description": "Present only for an instant claim from dispatch; an accepted offer leaves it out."
+    },
     "BookingStatus": {
       "title": "BookingStatus",
       "type": "string",
@@ -964,8 +948,7 @@
           "$ref": "#/definitions/DocumentKind"
         },
         "status": {
-          "type": "string",
-          "description": "Always `pending` today."
+          "$ref": "#/definitions/SubmittedDocumentStatus"
         },
         "version": {
           "type": "integer",
@@ -1004,6 +987,32 @@
         "event_id",
         "org_id",
         "status"
+      ]
+    },
+    "ChargeLine": {
+      "title": "ChargeLine",
+      "description": "One priced line of the haul.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "`tariff`, `loaders` or `req:<requirement code>`."
+        },
+        "amount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Line total, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "qty": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "code",
+        "amount",
+        "qty"
       ]
     },
     "ClientFrame": {
@@ -1895,8 +1904,7 @@
           "description": "Truck class code from the reference list."
         },
         "loading_method": {
-          "type": "string",
-          "description": "How the cargo goes in: `top` or `rear`."
+          "$ref": "#/definitions/LoadingMethod"
         },
         "needs_refrigeration": {
           "type": "boolean"
@@ -2015,6 +2023,15 @@
         "is_urgent",
         "payment_method"
       ]
+    },
+    "LoadingMethod": {
+      "title": "LoadingMethod",
+      "type": "string",
+      "enum": [
+        "top",
+        "rear"
+      ],
+      "description": "How the cargo goes in."
     },
     "Location": {
       "title": "Location",
@@ -2873,8 +2890,7 @@
           "format": "uuid"
         },
         "target": {
-          "type": "string",
-          "description": "Who was rated; always `driver` today."
+          "$ref": "#/definitions/RatingTarget"
         },
         "driver_user_id": {
           "type": [
@@ -2895,6 +2911,7 @@
         "stars": {
           "type": "integer",
           "minimum": 1,
+          "maximum": 5,
           "description": "1 to 5."
         }
       },
@@ -2908,6 +2925,14 @@
         "shipper_org_id",
         "stars"
       ]
+    },
+    "RatingTarget": {
+      "title": "RatingTarget",
+      "type": "string",
+      "enum": [
+        "driver"
+      ],
+      "description": "Who was rated; only the driver today."
     },
     "RegionChanged": {
       "title": "RegionChanged",
@@ -3013,6 +3038,18 @@
         }
       ]
     },
+    "SessionRevokedReason": {
+      "title": "SessionRevokedReason",
+      "type": "string",
+      "enum": [
+        "password_change",
+        "password_reset",
+        "phone_change",
+        "deleted",
+        "blocked"
+      ],
+      "description": "Why every session of the user was closed. An operator's own note on a block stays with staff."
+    },
     "SessionStarted": {
       "title": "SessionStarted",
       "description": "Somebody signed in to this account; ignore it when `installation_id` is this app's own. Copied from `user.login`; a field that event lacked or sent empty arrives as null.",
@@ -3096,6 +3133,14 @@
         "ts"
       ]
     },
+    "SessionsClosedReason": {
+      "title": "SessionsClosedReason",
+      "type": "string",
+      "enum": [
+        "logout"
+      ],
+      "description": "Why the sessions were closed; only a sign-out from another device today."
+    },
     "SettingsChanged": {
       "title": "SettingsChanged",
       "description": "An admin changed or reset runtime settings of one service. Published by goway-lib for goway-auth, goway-loads, goway-billing and goway-notify, and by goway-realtime itself, with the same fields.",
@@ -3133,6 +3178,14 @@
         "keys",
         "by"
       ]
+    },
+    "SubmittedDocumentStatus": {
+      "title": "SubmittedDocumentStatus",
+      "type": "string",
+      "enum": [
+        "pending"
+      ],
+      "description": "A new version always waits for review."
     },
     "SubscribeBooking": {
       "title": "SubscribeBooking",
@@ -3544,8 +3597,7 @@
           "format": "uuid"
         },
         "reason": {
-          "type": "string",
-          "description": "Why: `password_change`, `password_reset`, `phone_change`, `deleted`, `blocked`, or the free text an admin wrote when blocking the account."
+          "$ref": "#/definitions/SessionRevokedReason"
         }
       },
       "required": [
@@ -3578,8 +3630,7 @@
           "description": "Installs whose sessions were closed; never empty."
         },
         "reason": {
-          "type": "string",
-          "description": "Always `logout` today."
+          "$ref": "#/definitions/SessionsClosedReason"
         }
       },
       "required": [
@@ -3665,6 +3716,16 @@
         "updated_at"
       ]
     },
+    "VehicleLoadingMethod": {
+      "title": "VehicleLoadingMethod",
+      "type": "string",
+      "enum": [
+        "top",
+        "rear",
+        "both"
+      ],
+      "description": "How the vehicle is loaded."
+    },
     "VehicleRemoved": {
       "title": "VehicleRemoved",
       "description": "A fleet vehicle was removed.",
@@ -3726,8 +3787,7 @@
           "description": "Capability codes: rear_ramp, open_top, side_curtain, tail_lift, refrigerated."
         },
         "loading_method": {
-          "type": "string",
-          "description": "How the vehicle is loaded: `top`, `rear` or `both`."
+          "$ref": "#/definitions/VehicleLoadingMethod"
         },
         "capacity_kg": {
           "type": [
@@ -3822,6 +3882,24 @@
         "reason"
       ]
     },
+    "WalletEntryKind": {
+      "title": "WalletEntryKind",
+      "type": "string",
+      "enum": [
+        "commission",
+        "commission_adjustment",
+        "cash_topup",
+        "cash_void",
+        "adjustment",
+        "subscription_fee",
+        "promo",
+        "referral",
+        "bonus_hold",
+        "bonus_release",
+        "bonus_discount"
+      ],
+      "description": "Ledger line kind."
+    },
     "WalletEntryPosted": {
       "title": "WalletEntryPosted",
       "description": "A line was written to an organization's wallet ledger.",
@@ -3842,8 +3920,7 @@
           "format": "uuid"
         },
         "kind": {
-          "type": "string",
-          "description": "Ledger line kind: commission, commission_adjustment, cash_topup, cash_void, adjustment, subscription_fee, promo, referral, bonus_hold, bonus_release or bonus_discount."
+          "$ref": "#/definitions/WalletEntryKind"
         },
         "amount": {
           "type": "integer",

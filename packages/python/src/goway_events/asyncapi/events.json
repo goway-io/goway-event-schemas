@@ -16,7 +16,7 @@
  "channels": {
   "userCreated": {
    "address": "user.created",
-   "description": "An account came into being: self-signup, admin create, or admin restore.\n\nPublished by `goway-auth`; consumed by `goway-loads`, `goway-billing`, `goway-notify`, `goway-realtime`.",
+   "description": "An account came into being: self-signup, admin create, or admin restore.\n\nPublished by `goway-auth`; consumed by `goway-loads`, `goway-billing`, `goway-notify` and `goway-realtime`.",
    "messages": {
     "userCreated": {
      "$ref": "#/components/messages/userCreated"
@@ -32,7 +32,7 @@
   },
   "userUpdated": {
    "address": "user.updated",
-   "description": "Something about an account changed; only what changed is sent.\n\nPublished by `goway-auth`; consumed by `goway-loads`, `goway-billing`, `goway-notify`.",
+   "description": "Something about an account changed; only what changed is sent.\n\nPublished by `goway-auth`; consumed by `goway-loads`, `goway-billing` and `goway-notify`.",
    "messages": {
     "userUpdated": {
      "$ref": "#/components/messages/userUpdated"
@@ -47,7 +47,7 @@
   },
   "userDeleted": {
    "address": "user.deleted",
-   "description": "An account was deleted by its owner or by an admin.\n\nPublished by `goway-auth`; consumed by `goway-loads`, `goway-billing`, `goway-notify`.",
+   "description": "An account was deleted by its owner or by an admin.\n\nPublished by `goway-auth`; consumed by `goway-loads`, `goway-billing` and `goway-notify`.",
    "messages": {
     "userDeleted": {
      "$ref": "#/components/messages/userDeleted"
@@ -62,7 +62,7 @@
   },
   "userLogin": {
    "address": "user.login",
-   "description": "Somebody signed in to the account.\n\nPublished by `goway-auth`; consumed by `goway-notify`, `goway-realtime`.",
+   "description": "Somebody signed in to the account.\n\nPublished by `goway-auth`; consumed by `goway-notify` and `goway-realtime`.",
    "messages": {
     "userLogin": {
      "$ref": "#/components/messages/userLogin"
@@ -76,7 +76,7 @@
   },
   "userSessionRevoked": {
    "address": "user.session_revoked",
-   "description": "Every session of the account was closed.\n\nPublished by `goway-auth`; consumed by `goway-notify`, `goway-realtime`.",
+   "description": "Every session of the account was closed.\n\nPublished by `goway-auth`; consumed by `goway-notify` and `goway-realtime`.",
    "messages": {
     "userSessionRevoked": {
      "$ref": "#/components/messages/userSessionRevoked"
@@ -116,7 +116,7 @@
   },
   "deviceRemoved": {
    "address": "device.removed",
-   "description": "The owner removed a device.\n\nPublished by `goway-auth`; consumed by `goway-notify`, `goway-realtime`.",
+   "description": "The owner removed a device.\n\nPublished by `goway-auth`; consumed by `goway-notify` and `goway-realtime`.",
    "messages": {
     "deviceRemoved": {
      "$ref": "#/components/messages/deviceRemoved"
@@ -141,7 +141,7 @@
   },
   "vehicleUpserted": {
    "address": "vehicle.upserted",
-   "description": "A fleet vehicle was added or changed; the whole vehicle is sent.\n\nPublished by `goway-auth`; consumed by `goway-loads`, `goway-realtime`.",
+   "description": "A fleet vehicle was added or changed; the whole vehicle is sent.\n\nPublished by `goway-auth`; consumed by `goway-loads` and `goway-realtime`.",
    "messages": {
     "vehicleUpserted": {
      "$ref": "#/components/messages/vehicleUpserted"
@@ -155,7 +155,7 @@
   },
   "vehicleRemoved": {
    "address": "vehicle.removed",
-   "description": "A fleet vehicle was removed.\n\nPublished by `goway-auth`; consumed by `goway-loads`, `goway-realtime`.",
+   "description": "A fleet vehicle was removed.\n\nPublished by `goway-auth`; consumed by `goway-loads` and `goway-realtime`.",
    "messages": {
     "vehicleRemoved": {
      "$ref": "#/components/messages/vehicleRemoved"
@@ -219,7 +219,7 @@
   },
   "carrierVerificationChanged": {
    "address": "carrier.verification_changed",
-   "description": "A carrier organization's verification status moved.\n\nPublished by `goway-auth`; consumed by `goway-loads`, `goway-notify`, `goway-realtime`.",
+   "description": "A carrier organization's verification status moved.\n\nPublished by `goway-auth`; consumed by `goway-loads`, `goway-notify` and `goway-realtime`.",
    "messages": {
     "carrierVerificationChanged": {
      "$ref": "#/components/messages/carrierVerificationChanged"
@@ -284,7 +284,7 @@
   },
   "loadCancelled": {
    "address": "load.cancelled",
-   "description": "The shipper withdrew an open load.\n\nPublished by `goway-loads`; consumed by `goway-billing`, `goway-realtime`.",
+   "description": "The shipper withdrew an open load.\n\nPublished by `goway-loads`; consumed by `goway-billing` and `goway-realtime`.",
    "messages": {
     "loadCancelled": {
      "$ref": "#/components/messages/loadCancelled"
@@ -298,7 +298,7 @@
   },
   "loadExpired": {
    "address": "load.expired",
-   "description": "An open load passed its expiry unbooked.\n\nPublished by `goway-loads`; consumed by `goway-billing`, `goway-realtime`.",
+   "description": "An open load passed its expiry unbooked.\n\nPublished by `goway-loads`; consumed by `goway-billing` and `goway-realtime`.",
    "messages": {
     "loadExpired": {
      "$ref": "#/components/messages/loadExpired"
@@ -338,7 +338,7 @@
   },
   "bookingCreated": {
    "address": "booking.created",
-   "description": "A load was booked, from an accepted offer or an instant claim.\n\nPublished by `goway-loads`; consumed by `goway-notify`, `goway-realtime`.",
+   "description": "A load was booked, from an accepted offer or an instant claim.\n\nPublished by `goway-loads`; consumed by `goway-notify` and `goway-realtime`.",
    "messages": {
     "bookingCreated": {
      "$ref": "#/components/messages/bookingCreated"
@@ -352,7 +352,7 @@
   },
   "bookingStatusChanged": {
    "address": "booking.status_changed",
-   "description": "The carrier moved the haul one step on.\n\nPublished by `goway-loads`; consumed by `goway-notify`, `goway-realtime`.",
+   "description": "The carrier moved the haul one step on.\n\nPublished by `goway-loads`; consumed by `goway-notify` and `goway-realtime`.",
    "messages": {
     "bookingStatusChanged": {
      "$ref": "#/components/messages/bookingStatusChanged"
@@ -379,7 +379,7 @@
   },
   "bookingCompleted": {
    "address": "booking.completed",
-   "description": "A delivered haul was closed; billing charges its commission from it.\n\nPublished by `goway-loads`; consumed by `goway-auth`, `goway-billing`, `goway-notify`, `goway-realtime`.",
+   "description": "A delivered haul was closed; billing charges its commission from it.\n\nPublished by `goway-loads`; consumed by `goway-auth`, `goway-billing`, `goway-notify` and `goway-realtime`.",
    "messages": {
     "bookingCompleted": {
      "$ref": "#/components/messages/bookingCompleted"
@@ -395,7 +395,7 @@
   },
   "bookingCancelled": {
    "address": "booking.cancelled",
-   "description": "A booking ended before loading. The load returns to the board in the same transaction.\n\nPublished by `goway-loads`; consumed by `goway-notify`, `goway-realtime`.",
+   "description": "A booking ended before loading. The load returns to the board in the same transaction.\n\nPublished by `goway-loads`; consumed by `goway-notify` and `goway-realtime`.",
    "messages": {
     "bookingCancelled": {
      "$ref": "#/components/messages/bookingCancelled"
@@ -420,7 +420,7 @@
   },
   "bookingAmountSettled": {
    "address": "booking.amount_settled",
-   "description": "An operator accepted an amount claim.\n\nPublished by `goway-loads`; consumed by `goway-billing`, `goway-notify`.",
+   "description": "An operator accepted an amount claim.\n\nPublished by `goway-loads`; consumed by `goway-billing` and `goway-notify`.",
    "messages": {
     "bookingAmountSettled": {
      "$ref": "#/components/messages/bookingAmountSettled"
@@ -471,7 +471,7 @@
   },
   "walletEligibilityChanged": {
    "address": "wallet.eligibility_changed",
-   "description": "An organization's wallet started or stopped being allowed to receive offers.\n\nPublished by `goway-billing`; consumed by `goway-loads`, `goway-notify`, `goway-realtime`.",
+   "description": "An organization's wallet started or stopped being allowed to receive offers.\n\nPublished by `goway-billing`; consumed by `goway-loads`, `goway-notify` and `goway-realtime`.",
    "messages": {
     "walletEligibilityChanged": {
      "$ref": "#/components/messages/walletEligibilityChanged"
@@ -536,7 +536,7 @@
   },
   "settingsChanged": {
    "address": "settings.changed",
-   "description": "An admin changed or reset runtime settings of one service.\n\nPublished by `['goway-auth', 'goway-loads', 'goway-billing', 'goway-notify', 'goway-realtime']`; consumed by no service yet.",
+   "description": "An admin changed or reset runtime settings of one service.\n\nPublished by `goway-auth`, `goway-loads`, `goway-billing`, `goway-notify` and `goway-realtime`; consumed by no service yet.",
    "messages": {
     "settingsChanged": {
      "$ref": "#/components/messages/settingsChanged"
@@ -919,7 +919,7 @@
     "$ref": "#/channels/settingsChanged"
    },
    "description": "Published by goway-lib in every Python service with runtime settings, and by goway-realtime, on change or reset.",
-   "title": "['goway-auth', 'goway-loads', 'goway-billing', 'goway-notify', 'goway-realtime'] publishes"
+   "title": "5 services publish"
   },
   "publishDriverOnline": {
    "action": "send",
@@ -1439,8 +1439,16 @@
        "format": "uuid"
       },
       "reason": {
+       "title": "SessionRevokedReason",
        "type": "string",
-       "description": "Why: `password_change`, `password_reset`, `phone_change`, `deleted`, `blocked`, or the free text an admin wrote when blocking the account."
+       "enum": [
+        "password_change",
+        "password_reset",
+        "phone_change",
+        "deleted",
+        "blocked"
+       ],
+       "description": "Why every session of the user was closed. An operator's own note on a block stays with staff."
       }
      },
      "required": [
@@ -1455,7 +1463,7 @@
       "payload": {
        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
        "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
-       "reason": "Soxta hujjatlar"
+       "reason": "blocked"
       }
      },
      {
@@ -1495,8 +1503,12 @@
        "description": "Installs whose sessions were closed; never empty."
       },
       "reason": {
+       "title": "SessionsClosedReason",
        "type": "string",
-       "description": "Always `logout` today."
+       "enum": [
+        "logout"
+       ],
+       "description": "Why the sessions were closed; only a sign-out from another device today."
       }
      },
      "required": [
@@ -1760,8 +1772,14 @@
        "description": "Capability codes: rear_ramp, open_top, side_curtain, tail_lift, refrigerated."
       },
       "loading_method": {
+       "title": "VehicleLoadingMethod",
        "type": "string",
-       "description": "How the vehicle is loaded: `top`, `rear` or `both`."
+       "enum": [
+        "top",
+        "rear",
+        "both"
+       ],
+       "description": "How the vehicle is loaded."
       },
       "capacity_kg": {
        "type": [
@@ -1879,8 +1897,12 @@
        ]
       },
       "status": {
+       "title": "SubmittedDocumentStatus",
        "type": "string",
-       "description": "Always `pending` today."
+       "enum": [
+        "pending"
+       ],
+       "description": "A new version always waits for review."
       },
       "version": {
        "type": "integer",
@@ -2394,8 +2416,13 @@
        "description": "Truck class code from the reference list."
       },
       "loading_method": {
+       "title": "LoadingMethod",
        "type": "string",
-       "description": "How the cargo goes in: `top` or `rear`."
+       "enum": [
+        "top",
+        "rear"
+       ],
+       "description": "How the cargo goes in."
       },
       "needs_refrigeration": {
        "type": "boolean"
@@ -2877,8 +2904,12 @@
        "description": "ISO 4217 code; `UZS` today."
       },
       "source": {
+       "title": "BookingSource",
        "type": "string",
-       "description": "Present only for an instant claim, and then always `instant`."
+       "enum": [
+        "instant"
+       ],
+       "description": "Present only for an instant claim from dispatch; an accepted offer leaves it out."
       }
      },
      "required": [
@@ -3726,8 +3757,12 @@
        "format": "uuid"
       },
       "target": {
+       "title": "RatingTarget",
        "type": "string",
-       "description": "Who was rated; always `driver` today."
+       "enum": [
+        "driver"
+       ],
+       "description": "Who was rated; only the driver today."
       },
       "driver_user_id": {
        "type": [
@@ -3748,6 +3783,7 @@
       "stars": {
        "type": "integer",
        "minimum": 1,
+       "maximum": 5,
        "description": "1 to 5."
       }
      },
@@ -3801,8 +3837,22 @@
        "format": "uuid"
       },
       "kind": {
+       "title": "WalletEntryKind",
        "type": "string",
-       "description": "Ledger line kind: commission, commission_adjustment, cash_topup, cash_void, adjustment, subscription_fee, promo, referral, bonus_hold, bonus_release or bonus_discount."
+       "enum": [
+        "commission",
+        "commission_adjustment",
+        "cash_topup",
+        "cash_void",
+        "adjustment",
+        "subscription_fee",
+        "promo",
+        "referral",
+        "bonus_hold",
+        "bonus_release",
+        "bonus_discount"
+       ],
+       "description": "Ledger line kind."
       },
       "amount": {
        "type": "integer",
