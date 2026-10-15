@@ -2015,6 +2015,10 @@
          "minLength": 3,
          "maxLength": 3,
          "description": "ISO 4217 code; `UZS` today."
+        },
+        "load_code": {
+         "type": "string",
+         "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
         }
        },
        "required": [
@@ -2033,7 +2037,8 @@
         "waiting_amount",
         "waiting_billable",
         "total_amount",
-        "currency"
+        "currency",
+        "load_code"
        ]
       },
       "ts": {
@@ -2080,7 +2085,8 @@
         "waiting_amount": 50000,
         "waiting_billable": true,
         "total_amount": 4600000,
-        "currency": "UZS"
+        "currency": "UZS",
+        "load_code": "GW-7F3K2M"
        },
        "ts": "2026-10-14T09:30:00.123Z"
       }
@@ -2176,6 +2182,10 @@
          "type": "string",
          "minLength": 3,
          "maxLength": 3
+        },
+        "load_code": {
+         "type": "string",
+         "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
         }
        },
        "required": [
@@ -2191,7 +2201,8 @@
         "penalized",
         "reason_code",
         "fee_amount",
-        "currency"
+        "currency",
+        "load_code"
        ]
       },
       "ts": {
@@ -2224,7 +2235,8 @@
         "penalized": false,
         "reason_code": null,
         "fee_amount": null,
-        "currency": "UZS"
+        "currency": "UZS",
+        "load_code": "GW-7F3K2M"
        },
        "ts": "2026-10-14T09:30:00.123Z"
       }

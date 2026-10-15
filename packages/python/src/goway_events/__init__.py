@@ -186,6 +186,7 @@ from goway_events.models import (
     WalletEligibilityChanged,
     WalletEntryKind,
     WalletEntryPosted,
+    WalletLowBalance,
     WalletToppedUp,
 )
 from goway_events.reference import asyncapi
@@ -377,6 +378,7 @@ __all__ = [
     "WalletEligibilityChanged",
     "WalletEntryKind",
     "WalletEntryPosted",
+    "WalletLowBalance",
     "WalletToppedUp",
     "asyncapi",
     "check",

@@ -72,6 +72,10 @@
         "carrier"
       ],
       "description": "Which side claims."
+    },
+    "load_code": {
+      "type": "string",
+      "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
     }
   },
   "required": [
@@ -85,6 +89,7 @@
     "previous_amount",
     "settled_amount",
     "currency",
-    "claim_side"
+    "claim_side",
+    "load_code"
   ]
 }

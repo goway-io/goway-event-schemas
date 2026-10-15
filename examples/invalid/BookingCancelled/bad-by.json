@@ -11,5 +11,6 @@
   "penalized": false,
   "reason_code": null,
   "fee_amount": null,
-  "currency": "UZS"
+  "currency": "UZS",
+  "load_code": "GW-7F3K2M"
 }

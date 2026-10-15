@@ -13,7 +13,8 @@
     "penalized": false,
     "reason_code": null,
     "fee_amount": null,
-    "currency": "UZS"
+    "currency": "UZS",
+    "load_code": "GW-7F3K2M"
   },
   "ts": "2026-10-14T09:30:00.123Z"
 }

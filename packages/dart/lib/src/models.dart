@@ -998,6 +998,10 @@ class BookingCancelled {
     ///driver set off); null when none.
     @JsonKey(name: "fee_amount")
     final int? feeAmount;
+    
+    ///The load's short code, for example `GW-7F3K2M`; wallets and receipts show it.
+    @JsonKey(name: "load_code")
+    final String loadCode;
     @JsonKey(name: "load_id")
     final String loadId;
     
@@ -1031,6 +1035,7 @@ class BookingCancelled {
         required this.driverUserId,
         required this.eventId,
         required this.feeAmount,
+        required this.loadCode,
         required this.loadId,
         required this.penalized,
         required this.plan,
@@ -1131,6 +1136,10 @@ class BookingCompleted {
     ///Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
     @JsonKey(name: "event_id")
     final String eventId;
+    
+    ///The load's short code, for example `GW-7F3K2M`; wallets and receipts show it.
+    @JsonKey(name: "load_code")
+    final String loadCode;
     @JsonKey(name: "load_id")
     final String loadId;
     
@@ -1168,6 +1177,7 @@ class BookingCompleted {
         required this.currency,
         required this.driverUserId,
         required this.eventId,
+        required this.loadCode,
         required this.loadId,
         required this.settledAmount,
         required this.shipperOrgId,

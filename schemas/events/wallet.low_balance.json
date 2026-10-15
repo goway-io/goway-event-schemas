@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WalletLowBalance",
+  "description": "A carrier's wallet came within `low_balance_warning` of the debt limit, before offers stop. Once until the headroom grows past the warning again.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "balance": {
+      "type": "integer",
+      "description": "Whole so'm; negative while the carrier owes."
+    },
+    "debt_limit": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "How far below zero the wallet may go before offers stop."
+    },
+    "headroom": {
+      "type": "integer",
+      "description": "What is left before offers stop: `balance + debt_limit`."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3
+    }
+  },
+  "required": [
+    "event_id",
+    "org_id",
+    "balance",
+    "debt_limit",
+    "headroom",
+    "currency"
+  ]
+}

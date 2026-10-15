@@ -433,7 +433,7 @@
   },
   "bookingCancelled": {
    "address": "booking.cancelled",
-   "description": "A booking ended before loading. The load returns to the board in the same transaction.\n\nPublished by `goway-loads`; consumed by `goway-auth`, `goway-notify` and `goway-realtime`.",
+   "description": "A booking ended before loading. The load returns to the board in the same transaction.\n\nPublished by `goway-loads`; consumed by `goway-auth`, `goway-billing`, `goway-notify` and `goway-realtime`.",
    "messages": {
     "bookingCancelled": {
      "$ref": "#/components/messages/bookingCancelled"
@@ -442,6 +442,7 @@
    "x-publisher": "goway-loads",
    "x-consumers": [
     "goway-auth",
+    "goway-billing",
     "goway-notify",
     "goway-realtime"
    ]
@@ -499,14 +500,16 @@
   },
   "walletEntryPosted": {
    "address": "wallet.entry_posted",
-   "description": "A line was written to an organization's wallet ledger.\n\nPublished by `goway-billing`; consumed by no service yet.",
+   "description": "A line was written to an organization's wallet ledger.\n\nPublished by `goway-billing`; consumed by `goway-loads`.",
    "messages": {
     "walletEntryPosted": {
      "$ref": "#/components/messages/walletEntryPosted"
     }
    },
    "x-publisher": "goway-billing",
-   "x-consumers": []
+   "x-consumers": [
+    "goway-loads"
+   ]
   },
   "walletEligibilityChanged": {
    "address": "wallet.eligibility_changed",
@@ -836,6 +839,19 @@
    "x-consumers": [
     "goway-notify",
     "goway-realtime"
+   ]
+  },
+  "walletLowBalance": {
+   "address": "wallet.low_balance",
+   "description": "A carrier's wallet is close to the debt limit.\n\nPublished by `goway-billing`; consumed by `goway-notify`.",
+   "messages": {
+    "walletLowBalance": {
+     "$ref": "#/components/messages/walletLowBalance"
+    }
+   },
+   "x-publisher": "goway-billing",
+   "x-consumers": [
+    "goway-notify"
    ]
   }
  },
@@ -1335,6 +1351,14 @@
    },
    "description": "Published when the person or an operator writes in a support conversation.",
    "title": "goway-auth publishes"
+  },
+  "publishWalletLowBalance": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/walletLowBalance"
+   },
+   "description": "Published once when the headroom falls below `low_balance_warning`.",
+   "title": "goway-billing publishes"
   }
  },
  "components": {
@@ -4226,6 +4250,10 @@
        "minLength": 3,
        "maxLength": 3,
        "description": "ISO 4217 code; `UZS` today."
+      },
+      "load_code": {
+       "type": "string",
+       "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
       }
      },
      "required": [
@@ -4244,7 +4272,8 @@
       "waiting_amount",
       "waiting_billable",
       "total_amount",
-      "currency"
+      "currency",
+      "load_code"
      ]
     },
     "examples": [
@@ -4277,7 +4306,8 @@
        "waiting_amount": 50000,
        "waiting_billable": true,
        "total_amount": 4600000,
-       "currency": "UZS"
+       "currency": "UZS",
+       "load_code": "GW-7F3K2M"
       }
      },
      {
@@ -4304,7 +4334,8 @@
        "waiting_amount": 0,
        "waiting_billable": true,
        "total_amount": null,
-       "currency": "UZS"
+       "currency": "UZS",
+       "load_code": "GW-7F3K2M"
       }
      }
     ]
@@ -4388,6 +4419,10 @@
        "type": "string",
        "minLength": 3,
        "maxLength": 3
+      },
+      "load_code": {
+       "type": "string",
+       "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
       }
      },
      "required": [
@@ -4403,7 +4438,8 @@
       "penalized",
       "reason_code",
       "fee_amount",
-      "currency"
+      "currency",
+      "load_code"
      ]
     },
     "examples": [
@@ -4422,7 +4458,8 @@
        "penalized": true,
        "reason_code": null,
        "fee_amount": null,
-       "currency": "UZS"
+       "currency": "UZS",
+       "load_code": "GW-7F3K2M"
       }
      },
      {
@@ -4440,7 +4477,8 @@
        "penalized": false,
        "reason_code": null,
        "fee_amount": null,
-       "currency": "UZS"
+       "currency": "UZS",
+       "load_code": "GW-7F3K2M"
       }
      },
      {
@@ -4458,7 +4496,8 @@
        "penalized": false,
        "reason_code": "plans_changed",
        "fee_amount": 131325,
-       "currency": "UZS"
+       "currency": "UZS",
+       "load_code": "GW-7F3K2M"
       }
      }
     ]
@@ -4612,6 +4651,10 @@
         "carrier"
        ],
        "description": "Which side claims."
+      },
+      "load_code": {
+       "type": "string",
+       "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
       }
      },
      "required": [
@@ -4625,7 +4668,8 @@
       "previous_amount",
       "settled_amount",
       "currency",
-      "claim_side"
+      "claim_side",
+      "load_code"
      ]
     },
     "examples": [
@@ -4642,7 +4686,8 @@
        "previous_amount": 4350000,
        "settled_amount": 4600000,
        "currency": "UZS",
-       "claim_side": "carrier"
+       "claim_side": "carrier",
+       "load_code": "GW-7F3K2M"
       }
      },
      {
@@ -4658,7 +4703,8 @@
        "previous_amount": 4350000,
        "settled_amount": 4600000,
        "currency": "UZS",
-       "claim_side": "carrier"
+       "claim_side": "carrier",
+       "load_code": "GW-7F3K2M"
       }
      }
     ]
@@ -4889,9 +4935,11 @@
         "referral",
         "bonus_hold",
         "bonus_release",
-        "bonus_discount"
+        "bonus_discount",
+        "cancel_fee",
+        "cancel_fee_share"
        ],
-       "description": "Ledger line kind."
+       "description": "Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it."
       },
       "amount": {
        "type": "integer",
@@ -4928,6 +4976,19 @@
      ]
     },
     "examples": [
+     {
+      "name": "Cancel fee",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "entry_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0f",
+       "kind": "cancel_fee",
+       "amount": -131325,
+       "balance": 81500,
+       "booking_id": null,
+       "currency": "UZS"
+      }
+     },
      {
       "name": "Cash topup",
       "payload": {
@@ -7311,6 +7372,66 @@
        "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
        "text": "Assalomu alaykum! Balansingiz tekshirildi, komissiya to'g'ri hisoblangan.",
        "created_at": "2026-10-16T10:01:00+00:00"
+      }
+     }
+    ]
+   },
+   "walletLowBalance": {
+    "name": "wallet.low_balance",
+    "title": "Low balance",
+    "payload": {
+     "title": "WalletLowBalance",
+     "description": "A carrier's wallet came within `low_balance_warning` of the debt limit, before offers stop. Once until the headroom grows past the warning again.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "balance": {
+       "type": "integer",
+       "description": "Whole so'm; negative while the carrier owes."
+      },
+      "debt_limit": {
+       "type": "integer",
+       "minimum": 0,
+       "description": "How far below zero the wallet may go before offers stop."
+      },
+      "headroom": {
+       "type": "integer",
+       "description": "What is left before offers stop: `balance + debt_limit`."
+      },
+      "currency": {
+       "type": "string",
+       "minLength": 3,
+       "maxLength": 3
+      }
+     },
+     "required": [
+      "event_id",
+      "org_id",
+      "balance",
+      "debt_limit",
+      "headroom",
+      "currency"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "balance": -170000,
+       "debt_limit": 200000,
+       "headroom": 30000,
+       "currency": "UZS"
       }
      }
     ]

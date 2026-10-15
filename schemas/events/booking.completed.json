@@ -116,6 +116,10 @@
       "minLength": 3,
       "maxLength": 3,
       "description": "ISO 4217 code; `UZS` today."
+    },
+    "load_code": {
+      "type": "string",
+      "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
     }
   },
   "required": [
@@ -134,6 +138,7 @@
     "waiting_amount",
     "waiting_billable",
     "total_amount",
-    "currency"
+    "currency",
+    "load_code"
   ]
 }

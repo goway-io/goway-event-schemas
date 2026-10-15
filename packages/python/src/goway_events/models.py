@@ -2280,7 +2280,7 @@ class WalletEligibilityChanged(BaseModel):
 
 class WalletEntryKind(StrEnum):
     """
-    Ledger line kind.
+    Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it.
     """
 
     COMMISSION = "commission"
@@ -2294,6 +2294,8 @@ class WalletEntryKind(StrEnum):
     BONUS_HOLD = "bonus_hold"
     BONUS_RELEASE = "bonus_release"
     BONUS_DISCOUNT = "bonus_discount"
+    CANCEL_FEE = "cancel_fee"
+    CANCEL_FEE_SHARE = "cancel_fee_share"
 
 
 class WalletEntryPosted(BaseModel):
@@ -2327,6 +2329,34 @@ class WalletEntryPosted(BaseModel):
     """
     ISO 4217 code; `UZS` today.
     """
+
+
+class WalletLowBalance(BaseModel):
+    """
+    A carrier's wallet came within `low_balance_warning` of the debt limit, before offers stop. Once until the headroom grows past the warning again.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    org_id: UUID
+    balance: int
+    """
+    Whole so'm; negative while the carrier owes.
+    """
+    debt_limit: Annotated[int, Field(ge=0)]
+    """
+    How far below zero the wallet may go before offers stop.
+    """
+    headroom: int
+    """
+    What is left before offers stop: `balance + debt_limit`.
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
 
 
 class WalletToppedUp(BaseModel):
@@ -2454,6 +2484,10 @@ class BookingAmountSettled(BaseModel):
     ISO 4217 code; `UZS` today.
     """
     claim_side: BookingSide
+    load_code: str
+    """
+    The load's short code, for example `GW-7F3K2M`; wallets and receipts show it.
+    """
 
 
 class BookingCancelled(BaseModel):
@@ -2498,6 +2532,10 @@ class BookingCancelled(BaseModel):
     Cancellation fee the shipper owes the carrier, whole so'm (`cancel_fee_percent` once the driver set off); null when none.
     """
     currency: Annotated[str, Field(max_length=3, min_length=3)]
+    load_code: str
+    """
+    The load's short code, for example `GW-7F3K2M`; wallets and receipts show it.
+    """
 
 
 class BookingCancelledFrame(BaseModel):
@@ -2569,6 +2607,10 @@ class BookingCompleted(BaseModel):
     currency: Annotated[str, Field(max_length=3, min_length=3)]
     """
     ISO 4217 code; `UZS` today.
+    """
+    load_code: str
+    """
+    The load's short code, for example `GW-7F3K2M`; wallets and receipts show it.
     """
 
 

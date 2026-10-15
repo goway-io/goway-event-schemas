@@ -32,9 +32,11 @@
         "referral",
         "bonus_hold",
         "bonus_release",
-        "bonus_discount"
+        "bonus_discount",
+        "cancel_fee",
+        "cancel_fee_share"
       ],
-      "description": "Ledger line kind."
+      "description": "Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it."
     },
     "amount": {
       "type": "integer",

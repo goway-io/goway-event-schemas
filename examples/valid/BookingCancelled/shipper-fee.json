@@ -11,5 +11,6 @@
   "penalized": false,
   "reason_code": "plans_changed",
   "fee_amount": 131325,
-  "currency": "UZS"
+  "currency": "UZS",
+  "load_code": "GW-7F3K2M"
 }

@@ -63,6 +63,7 @@
     "vehicle.upserted": "VehicleUpserted",
     "wallet.eligibility_changed": "WalletEligibilityChanged",
     "wallet.entry_posted": "WalletEntryPosted",
+    "wallet.low_balance": "WalletLowBalance",
     "wallet.topped_up": "WalletToppedUp"
   },
   "x-frames": {
@@ -484,6 +485,10 @@
         },
         "claim_side": {
           "$ref": "#/definitions/BookingSide"
+        },
+        "load_code": {
+          "type": "string",
+          "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
         }
       },
       "required": [
@@ -497,7 +502,8 @@
         "previous_amount",
         "settled_amount",
         "currency",
-        "claim_side"
+        "claim_side",
+        "load_code"
       ]
     },
     "BookingCancelled": {
@@ -569,6 +575,10 @@
           "type": "string",
           "minLength": 3,
           "maxLength": 3
+        },
+        "load_code": {
+          "type": "string",
+          "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
         }
       },
       "required": [
@@ -584,7 +594,8 @@
         "penalized",
         "reason_code",
         "fee_amount",
-        "currency"
+        "currency",
+        "load_code"
       ]
     },
     "BookingCancelledFrame": {
@@ -707,6 +718,10 @@
           "minLength": 3,
           "maxLength": 3,
           "description": "ISO 4217 code; `UZS` today."
+        },
+        "load_code": {
+          "type": "string",
+          "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
         }
       },
       "required": [
@@ -725,7 +740,8 @@
         "waiting_amount",
         "waiting_billable",
         "total_amount",
-        "currency"
+        "currency",
+        "load_code"
       ]
     },
     "BookingCompletedFrame": {
@@ -6303,9 +6319,11 @@
         "referral",
         "bonus_hold",
         "bonus_release",
-        "bonus_discount"
+        "bonus_discount",
+        "cancel_fee",
+        "cancel_fee_share"
       ],
-      "description": "Ledger line kind."
+      "description": "Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it."
     },
     "WalletEntryPosted": {
       "title": "WalletEntryPosted",
@@ -6360,6 +6378,49 @@
         "amount",
         "balance",
         "booking_id",
+        "currency"
+      ]
+    },
+    "WalletLowBalance": {
+      "title": "WalletLowBalance",
+      "description": "A carrier's wallet came within `low_balance_warning` of the debt limit, before offers stop. Once until the headroom grows past the warning again.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "balance": {
+          "type": "integer",
+          "description": "Whole so'm; negative while the carrier owes."
+        },
+        "debt_limit": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How far below zero the wallet may go before offers stop."
+        },
+        "headroom": {
+          "type": "integer",
+          "description": "What is left before offers stop: `balance + debt_limit`."
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3
+        }
+      },
+      "required": [
+        "event_id",
+        "org_id",
+        "balance",
+        "debt_limit",
+        "headroom",
         "currency"
       ]
     },

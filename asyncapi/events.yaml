@@ -271,7 +271,7 @@ channels:
       bookingCancelled:
         $ref: '#/components/messages/bookingCancelled'
     x-publisher: goway-loads
-    x-consumers: [goway-auth, goway-notify, goway-realtime]
+    x-consumers: [goway-auth, goway-billing, goway-notify, goway-realtime]
   bookingAmountClaimed:
     address: booking.amount_claimed
     description: One side says a delivered haul settled at another sum.
@@ -311,7 +311,7 @@ channels:
       walletEntryPosted:
         $ref: '#/components/messages/walletEntryPosted'
     x-publisher: goway-billing
-    x-consumers: []
+    x-consumers: [goway-loads]
   walletEligibilityChanged:
     address: wallet.eligibility_changed
     description: An organization's wallet started or stopped being allowed to receive offers.
@@ -512,6 +512,14 @@ channels:
         $ref: '#/components/messages/supportMessageCreated'
     x-publisher: goway-auth
     x-consumers: [goway-notify, goway-realtime]
+  walletLowBalance:
+    address: wallet.low_balance
+    description: "A carrier's wallet is close to the debt limit."
+    messages:
+      walletLowBalance:
+        $ref: '#/components/messages/walletLowBalance'
+    x-publisher: goway-billing
+    x-consumers: [goway-notify]
 operations:
   publishUserCreated:
     action: send
@@ -823,6 +831,11 @@ operations:
     channel:
       $ref: '#/channels/supportMessageCreated'
     description: "Published when the person or an operator writes in a support conversation."
+  publishWalletLowBalance:
+    action: send
+    channel:
+      $ref: '#/channels/walletLowBalance'
+    description: "Published once when the headroom falls below `low_balance_warning`."
 components:
   messages:
     userCreated:
@@ -1135,3 +1148,8 @@ components:
       title: Support message
       payload:
         $ref: '../schemas/events/support.message_created.json'
+    walletLowBalance:
+      name: wallet.low_balance
+      title: Low balance
+      payload:
+        $ref: '../schemas/events/wallet.low_balance.json'

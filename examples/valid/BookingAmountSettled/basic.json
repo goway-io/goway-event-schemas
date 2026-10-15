@@ -9,5 +9,6 @@
   "previous_amount": 4350000,
   "settled_amount": 4600000,
   "currency": "UZS",
-  "claim_side": "carrier"
+  "claim_side": "carrier",
+  "load_code": "GW-7F3K2M"
 }

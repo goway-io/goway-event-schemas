@@ -240,6 +240,8 @@ pub struct BookingAmountSettled {
     pub driver_user_id: ::uuid::Uuid,
     #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
     pub event_id: ::uuid::Uuid,
+    #[doc = "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."]
+    pub load_code: ::std::string::String,
     pub load_id: ::uuid::Uuid,
     #[doc = "The sum on record before, whole so'm (a bare integer; `currency` is UZS today)."]
     pub previous_amount: u64,
@@ -314,6 +316,8 @@ pub struct BookingCancelled {
     #[doc = "Cancellation fee the shipper owes the carrier, whole so'm (`cancel_fee_percent` once the driver set off); null when none."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub fee_amount: ::std::option::Option<u64>,
+    #[doc = "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."]
+    pub load_code: ::std::string::String,
     pub load_id: ::uuid::Uuid,
     #[doc = "The cancellation counts against the driver's acceptance rate: the driver's own cancellation of an instant haul, or of a plan later than goway-loads' free-cancel window before pickup, or an operator's cancellation of a booking whose driver never showed up. False for every other shipper and operator cancellation."]
     pub penalized: bool,
@@ -444,6 +448,8 @@ pub struct BookingCompleted {
     pub driver_user_id: ::uuid::Uuid,
     #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
     pub event_id: ::uuid::Uuid,
+    #[doc = "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."]
+    pub load_code: ::std::string::String,
     pub load_id: ::uuid::Uuid,
     #[doc = "What the haul actually settled at: the agreed price unless another sum was confirmed, whole so'm (a bare integer; `currency` is UZS today)."]
     pub settled_amount: u64,
@@ -5065,7 +5071,7 @@ pub struct WalletEligibilityChanged {
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub user_id: ::std::option::Option<::uuid::Uuid>,
 }
-#[doc = "Ledger line kind."]
+#[doc = "Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum WalletEntryKind {
     #[serde(rename = "commission")]
@@ -5090,6 +5096,10 @@ pub enum WalletEntryKind {
     BonusRelease,
     #[serde(rename = "bonus_discount")]
     BonusDiscount,
+    #[serde(rename = "cancel_fee")]
+    CancelFee,
+    #[serde(rename = "cancel_fee_share")]
+    CancelFeeShare,
 }
 impl ::std::fmt::Display for WalletEntryKind {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
@@ -5105,6 +5115,8 @@ impl ::std::fmt::Display for WalletEntryKind {
             Self::BonusHold => f.write_str("bonus_hold"),
             Self::BonusRelease => f.write_str("bonus_release"),
             Self::BonusDiscount => f.write_str("bonus_discount"),
+            Self::CancelFee => f.write_str("cancel_fee"),
+            Self::CancelFeeShare => f.write_str("cancel_fee_share"),
         }
     }
 }
@@ -5123,6 +5135,8 @@ impl ::std::str::FromStr for WalletEntryKind {
             "bonus_hold" => Ok(Self::BonusHold),
             "bonus_release" => Ok(Self::BonusRelease),
             "bonus_discount" => Ok(Self::BonusDiscount),
+            "cancel_fee" => Ok(Self::CancelFee),
+            "cancel_fee_share" => Ok(Self::CancelFeeShare),
             _ => Err("invalid value".into()),
         }
     }
@@ -5197,6 +5211,69 @@ impl ::std::convert::TryFrom<::std::string::String> for WalletEntryPostedCurrenc
     }
 }
 impl<'de> ::serde::Deserialize<'de> for WalletEntryPostedCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+#[doc = "A carrier's wallet came within `low_balance_warning` of the debt limit, before offers stop. Once until the headroom grows past the warning again."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct WalletLowBalance {
+    #[doc = "Whole so'm; negative while the carrier owes."]
+    pub balance: i64,
+    pub currency: WalletLowBalanceCurrency,
+    #[doc = "How far below zero the wallet may go before offers stop."]
+    pub debt_limit: u64,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "What is left before offers stop: `balance + debt_limit`."]
+    pub headroom: i64,
+    pub org_id: ::uuid::Uuid,
+}
+#[doc = "`WalletLowBalanceCurrency`"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct WalletLowBalanceCurrency(::std::string::String);
+impl ::std::ops::Deref for WalletLowBalanceCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<WalletLowBalanceCurrency> for ::std::string::String {
+    fn from(value: WalletLowBalanceCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for WalletLowBalanceCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 3usize {
+            return Err("longer than 3 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for WalletLowBalanceCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for WalletLowBalanceCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for WalletLowBalanceCurrency {
     fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
     where
         D: ::serde::Deserializer<'de>,

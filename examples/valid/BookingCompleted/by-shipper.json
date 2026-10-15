@@ -25,5 +25,6 @@
   "waiting_amount": 50000,
   "waiting_billable": true,
   "total_amount": 4600000,
-  "currency": "UZS"
+  "currency": "UZS",
+  "load_code": "GW-7F3K2M"
 }

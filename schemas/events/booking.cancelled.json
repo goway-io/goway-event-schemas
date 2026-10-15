@@ -75,6 +75,10 @@
       "type": "string",
       "minLength": 3,
       "maxLength": 3
+    },
+    "load_code": {
+      "type": "string",
+      "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
     }
   },
   "required": [
@@ -90,6 +94,7 @@
     "penalized",
     "reason_code",
     "fee_amount",
-    "currency"
+    "currency",
+    "load_code"
   ]
 }

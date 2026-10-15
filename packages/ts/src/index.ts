@@ -311,7 +311,7 @@ export type VehicleColor =
  */
 export type VehicleLoadingMethod = "top" | "rear" | "both";
 /**
- * Ledger line kind.
+ * Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "WalletEntryKind".
@@ -327,7 +327,9 @@ export type WalletEntryKind =
   | "referral"
   | "bonus_hold"
   | "bonus_release"
-  | "bonus_discount";
+  | "bonus_discount"
+  | "cancel_fee"
+  | "cancel_fee_share";
 
 export interface GowayEventSchemas {
   [k: string]: unknown;
@@ -520,6 +522,10 @@ export interface BookingAmountSettled {
    */
   currency: string;
   claim_side: BookingSide;
+  /**
+   * The load's short code, for example `GW-7F3K2M`; wallets and receipts show it.
+   */
+  load_code: string;
 }
 /**
  * A booking ended without being completed: either side cancelled before the cargo was loaded (`by` is `shipper` or `carrier`), or an operator cancelled it (`by` is `operator`), which after loading happens only through a reported issue. The load goes back to the board unless the operator withdrew it, which a `load.cancelled` then says.
@@ -562,6 +568,10 @@ export interface BookingCancelled {
    */
   fee_amount: number | null;
   currency: string;
+  /**
+   * The load's short code, for example `GW-7F3K2M`; wallets and receipts show it.
+   */
+  load_code: string;
 }
 /**
  * Frame `booking_cancelled` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.cancelled` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
@@ -630,6 +640,10 @@ export interface BookingCompleted {
    * ISO 4217 code; `UZS` today.
    */
   currency: string;
+  /**
+   * The load's short code, for example `GW-7F3K2M`; wallets and receipts show it.
+   */
+  load_code: string;
 }
 /**
  * One priced line of the haul.
@@ -3295,6 +3309,32 @@ export interface WalletEntryPosted {
   /**
    * ISO 4217 code; `UZS` today.
    */
+  currency: string;
+}
+/**
+ * A carrier's wallet came within `low_balance_warning` of the debt limit, before offers stop. Once until the headroom grows past the warning again.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "WalletLowBalance".
+ */
+export interface WalletLowBalance {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  org_id: string;
+  /**
+   * Whole so'm; negative while the carrier owes.
+   */
+  balance: number;
+  /**
+   * How far below zero the wallet may go before offers stop.
+   */
+  debt_limit: number;
+  /**
+   * What is left before offers stop: `balance + debt_limit`.
+   */
+  headroom: number;
   currency: string;
 }
 /**

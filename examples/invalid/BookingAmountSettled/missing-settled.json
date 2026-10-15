@@ -8,5 +8,6 @@
   "status": "completed",
   "previous_amount": 4350000,
   "currency": "UZS",
-  "claim_side": "carrier"
+  "claim_side": "carrier",
+  "load_code": "GW-7F3K2M"
 }
