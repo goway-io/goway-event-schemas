@@ -743,6 +743,147 @@ impl<'de> ::serde::Deserialize<'de> for BookingIssueResolvedCurrency {
             .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
     }
 }
+#[doc = "The shipper objected to a completed haul within the objection window: the sum, damage or shortage. An operator decides it."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BookingObjectionOpened {
+    #[doc = "The sum the shipper says is right, whole so'm; null when they named none."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub amount: ::std::option::Option<u64>,
+    pub booking_id: ::uuid::Uuid,
+    pub carrier_org_id: ::uuid::Uuid,
+    pub claim_id: ::uuid::Uuid,
+    pub currency: BookingObjectionOpenedCurrency,
+    pub driver_user_id: ::uuid::Uuid,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub kind: ObjectionKind,
+    pub load_id: ::uuid::Uuid,
+    pub opened_at: ::chrono::DateTime<::chrono::offset::Utc>,
+    pub shipper_org_id: ::uuid::Uuid,
+    #[doc = "The person who posted the load."]
+    pub shipper_user_id: ::uuid::Uuid,
+}
+#[doc = "`BookingObjectionOpenedCurrency`"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BookingObjectionOpenedCurrency(::std::string::String);
+impl ::std::ops::Deref for BookingObjectionOpenedCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BookingObjectionOpenedCurrency> for ::std::string::String {
+    fn from(value: BookingObjectionOpenedCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BookingObjectionOpenedCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 3usize {
+            return Err("longer than 3 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BookingObjectionOpenedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BookingObjectionOpenedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BookingObjectionOpenedCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+#[doc = "An operator decided a shipper's objection. An accepted one that names a sum also sends `booking.amount_settled`."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BookingObjectionResolved {
+    pub accepted: bool,
+    pub booking_id: ::uuid::Uuid,
+    pub carrier_org_id: ::uuid::Uuid,
+    pub claim_id: ::uuid::Uuid,
+    pub currency: BookingObjectionResolvedCurrency,
+    pub driver_user_id: ::uuid::Uuid,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub kind: ObjectionKind,
+    pub load_id: ::uuid::Uuid,
+    #[doc = "The operator's reason, shown to both sides."]
+    pub note: ::std::string::String,
+    pub resolved_at: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[doc = "What the haul now settles at when the decision changed it, whole so'm; null otherwise."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub settled_amount: ::std::option::Option<u64>,
+    pub shipper_org_id: ::uuid::Uuid,
+    #[doc = "The person who posted the load."]
+    pub shipper_user_id: ::uuid::Uuid,
+}
+#[doc = "`BookingObjectionResolvedCurrency`"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BookingObjectionResolvedCurrency(::std::string::String);
+impl ::std::ops::Deref for BookingObjectionResolvedCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BookingObjectionResolvedCurrency> for ::std::string::String {
+    fn from(value: BookingObjectionResolvedCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BookingObjectionResolvedCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 3usize {
+            return Err("longer than 3 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BookingObjectionResolvedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BookingObjectionResolvedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BookingObjectionResolvedCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
 #[doc = "A booked plan's pickup is near: time for the reminder, time to set off, or the pickup time came and the driver has not set off. One event per stage per booking."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct BookingPlanDue {
@@ -2424,6 +2565,48 @@ pub struct NotificationPrefs {
     pub orders: bool,
     #[doc = "SMS fallback for critical events."]
     pub sms: bool,
+}
+#[doc = "`amount`: the sum is disputed. `damage`: the cargo arrived damaged. `shortage`: part of it is missing."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum ObjectionKind {
+    #[serde(rename = "amount")]
+    Amount,
+    #[serde(rename = "damage")]
+    Damage,
+    #[serde(rename = "shortage")]
+    Shortage,
+}
+impl ::std::fmt::Display for ObjectionKind {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Amount => f.write_str("amount"),
+            Self::Damage => f.write_str("damage"),
+            Self::Shortage => f.write_str("shortage"),
+        }
+    }
+}
+impl ::std::str::FromStr for ObjectionKind {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "amount" => Ok(Self::Amount),
+            "damage" => Ok(Self::Damage),
+            "shortage" => Ok(Self::Shortage),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ObjectionKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ObjectionKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
 }
 #[doc = "An offer was accepted and became a booking; published together with `booking.created`."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]

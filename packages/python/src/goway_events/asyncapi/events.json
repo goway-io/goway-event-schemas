@@ -770,6 +770,32 @@
    "x-consumers": [
     "goway-loads"
    ]
+  },
+  "bookingObjectionOpened": {
+   "address": "booking.objection_opened",
+   "description": "The shipper objected to a completed haul: the sum, damage or shortage.\n\nPublished by `goway-loads`; consumed by `goway-notify`.",
+   "messages": {
+    "bookingObjectionOpened": {
+     "$ref": "#/components/messages/bookingObjectionOpened"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-notify"
+   ]
+  },
+  "bookingObjectionResolved": {
+   "address": "booking.objection_resolved",
+   "description": "An operator decided a shipper's objection.\n\nPublished by `goway-loads`; consumed by `goway-notify`.",
+   "messages": {
+    "bookingObjectionResolved": {
+     "$ref": "#/components/messages/bookingObjectionResolved"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-notify"
+   ]
   }
  },
  "operations": {
@@ -1228,6 +1254,22 @@
    },
    "description": "Published when a driver's rating of a shipper is counted.",
    "title": "goway-auth publishes"
+  },
+  "publishBookingObjectionOpened": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/bookingObjectionOpened"
+   },
+   "description": "Published when the shipper objects within the objection window.",
+   "title": "goway-loads publishes"
+  },
+  "publishBookingObjectionResolved": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/bookingObjectionResolved"
+   },
+   "description": "Published when an operator accepts or rejects an objection.",
+   "title": "goway-loads publishes"
   }
  },
  "components": {
@@ -6579,6 +6621,265 @@
        "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
        "rating_avg": 4.8,
        "rating_count": 12
+      }
+     }
+    ]
+   },
+   "bookingObjectionOpened": {
+    "name": "booking.objection_opened",
+    "title": "Objection opened",
+    "payload": {
+     "title": "BookingObjectionOpened",
+     "description": "The shipper objected to a completed haul within the objection window: the sum, damage or shortage. An operator decides it.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "claim_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "booking_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "load_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "shipper_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "shipper_user_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The person who posted the load."
+      },
+      "carrier_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "driver_user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "kind": {
+       "title": "ObjectionKind",
+       "type": "string",
+       "enum": [
+        "amount",
+        "damage",
+        "shortage"
+       ],
+       "description": "`amount`: the sum is disputed. `damage`: the cargo arrived damaged. `shortage`: part of it is missing."
+      },
+      "amount": {
+       "type": [
+        "integer",
+        "null"
+       ],
+       "minimum": 0,
+       "description": "The sum the shipper says is right, whole so'm; null when they named none."
+      },
+      "currency": {
+       "type": "string",
+       "minLength": 3,
+       "maxLength": 3
+      },
+      "opened_at": {
+       "type": "string",
+       "format": "date-time"
+      }
+     },
+     "required": [
+      "event_id",
+      "claim_id",
+      "booking_id",
+      "load_id",
+      "shipper_org_id",
+      "shipper_user_id",
+      "carrier_org_id",
+      "driver_user_id",
+      "kind",
+      "amount",
+      "currency",
+      "opened_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Amount",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "claim_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0c",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "shipper_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "kind": "amount",
+       "amount": 820000,
+       "currency": "UZS",
+       "opened_at": "2026-10-16T09:12:00+00:00"
+      }
+     },
+     {
+      "name": "Damage",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "claim_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0c",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "shipper_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "kind": "damage",
+       "amount": null,
+       "currency": "UZS",
+       "opened_at": "2026-10-16T09:12:00+00:00"
+      }
+     }
+    ]
+   },
+   "bookingObjectionResolved": {
+    "name": "booking.objection_resolved",
+    "title": "Objection resolved",
+    "payload": {
+     "title": "BookingObjectionResolved",
+     "description": "An operator decided a shipper's objection. An accepted one that names a sum also sends `booking.amount_settled`.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "claim_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "booking_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "load_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "shipper_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "shipper_user_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The person who posted the load."
+      },
+      "carrier_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "driver_user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "kind": {
+       "title": "ObjectionKind",
+       "type": "string",
+       "enum": [
+        "amount",
+        "damage",
+        "shortage"
+       ],
+       "description": "`amount`: the sum is disputed. `damage`: the cargo arrived damaged. `shortage`: part of it is missing."
+      },
+      "accepted": {
+       "type": "boolean"
+      },
+      "settled_amount": {
+       "type": [
+        "integer",
+        "null"
+       ],
+       "minimum": 0,
+       "description": "What the haul now settles at when the decision changed it, whole so'm; null otherwise."
+      },
+      "currency": {
+       "type": "string",
+       "minLength": 3,
+       "maxLength": 3
+      },
+      "note": {
+       "type": "string",
+       "description": "The operator's reason, shown to both sides."
+      },
+      "resolved_at": {
+       "type": "string",
+       "format": "date-time"
+      }
+     },
+     "required": [
+      "event_id",
+      "claim_id",
+      "booking_id",
+      "load_id",
+      "shipper_org_id",
+      "shipper_user_id",
+      "carrier_org_id",
+      "driver_user_id",
+      "kind",
+      "accepted",
+      "settled_amount",
+      "currency",
+      "note",
+      "resolved_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Accepted",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "claim_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0c",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "shipper_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "kind": "shortage",
+       "accepted": true,
+       "settled_amount": 790000,
+       "currency": "UZS",
+       "note": "Ikki palet yetishmadi, narx kamaytirildi",
+       "resolved_at": "2026-10-16T11:00:00+00:00"
+      }
+     },
+     {
+      "name": "Rejected",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "claim_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0c",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "shipper_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "kind": "damage",
+       "accepted": false,
+       "settled_amount": null,
+       "currency": "UZS",
+       "note": "Ortishdagi suratlarda shikast bor edi",
+       "resolved_at": "2026-10-16T11:00:00+00:00"
       }
      }
     ]

@@ -1055,6 +1055,16 @@ class NotificationPrefs(BaseModel):
     """
 
 
+class ObjectionKind(StrEnum):
+    """
+    `amount`: the sum is disputed. `damage`: the cargo arrived damaged. `shortage`: part of it is missing.
+    """
+
+    AMOUNT = "amount"
+    DAMAGE = "damage"
+    SHORTAGE = "shortage"
+
+
 class OfferAccepted(BaseModel):
     """
     An offer was accepted and became a booking; published together with `booking.created`.
@@ -2647,6 +2657,73 @@ class BookingIssueResolved(BaseModel):
     The new price for `reprice`, the added charge for `waiting_fee`, whole so'm; null otherwise.
     """
     currency: Annotated[str, Field(max_length=3, min_length=3)]
+    resolved_at: AwareDatetime
+
+
+class BookingObjectionOpened(BaseModel):
+    """
+    The shipper objected to a completed haul within the objection window: the sum, damage or shortage. An operator decides it.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    claim_id: UUID
+    booking_id: UUID
+    load_id: UUID
+    shipper_org_id: UUID
+    shipper_user_id: UUID
+    """
+    The person who posted the load.
+    """
+    carrier_org_id: UUID
+    driver_user_id: UUID
+    kind: ObjectionKind
+    amount: Annotated[int | None, Field(ge=0)]
+    """
+    The sum the shipper says is right, whole so'm; null when they named none.
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    opened_at: AwareDatetime
+
+
+class BookingObjectionResolved(BaseModel):
+    """
+    An operator decided a shipper's objection. An accepted one that names a sum also sends `booking.amount_settled`.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    claim_id: UUID
+    booking_id: UUID
+    load_id: UUID
+    shipper_org_id: UUID
+    shipper_user_id: UUID
+    """
+    The person who posted the load.
+    """
+    carrier_org_id: UUID
+    driver_user_id: UUID
+    kind: ObjectionKind
+    accepted: bool
+    settled_amount: Annotated[int | None, Field(ge=0)]
+    """
+    What the haul now settles at when the decision changed it, whole so'm; null otherwise.
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    note: str
+    """
+    The operator's reason, shown to both sides.
+    """
     resolved_at: AwareDatetime
 
 

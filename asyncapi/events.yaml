@@ -472,6 +472,22 @@ channels:
         $ref: '#/components/messages/shipperStatsChanged'
     x-publisher: goway-auth
     x-consumers: [goway-loads]
+  bookingObjectionOpened:
+    address: booking.objection_opened
+    description: "The shipper objected to a completed haul: the sum, damage or shortage."
+    messages:
+      bookingObjectionOpened:
+        $ref: '#/components/messages/bookingObjectionOpened'
+    x-publisher: goway-loads
+    x-consumers: [goway-notify]
+  bookingObjectionResolved:
+    address: booking.objection_resolved
+    description: "An operator decided a shipper's objection."
+    messages:
+      bookingObjectionResolved:
+        $ref: '#/components/messages/bookingObjectionResolved'
+    x-publisher: goway-loads
+    x-consumers: [goway-notify]
 operations:
   publishUserCreated:
     action: send
@@ -758,6 +774,16 @@ operations:
     channel:
       $ref: '#/channels/shipperStatsChanged'
     description: "Published when a driver's rating of a shipper is counted."
+  publishBookingObjectionOpened:
+    action: send
+    channel:
+      $ref: '#/channels/bookingObjectionOpened'
+    description: "Published when the shipper objects within the objection window."
+  publishBookingObjectionResolved:
+    action: send
+    channel:
+      $ref: '#/channels/bookingObjectionResolved'
+    description: "Published when an operator accepts or rejects an objection."
 components:
   messages:
     userCreated:
@@ -1045,3 +1071,13 @@ components:
       title: Shipper stats changed
       payload:
         $ref: '../schemas/events/shipper.stats_changed.json'
+    bookingObjectionOpened:
+      name: booking.objection_opened
+      title: Objection opened
+      payload:
+        $ref: '../schemas/events/booking.objection_opened.json'
+    bookingObjectionResolved:
+      name: booking.objection_resolved
+      title: Objection resolved
+      payload:
+        $ref: '../schemas/events/booking.objection_resolved.json'

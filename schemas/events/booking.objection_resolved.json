@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BookingObjectionResolved",
+  "description": "An operator decided a shipper's objection. An accepted one that names a sum also sends `booking.amount_settled`.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "claim_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "booking_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "load_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "shipper_org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "shipper_user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person who posted the load."
+    },
+    "carrier_org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "driver_user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "kind": {
+      "title": "ObjectionKind",
+      "type": "string",
+      "enum": [
+        "amount",
+        "damage",
+        "shortage"
+      ],
+      "description": "`amount`: the sum is disputed. `damage`: the cargo arrived damaged. `shortage`: part of it is missing."
+    },
+    "accepted": {
+      "type": "boolean"
+    },
+    "settled_amount": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "What the haul now settles at when the decision changed it, whole so'm; null otherwise."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3
+    },
+    "note": {
+      "type": "string",
+      "description": "The operator's reason, shown to both sides."
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "event_id",
+    "claim_id",
+    "booking_id",
+    "load_id",
+    "shipper_org_id",
+    "shipper_user_id",
+    "carrier_org_id",
+    "driver_user_id",
+    "kind",
+    "accepted",
+    "settled_amount",
+    "currency",
+    "note",
+    "resolved_at"
+  ]
+}

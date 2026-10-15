@@ -67,6 +67,13 @@ export type IssueSide = "carrier" | "shipper";
  */
 export type IssueResolution = "continue" | "cancel" | "reprice" | "waiting_fee";
 /**
+ * `amount`: the sum is disputed. `damage`: the cargo arrived damaged. `shortage`: part of it is missing.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "ObjectionKind".
+ */
+export type ObjectionKind = "amount" | "damage" | "shortage";
+/**
  * `reminder`: the pickup is `plan_reminder_minutes` away. `departure`: `plan_departure_minutes` away, the app opens navigation. `overdue`: the pickup time came and the haul has not set off; operators are told too.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -834,6 +841,69 @@ export interface BookingIssueResolved {
    */
   amount: number | null;
   currency: string;
+  resolved_at: string;
+}
+/**
+ * The shipper objected to a completed haul within the objection window: the sum, damage or shortage. An operator decides it.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BookingObjectionOpened".
+ */
+export interface BookingObjectionOpened {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  claim_id: string;
+  booking_id: string;
+  load_id: string;
+  shipper_org_id: string;
+  /**
+   * The person who posted the load.
+   */
+  shipper_user_id: string;
+  carrier_org_id: string;
+  driver_user_id: string;
+  kind: ObjectionKind;
+  /**
+   * The sum the shipper says is right, whole so'm; null when they named none.
+   */
+  amount: number | null;
+  currency: string;
+  opened_at: string;
+}
+/**
+ * An operator decided a shipper's objection. An accepted one that names a sum also sends `booking.amount_settled`.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BookingObjectionResolved".
+ */
+export interface BookingObjectionResolved {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  claim_id: string;
+  booking_id: string;
+  load_id: string;
+  shipper_org_id: string;
+  /**
+   * The person who posted the load.
+   */
+  shipper_user_id: string;
+  carrier_org_id: string;
+  driver_user_id: string;
+  kind: ObjectionKind;
+  accepted: boolean;
+  /**
+   * What the haul now settles at when the decision changed it, whole so'm; null otherwise.
+   */
+  settled_amount: number | null;
+  currency: string;
+  /**
+   * The operator's reason, shown to both sides.
+   */
+  note: string;
   resolved_at: string;
 }
 /**

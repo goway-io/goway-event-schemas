@@ -1,0 +1,16 @@
+{
+  "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+  "claim_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0c",
+  "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+  "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+  "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+  "shipper_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+  "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+  "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+  "kind": "shortage",
+  "accepted": true,
+  "settled_amount": 790000,
+  "currency": "UZS",
+  "note": "Ikki palet yetishmadi, narx kamaytirildi",
+  "resolved_at": "2026-10-16T11:00:00+00:00"
+}

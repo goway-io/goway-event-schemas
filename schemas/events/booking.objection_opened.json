@@ -1,0 +1,84 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BookingObjectionOpened",
+  "description": "The shipper objected to a completed haul within the objection window: the sum, damage or shortage. An operator decides it.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "claim_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "booking_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "load_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "shipper_org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "shipper_user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person who posted the load."
+    },
+    "carrier_org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "driver_user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "kind": {
+      "title": "ObjectionKind",
+      "type": "string",
+      "enum": [
+        "amount",
+        "damage",
+        "shortage"
+      ],
+      "description": "`amount`: the sum is disputed. `damage`: the cargo arrived damaged. `shortage`: part of it is missing."
+    },
+    "amount": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "The sum the shipper says is right, whole so'm; null when they named none."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3
+    },
+    "opened_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "event_id",
+    "claim_id",
+    "booking_id",
+    "load_id",
+    "shipper_org_id",
+    "shipper_user_id",
+    "carrier_org_id",
+    "driver_user_id",
+    "kind",
+    "amount",
+    "currency",
+    "opened_at"
+  ]
+}
