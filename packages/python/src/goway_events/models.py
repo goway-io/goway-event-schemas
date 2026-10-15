@@ -2328,7 +2328,7 @@ class BookingAmountSettled(BaseModel):
 
 class BookingCancelled(BaseModel):
     """
-    A booking ended before the cargo was loaded. The load goes back to the board. Two paths send the same fields: either side cancelling (`by` is `shipper` or `carrier`) and an operator (`by` is `operator`).
+    A booking ended without being completed: either side cancelled before the cargo was loaded (`by` is `shipper` or `carrier`), or an operator cancelled it (`by` is `operator`), which after loading happens only through a reported issue. The load goes back to the board unless the operator withdrew it, which a `load.cancelled` then says.
     """
 
     model_config = ConfigDict(
