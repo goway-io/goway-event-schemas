@@ -988,8 +988,9 @@ BookingEtaUpdated _$BookingEtaUpdatedFromJson(Map<String, dynamic> json) =>
           freeRegionId: $checkedConvert('free_region_id', (v) => v as String?),
           lastWaypoint: $checkedConvert(
             'last_waypoint',
-            (v) =>
-                v == null ? null : Waypoint.fromJson(v as Map<String, dynamic>),
+            (v) => v == null
+                ? null
+                : PassedWaypoint.fromJson(v as Map<String, dynamic>),
           ),
           loadId: $checkedConvert('load_id', (v) => v as String),
           remainingKm: $checkedConvert(
@@ -1055,9 +1056,9 @@ const _$BookingStatusEnumMap = {
   BookingStatus.LOADING: 'loading',
 };
 
-Waypoint _$WaypointFromJson(Map<String, dynamic> json) =>
-    $checkedCreate('Waypoint', json, ($checkedConvert) {
-      final val = Waypoint(
+PassedWaypoint _$PassedWaypointFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('PassedWaypoint', json, ($checkedConvert) {
+      final val = PassedWaypoint(
         passedAt: $checkedConvert(
           'passed_at',
           (v) => DateTime.parse(v as String),
@@ -1067,10 +1068,11 @@ Waypoint _$WaypointFromJson(Map<String, dynamic> json) =>
       return val;
     }, fieldKeyMap: const {'passedAt': 'passed_at', 'regionId': 'region_id'});
 
-Map<String, dynamic> _$WaypointToJson(Waypoint instance) => <String, dynamic>{
-  'passed_at': instance.passedAt.toIso8601String(),
-  'region_id': instance.regionId,
-};
+Map<String, dynamic> _$PassedWaypointToJson(PassedWaypoint instance) =>
+    <String, dynamic>{
+      'passed_at': instance.passedAt.toIso8601String(),
+      'region_id': instance.regionId,
+    };
 
 BookingStatusFrame _$BookingStatusFrameFromJson(Map<String, dynamic> json) =>
     $checkedCreate('BookingStatusFrame', json, ($checkedConvert) {

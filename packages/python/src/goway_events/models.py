@@ -1324,6 +1324,14 @@ class OrgUpdated(BaseModel):
     """
 
 
+class PassedWaypoint(BaseModel):
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    region_id: UUID
+    passed_at: AwareDatetime
+
+
 class PaymentMethod(StrEnum):
     CASH = "cash"
     TRANSFER = "transfer"
@@ -2224,18 +2232,6 @@ class WalletToppedUp(BaseModel):
     """
 
 
-class Waypoint(BaseModel):
-    """
-    The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one.
-    """
-
-    model_config = ConfigDict(
-        extra="ignore",
-    )
-    region_id: UUID
-    passed_at: AwareDatetime
-
-
 class BoardLoadRemoved(BaseModel):
     """
     A load left a subscribed lane's board. A signal; the app drops it from the list.
@@ -2583,7 +2579,10 @@ class BookingEtaUpdated(BaseModel):
     """
     Road kilometres left to the next stop; null before the haul sets off or while routing is unavailable.
     """
-    last_waypoint: Waypoint | None
+    last_waypoint: PassedWaypoint | None
+    """
+    The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one.
+    """
 
 
 class BookingIssueOpened(BaseModel):

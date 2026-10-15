@@ -55,16 +55,6 @@ export type BookingSource = "instant";
  */
 export type EtaStop = "pickup" | "dropoff";
 /**
- * The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one.
- *
- * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
- * via the `definition` "Waypoint".
- */
-export type Waypoint = {
-  region_id: string;
-  passed_at: string;
-} | null;
-/**
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "IssueSide".
  */
@@ -772,7 +762,18 @@ export interface BookingEtaUpdated {
    * Road kilometres left to the next stop; null before the haul sets off or while routing is unavailable.
    */
   remaining_km: number | null;
-  last_waypoint: Waypoint;
+  /**
+   * The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one.
+   */
+  last_waypoint: PassedWaypoint | null;
+}
+/**
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "PassedWaypoint".
+ */
+export interface PassedWaypoint {
+  region_id: string;
+  passed_at: string;
 }
 /**
  * Someone on the haul reported a problem («Muammo bor»). Until an operator resolves it the haul is under review: its step does not move, the waiting clock is paused and the driver's cancellation does not count against them.

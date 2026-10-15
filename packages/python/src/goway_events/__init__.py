@@ -113,6 +113,7 @@ from goway_events.models import (
     Online,
     OnlineFrame,
     OrgUpdated,
+    PassedWaypoint,
     PaymentMethod,
     Ping,
     PingFrame,
@@ -170,7 +171,6 @@ from goway_events.models import (
     WalletEntryKind,
     WalletEntryPosted,
     WalletToppedUp,
-    Waypoint,
 )
 from goway_events.reference import asyncapi
 from goway_events.validation import check, check_event, check_frame, problems
@@ -288,6 +288,7 @@ __all__ = [
     "Online",
     "OnlineFrame",
     "OrgUpdated",
+    "PassedWaypoint",
     "PaymentMethod",
     "Ping",
     "PingFrame",
@@ -345,7 +346,6 @@ __all__ = [
     "WalletEntryKind",
     "WalletEntryPosted",
     "WalletToppedUp",
-    "Waypoint",
     "asyncapi",
     "check",
     "check_event",

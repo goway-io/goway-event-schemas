@@ -642,7 +642,9 @@ pub struct BookingEtaUpdated {
     #[doc = "Where the truck will be free: the drop-off region; null when unknown."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub free_region_id: ::std::option::Option<::uuid::Uuid>,
-    pub last_waypoint: Waypoint,
+    #[doc = "The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub last_waypoint: ::std::option::Option<PassedWaypoint>,
     pub load_id: ::uuid::Uuid,
     #[doc = "Road kilometres left to the next stop; null before the haul sets off or while routing is unavailable."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
@@ -3023,6 +3025,12 @@ pub struct OrgUpdated {
     #[doc = "When the change was made. ISO 8601 with offset, as Python's `isoformat()` writes it."]
     pub updated_at: ::chrono::DateTime<::chrono::offset::Utc>,
 }
+#[doc = "`PassedWaypoint`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct PassedWaypoint {
+    pub passed_at: ::chrono::DateTime<::chrono::offset::Utc>,
+    pub region_id: ::uuid::Uuid,
+}
 #[doc = "`PaymentMethod`"]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum PaymentMethod {
@@ -4718,32 +4726,6 @@ impl<'de> ::serde::Deserialize<'de> for WalletToppedUpCurrency {
             .parse()
             .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
     }
-}
-#[doc = "The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one."]
-#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
-#[serde(transparent)]
-pub struct Waypoint(pub ::std::option::Option<Waypoint>);
-impl ::std::ops::Deref for Waypoint {
-    type Target = ::std::option::Option<Waypoint>;
-    fn deref(&self) -> &::std::option::Option<Waypoint> {
-        &self.0
-    }
-}
-impl ::std::convert::From<Waypoint> for ::std::option::Option<Waypoint> {
-    fn from(value: Waypoint) -> Self {
-        value.0
-    }
-}
-impl ::std::convert::From<::std::option::Option<Waypoint>> for Waypoint {
-    fn from(value: ::std::option::Option<Waypoint>) -> Self {
-        Self(value)
-    }
-}
-#[doc = "The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one."]
-#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
-pub struct Waypoint {
-    pub passed_at: ::chrono::DateTime<::chrono::offset::Utc>,
-    pub region_id: ::uuid::Uuid,
 }
 #[doc = " Error types."]
 pub mod error {

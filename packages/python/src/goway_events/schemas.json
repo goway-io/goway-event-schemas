@@ -993,7 +993,15 @@
           "description": "Road kilometres left to the next stop; null before the haul sets off or while routing is unavailable."
         },
         "last_waypoint": {
-          "$ref": "#/definitions/Waypoint"
+          "anyOf": [
+            {
+              "$ref": "#/definitions/PassedWaypoint"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one."
         }
       },
       "required": [
@@ -4140,6 +4148,25 @@
         "updated_at"
       ]
     },
+    "PassedWaypoint": {
+      "title": "PassedWaypoint",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "region_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "passed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "region_id",
+        "passed_at"
+      ]
+    },
     "PaymentMethod": {
       "title": "PaymentMethod",
       "type": "string",
@@ -5784,29 +5811,6 @@
         "amount",
         "balance",
         "currency"
-      ]
-    },
-    "Waypoint": {
-      "title": "Waypoint",
-      "type": [
-        "object",
-        "null"
-      ],
-      "additionalProperties": false,
-      "description": "The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one.",
-      "properties": {
-        "region_id": {
-          "type": "string",
-          "format": "uuid"
-        },
-        "passed_at": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "region_id",
-        "passed_at"
       ]
     }
   }

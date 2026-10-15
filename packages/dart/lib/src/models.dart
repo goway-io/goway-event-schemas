@@ -1362,8 +1362,11 @@ class BookingEtaUpdated {
     ///Where the truck will be free: the drop-off region; null when unknown.
     @JsonKey(name: "free_region_id")
     final String? freeRegionId;
+    
+    ///The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null
+    ///until it crosses one.
     @JsonKey(name: "last_waypoint")
-    final Waypoint? lastWaypoint;
+    final PassedWaypoint? lastWaypoint;
     @JsonKey(name: "load_id")
     final String loadId;
     
@@ -1416,20 +1419,20 @@ final etaStopValues = EnumValues({
 });
 
 @JsonSerializable()
-class Waypoint {
+class PassedWaypoint {
     @JsonKey(name: "passed_at")
     final DateTime passedAt;
     @JsonKey(name: "region_id")
     final String regionId;
 
-    Waypoint({
+    PassedWaypoint({
         required this.passedAt,
         required this.regionId,
     });
 
-    factory Waypoint.fromJson(Map<String, dynamic> json) => _$WaypointFromJson(json);
+    factory PassedWaypoint.fromJson(Map<String, dynamic> json) => _$PassedWaypointFromJson(json);
 
-    Map<String, dynamic> toJson() => _$WaypointToJson(this);
+    Map<String, dynamic> toJson() => _$PassedWaypointToJson(this);
 }
 
 enum BookingStatus {
