@@ -39,6 +39,11 @@
     "carrier_org_id": {
       "type": "string",
       "format": "uuid"
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the step happened: the driver's tap, which an app offline for a while sends late. Steps arrive in order; this is the time to show."
     }
   },
   "required": [
@@ -47,6 +52,7 @@
     "load_id",
     "status",
     "shipper_org_id",
-    "carrier_org_id"
+    "carrier_org_id",
+    "occurred_at"
   ]
 }

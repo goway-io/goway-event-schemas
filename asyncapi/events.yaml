@@ -440,6 +440,38 @@ channels:
         $ref: '#/components/messages/loadPlanUnclaimed'
     x-publisher: goway-loads
     x-consumers: [goway-notify]
+  bookingWaitingStarted:
+    address: booking.waiting_started
+    description: "The free waiting at a pickup ran out and paid waiting began."
+    messages:
+      bookingWaitingStarted:
+        $ref: '#/components/messages/bookingWaitingStarted'
+    x-publisher: goway-loads
+    x-consumers: [goway-notify, goway-realtime]
+  bookingIssueOpened:
+    address: booking.issue_opened
+    description: "A problem was reported on a haul; it is under review until an operator resolves it."
+    messages:
+      bookingIssueOpened:
+        $ref: '#/components/messages/bookingIssueOpened'
+    x-publisher: goway-loads
+    x-consumers: [goway-notify, goway-realtime]
+  bookingIssueResolved:
+    address: booking.issue_resolved
+    description: "An operator resolved a reported problem."
+    messages:
+      bookingIssueResolved:
+        $ref: '#/components/messages/bookingIssueResolved'
+    x-publisher: goway-loads
+    x-consumers: [goway-notify, goway-realtime]
+  shipperStatsChanged:
+    address: shipper.stats_changed
+    description: "A shipper's rating moved."
+    messages:
+      shipperStatsChanged:
+        $ref: '#/components/messages/shipperStatsChanged'
+    x-publisher: goway-auth
+    x-consumers: [goway-loads]
 operations:
   publishUserCreated:
     action: send
@@ -706,6 +738,26 @@ operations:
     channel:
       $ref: '#/channels/loadPlanUnclaimed'
     description: Published by the loads worker once per load.
+  publishBookingWaitingStarted:
+    action: send
+    channel:
+      $ref: '#/channels/bookingWaitingStarted'
+    description: "Published by the loads worker once per booking."
+  publishBookingIssueOpened:
+    action: send
+    channel:
+      $ref: '#/channels/bookingIssueOpened'
+    description: "Published when the driver or the shipper reports a problem."
+  publishBookingIssueResolved:
+    action: send
+    channel:
+      $ref: '#/channels/bookingIssueResolved'
+    description: "Published when an operator decides on an open issue."
+  publishShipperStatsChanged:
+    action: send
+    channel:
+      $ref: '#/channels/shipperStatsChanged'
+    description: "Published when a driver's rating of a shipper is counted."
 components:
   messages:
     userCreated:
@@ -973,3 +1025,23 @@ components:
       title: Plan unclaimed
       payload:
         $ref: '../schemas/events/load.plan_unclaimed.json'
+    bookingWaitingStarted:
+      name: booking.waiting_started
+      title: Paid waiting started
+      payload:
+        $ref: '../schemas/events/booking.waiting_started.json'
+    bookingIssueOpened:
+      name: booking.issue_opened
+      title: Issue opened
+      payload:
+        $ref: '../schemas/events/booking.issue_opened.json'
+    bookingIssueResolved:
+      name: booking.issue_resolved
+      title: Issue resolved
+      payload:
+        $ref: '../schemas/events/booking.issue_resolved.json'
+    shipperStatsChanged:
+      name: shipper.stats_changed
+      title: Shipper stats changed
+      payload:
+        $ref: '../schemas/events/shipper.stats_changed.json'

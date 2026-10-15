@@ -5,5 +5,7 @@
   "target": "driver",
   "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
   "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
-  "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04"
+  "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+  "shipper_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+  "tags": []
 }

@@ -715,6 +715,61 @@
    "x-consumers": [
     "goway-notify"
    ]
+  },
+  "bookingWaitingStarted": {
+   "address": "booking.waiting_started",
+   "description": "The free waiting at a pickup ran out and paid waiting began.\n\nPublished by `goway-loads`; consumed by `goway-notify` and `goway-realtime`.",
+   "messages": {
+    "bookingWaitingStarted": {
+     "$ref": "#/components/messages/bookingWaitingStarted"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-notify",
+    "goway-realtime"
+   ]
+  },
+  "bookingIssueOpened": {
+   "address": "booking.issue_opened",
+   "description": "A problem was reported on a haul; it is under review until an operator resolves it.\n\nPublished by `goway-loads`; consumed by `goway-notify` and `goway-realtime`.",
+   "messages": {
+    "bookingIssueOpened": {
+     "$ref": "#/components/messages/bookingIssueOpened"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-notify",
+    "goway-realtime"
+   ]
+  },
+  "bookingIssueResolved": {
+   "address": "booking.issue_resolved",
+   "description": "An operator resolved a reported problem.\n\nPublished by `goway-loads`; consumed by `goway-notify` and `goway-realtime`.",
+   "messages": {
+    "bookingIssueResolved": {
+     "$ref": "#/components/messages/bookingIssueResolved"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-notify",
+    "goway-realtime"
+   ]
+  },
+  "shipperStatsChanged": {
+   "address": "shipper.stats_changed",
+   "description": "A shipper's rating moved.\n\nPublished by `goway-auth`; consumed by `goway-loads`.",
+   "messages": {
+    "shipperStatsChanged": {
+     "$ref": "#/components/messages/shipperStatsChanged"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-loads"
+   ]
   }
  },
  "operations": {
@@ -1141,6 +1196,38 @@
    },
    "description": "Published by the loads worker once per load.",
    "title": "goway-loads publishes"
+  },
+  "publishBookingWaitingStarted": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/bookingWaitingStarted"
+   },
+   "description": "Published by the loads worker once per booking.",
+   "title": "goway-loads publishes"
+  },
+  "publishBookingIssueOpened": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/bookingIssueOpened"
+   },
+   "description": "Published when the driver or the shipper reports a problem.",
+   "title": "goway-loads publishes"
+  },
+  "publishBookingIssueResolved": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/bookingIssueResolved"
+   },
+   "description": "Published when an operator decides on an open issue.",
+   "title": "goway-loads publishes"
+  },
+  "publishShipperStatsChanged": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/shipperStatsChanged"
+   },
+   "description": "Published when a driver's rating of a shipper is counted.",
+   "title": "goway-auth publishes"
   }
  },
  "components": {
@@ -3642,6 +3729,11 @@
       "carrier_org_id": {
        "type": "string",
        "format": "uuid"
+      },
+      "occurred_at": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the step happened: the driver's tap, which an app offline for a while sends late. Steps arrive in order; this is the time to show."
       }
      },
      "required": [
@@ -3650,7 +3742,8 @@
       "load_id",
       "status",
       "shipper_org_id",
-      "carrier_org_id"
+      "carrier_org_id",
+      "occurred_at"
      ]
     },
     "examples": [
@@ -3662,7 +3755,20 @@
        "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
        "status": "at_pickup",
        "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
-       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05"
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "occurred_at": "2026-10-15T07:12:40.512000+00:00"
+      }
+     },
+     {
+      "name": "Offline step",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "status": "at_pickup",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "occurred_at": "2026-10-15T06:58:00+00:00"
       }
      }
     ]
@@ -3766,6 +3872,37 @@
       "truck_class": {
        "type": "string",
        "description": "The booked vehicle's truck class code."
+      },
+      "remaining_km": {
+       "type": [
+        "number",
+        "null"
+       ],
+       "minimum": 0,
+       "description": "Road kilometres left to the next stop; null before the haul sets off or while routing is unavailable."
+      },
+      "last_waypoint": {
+       "title": "Waypoint",
+       "type": [
+        "object",
+        "null"
+       ],
+       "additionalProperties": false,
+       "description": "The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one.",
+       "properties": {
+        "region_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "passed_at": {
+         "type": "string",
+         "format": "date-time"
+        }
+       },
+       "required": [
+        "region_id",
+        "passed_at"
+       ]
       }
      },
      "required": [
@@ -3781,7 +3918,9 @@
       "eta_to",
       "free_at",
       "free_region_id",
-      "truck_class"
+      "truck_class",
+      "remaining_km",
+      "last_waypoint"
      ]
     },
     "examples": [
@@ -3800,7 +3939,9 @@
        "eta_to": null,
        "free_at": "2026-10-14T09:30:00.123456+00:00",
        "free_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
-       "truck_class": "tent_20t"
+       "truck_class": "tent_20t",
+       "remaining_km": null,
+       "last_waypoint": null
       }
      },
      {
@@ -3818,7 +3959,32 @@
        "eta_to": "2026-10-14T10:25:00.123456+00:00",
        "free_at": "2026-10-14T17:40:00.123456+00:00",
        "free_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
-       "truck_class": "tent_20t"
+       "truck_class": "tent_20t",
+       "remaining_km": null,
+       "last_waypoint": null
+      }
+     },
+     {
+      "name": "Waypoint",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "status": "en_route",
+       "eta_stop": "pickup",
+       "eta_from": "2026-10-14T10:05:00.123456+00:00",
+       "eta_to": "2026-10-14T10:25:00.123456+00:00",
+       "free_at": "2026-10-14T17:40:00.123456+00:00",
+       "free_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
+       "truck_class": "tent_20t",
+       "remaining_km": 142.0,
+       "last_waypoint": {
+        "region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e09",
+        "passed_at": "2026-10-15T11:12:00+00:00"
+       }
       }
      }
     ]
@@ -3879,11 +4045,12 @@
        "title": "CompletedBy",
        "type": "string",
        "enum": [
+        "carrier",
         "shipper",
         "operator",
         "system"
        ],
-       "description": "Who closed the haul; `system` is the auto-complete sweep."
+       "description": "Who closed the haul: `carrier` when the driver finishes it at the drop-off, `system` for the auto-complete sweep."
       },
       "charges": {
        "type": "array",
@@ -4084,6 +4251,26 @@
       "penalized": {
        "type": "boolean",
        "description": "The cancellation counts against the driver's acceptance rate: the driver's own cancellation of an instant haul, or of a plan later than goway-loads' free-cancel window before pickup, or an operator's cancellation of a booking whose driver never showed up. False for every other shipper and operator cancellation."
+      },
+      "reason_code": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "description": "Code from the cancellation reasons catalogue; null for older clients and system cancellations."
+      },
+      "fee_amount": {
+       "type": [
+        "integer",
+        "null"
+       ],
+       "minimum": 0,
+       "description": "Cancellation fee the shipper owes the carrier, whole so'm (`cancel_fee_percent` once the driver set off); null when none."
+      },
+      "currency": {
+       "type": "string",
+       "minLength": 3,
+       "maxLength": 3
       }
      },
      "required": [
@@ -4096,7 +4283,10 @@
       "carrier_org_id",
       "driver_user_id",
       "plan",
-      "penalized"
+      "penalized",
+      "reason_code",
+      "fee_amount",
+      "currency"
      ]
     },
     "examples": [
@@ -4112,7 +4302,10 @@
        "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
        "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
        "plan": false,
-       "penalized": true
+       "penalized": true,
+       "reason_code": null,
+       "fee_amount": null,
+       "currency": "UZS"
       }
      },
      {
@@ -4127,7 +4320,28 @@
        "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
        "driver_user_id": null,
        "plan": false,
-       "penalized": false
+       "penalized": false,
+       "reason_code": null,
+       "fee_amount": null,
+       "currency": "UZS"
+      }
+     },
+     {
+      "name": "Shipper fee",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "by": "shipper",
+       "reason": "",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "driver_user_id": null,
+       "plan": false,
+       "penalized": false,
+       "reason_code": "plans_changed",
+       "fee_amount": 131325,
+       "currency": "UZS"
       }
      }
     ]
@@ -4420,9 +4634,10 @@
        "title": "RatingTarget",
        "type": "string",
        "enum": [
-        "driver"
+        "driver",
+        "shipper"
        ],
-       "description": "Who was rated; only the driver today."
+       "description": "Who was rated: the shipper rates the driver, the driver rates the shipper."
       },
       "driver_user_id": {
        "type": [
@@ -4445,6 +4660,19 @@
        "minimum": 1,
        "maximum": 5,
        "description": "1 to 5."
+      },
+      "shipper_user_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The person who posted the load: the one rated when `target` is `shipper`."
+      },
+      "tags": {
+       "type": "array",
+       "items": {
+        "type": "string"
+       },
+       "uniqueItems": true,
+       "description": "Codes from the rating tags catalogue, for example `on_time`, `cargo_ready`."
       }
      },
      "required": [
@@ -4455,7 +4683,9 @@
       "driver_user_id",
       "carrier_org_id",
       "shipper_org_id",
-      "stars"
+      "stars",
+      "shipper_user_id",
+      "tags"
      ]
     },
     "examples": [
@@ -4469,7 +4699,27 @@
        "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
        "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
        "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
-       "stars": 5
+       "stars": 5,
+       "shipper_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+       "tags": []
+      }
+     },
+     {
+      "name": "Shipper",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "target": "shipper",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "stars": 5,
+       "shipper_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+       "tags": [
+        "cargo_ready",
+        "polite"
+       ]
       }
      }
     ]
@@ -5965,6 +6215,366 @@
        "amount": 720000,
        "currency": "UZS",
        "views": 9
+      }
+     }
+    ]
+   },
+   "bookingWaitingStarted": {
+    "name": "booking.waiting_started",
+    "title": "Paid waiting started",
+    "payload": {
+     "title": "BookingWaitingStarted",
+     "description": "The free waiting at the pickup ran out and paid waiting began. Once per booking.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "booking_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "load_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "shipper_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "shipper_user_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The person who posted the load."
+      },
+      "carrier_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "driver_user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "started_at": {
+       "type": "string",
+       "format": "date-time"
+      },
+      "rate_per_minute": {
+       "type": "integer",
+       "minimum": 0,
+       "description": "Whole so'm per minute."
+      },
+      "currency": {
+       "type": "string",
+       "minLength": 3,
+       "maxLength": 3
+      }
+     },
+     "required": [
+      "event_id",
+      "booking_id",
+      "load_id",
+      "shipper_org_id",
+      "shipper_user_id",
+      "carrier_org_id",
+      "driver_user_id",
+      "started_at",
+      "rate_per_minute",
+      "currency"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "shipper_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "started_at": "2026-10-15T08:27:00+00:00",
+       "rate_per_minute": 1200,
+       "currency": "UZS"
+      }
+     }
+    ]
+   },
+   "bookingIssueOpened": {
+    "name": "booking.issue_opened",
+    "title": "Issue opened",
+    "payload": {
+     "title": "BookingIssueOpened",
+     "description": "Someone on the haul reported a problem («Muammo bor»). Until an operator resolves it the haul is under review: its step does not move, the waiting clock is paused and the driver's cancellation does not count against them.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "issue_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "booking_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "load_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "shipper_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "shipper_user_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The person who posted the load."
+      },
+      "carrier_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "driver_user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "opened_by": {
+       "title": "IssueSide",
+       "type": "string",
+       "enum": [
+        "carrier",
+        "shipper"
+       ]
+      },
+      "reason_code": {
+       "type": "string",
+       "description": "Code from the issue reasons catalogue."
+      },
+      "status": {
+       "type": "string",
+       "description": "The booking's step when the issue was opened."
+      },
+      "opened_at": {
+       "type": "string",
+       "format": "date-time"
+      }
+     },
+     "required": [
+      "event_id",
+      "issue_id",
+      "booking_id",
+      "load_id",
+      "shipper_org_id",
+      "shipper_user_id",
+      "carrier_org_id",
+      "driver_user_id",
+      "opened_by",
+      "reason_code",
+      "status",
+      "opened_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Cargo not ready",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "issue_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0b",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "shipper_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "opened_by": "carrier",
+       "reason_code": "cargo_not_ready",
+       "status": "at_pickup",
+       "opened_at": "2026-10-15T08:20:00+00:00"
+      }
+     }
+    ]
+   },
+   "bookingIssueResolved": {
+    "name": "booking.issue_resolved",
+    "title": "Issue resolved",
+    "payload": {
+     "title": "BookingIssueResolved",
+     "description": "An operator resolved a reported problem; the haul is no longer under review.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "issue_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "booking_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "load_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "shipper_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "shipper_user_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The person who posted the load."
+      },
+      "carrier_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "driver_user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "resolution": {
+       "title": "IssueResolution",
+       "type": "string",
+       "enum": [
+        "continue",
+        "cancel",
+        "reprice",
+        "waiting_fee"
+       ],
+       "description": "`continue`: the haul goes on as it was. `cancel`: cancelled without penalty to either side (a `booking.cancelled` follows). `reprice`: the price was recalculated. `waiting_fee`: a waiting charge was added."
+      },
+      "amount": {
+       "type": [
+        "integer",
+        "null"
+       ],
+       "minimum": 0,
+       "description": "The new price for `reprice`, the added charge for `waiting_fee`, whole so'm; null otherwise."
+      },
+      "currency": {
+       "type": "string",
+       "minLength": 3,
+       "maxLength": 3
+      },
+      "resolved_at": {
+       "type": "string",
+       "format": "date-time"
+      }
+     },
+     "required": [
+      "event_id",
+      "issue_id",
+      "booking_id",
+      "load_id",
+      "shipper_org_id",
+      "shipper_user_id",
+      "carrier_org_id",
+      "driver_user_id",
+      "resolution",
+      "amount",
+      "currency",
+      "resolved_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Continue",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "issue_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0b",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "shipper_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "resolution": "continue",
+       "amount": null,
+       "currency": "UZS",
+       "resolved_at": "2026-10-15T08:41:00+00:00"
+      }
+     },
+     {
+      "name": "Waiting fee",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "issue_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0b",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "shipper_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "resolution": "waiting_fee",
+       "amount": 36000,
+       "currency": "UZS",
+       "resolved_at": "2026-10-15T08:41:00+00:00"
+      }
+     }
+    ]
+   },
+   "shipperStatsChanged": {
+    "name": "shipper.stats_changed",
+    "title": "Shipper stats changed",
+    "payload": {
+     "title": "ShipperStatsChanged",
+     "description": "A shipper's standing moved: a driver rated them. Replicas show it on the shipper card.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "rating_avg": {
+       "type": [
+        "number",
+        "null"
+       ],
+       "minimum": 1,
+       "maximum": 5,
+       "description": "Average over the rating window; null before the first rating."
+      },
+      "rating_count": {
+       "type": "integer",
+       "minimum": 0,
+       "description": "All ratings ever received; only grows."
+      }
+     },
+     "required": [
+      "event_id",
+      "user_id",
+      "rating_avg",
+      "rating_count"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+       "rating_avg": 4.8,
+       "rating_count": 12
       }
      }
     ]

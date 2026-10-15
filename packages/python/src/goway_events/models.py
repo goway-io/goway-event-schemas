@@ -141,6 +141,12 @@ class BoardSubscribedFrame(BaseModel):
     """
 
 
+class BookingChange(StrEnum):
+    ISSUE_OPENED = "issue_opened"
+    ISSUE_RESOLVED = "issue_resolved"
+    WAITING_STARTED = "waiting_started"
+
+
 class BookingReturnLoads(BaseModel):
     """
     Hours before a truck is empty: loads are waiting in the region where it unloads. Sent once per haul.
@@ -219,6 +225,10 @@ class BookingStatusChanged(BaseModel):
     status: BookingStatus
     shipper_org_id: UUID
     carrier_org_id: UUID
+    occurred_at: AwareDatetime
+    """
+    When the step happened: the driver's tap, which an app offline for a while sends late. Steps arrive in order; this is the time to show.
+    """
 
 
 class BookingStatusFrame(BaseModel):
@@ -235,6 +245,64 @@ class BookingStatusFrame(BaseModel):
     """
     When the server sent the frame, RFC 3339 UTC.
     """
+
+
+class BookingUpdated(BaseModel):
+    """
+    Something on a haul changed besides its step; sent to the driver and the shipper without a subscription. A signal: the app reads the booking again.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    booking_id: UUID
+    change: BookingChange
+    issue_id: UUID | None
+
+
+class BookingUpdatedFrame(BaseModel):
+    """
+    Frame `booking_updated` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["booking_updated"]
+    data: BookingUpdated
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class BookingWaitingStarted(BaseModel):
+    """
+    The free waiting at the pickup ran out and paid waiting began. Once per booking.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    booking_id: UUID
+    load_id: UUID
+    shipper_org_id: UUID
+    shipper_user_id: UUID
+    """
+    The person who posted the load.
+    """
+    carrier_org_id: UUID
+    driver_user_id: UUID
+    started_at: AwareDatetime
+    rate_per_minute: Annotated[int, Field(ge=0)]
+    """
+    Whole so'm per minute.
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
 
 
 class CancelledBy(StrEnum):
@@ -301,9 +369,10 @@ class ChargeLine(BaseModel):
 
 class CompletedBy(StrEnum):
     """
-    Who closed the haul; `system` is the auto-complete sweep.
+    Who closed the haul: `carrier` when the driver finishes it at the drop-off, `system` for the auto-complete sweep.
     """
 
+    CARRIER = "carrier"
     SHIPPER = "shipper"
     OPERATOR = "operator"
     SYSTEM = "system"
@@ -701,6 +770,22 @@ class GoOnlineFrame(BaseModel):
 class IneligibleReason(StrEnum):
     DEBT = "debt"
     SUBSCRIPTION = "subscription"
+
+
+class IssueResolution(StrEnum):
+    """
+    `continue`: the haul goes on as it was. `cancel`: cancelled without penalty to either side (a `booking.cancelled` follows). `reprice`: the price was recalculated. `waiting_fee`: a waiting charge was added.
+    """
+
+    CONTINUE = "continue"
+    CANCEL = "cancel"
+    REPRICE = "reprice"
+    WAITING_FEE = "waiting_fee"
+
+
+class IssueSide(StrEnum):
+    CARRIER = "carrier"
+    SHIPPER = "shipper"
 
 
 class Kicked(BaseModel):
@@ -1311,10 +1396,11 @@ class PriceMode(StrEnum):
 
 class RatingTarget(StrEnum):
     """
-    Who was rated; only the driver today.
+    Who was rated: the shipper rates the driver, the driver rates the shipper.
     """
 
     DRIVER = "driver"
+    SHIPPER = "shipper"
 
 
 class RegionChanged(BaseModel):
@@ -1498,6 +1584,29 @@ class SettingsChanged(BaseModel):
     by: UUID | None
     """
     The admin who changed them; null when not known.
+    """
+
+
+class ShipperStatsChanged(BaseModel):
+    """
+    A shipper's standing moved: a driver rated them. Replicas show it on the shipper card.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    user_id: UUID
+    rating_avg: Annotated[float | None, Field(ge=1.0, le=5.0)]
+    """
+    Average over the rating window; null before the first rating.
+    """
+    rating_count: Annotated[int, Field(ge=0)]
+    """
+    All ratings ever received; only grows.
     """
 
 
@@ -2115,6 +2224,18 @@ class WalletToppedUp(BaseModel):
     """
 
 
+class Waypoint(BaseModel):
+    """
+    The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    region_id: UUID
+    passed_at: AwareDatetime
+
+
 class BoardLoadRemoved(BaseModel):
     """
     A load left a subscribed lane's board. A signal; the app drops it from the list.
@@ -2242,6 +2363,15 @@ class BookingCancelled(BaseModel):
     """
     The cancellation counts against the driver's acceptance rate: the driver's own cancellation of an instant haul, or of a plan later than goway-loads' free-cancel window before pickup, or an operator's cancellation of a booking whose driver never showed up. False for every other shipper and operator cancellation.
     """
+    reason_code: str | None
+    """
+    Code from the cancellation reasons catalogue; null for older clients and system cancellations.
+    """
+    fee_amount: Annotated[int | None, Field(ge=0)]
+    """
+    Cancellation fee the shipper owes the carrier, whole so'm (`cancel_fee_percent` once the driver set off); null when none.
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
 
 
 class BookingCancelledFrame(BaseModel):
@@ -2449,6 +2579,76 @@ class BookingEtaUpdated(BaseModel):
     """
     The booked vehicle's truck class code.
     """
+    remaining_km: Annotated[float | None, Field(ge=0.0)]
+    """
+    Road kilometres left to the next stop; null before the haul sets off or while routing is unavailable.
+    """
+    last_waypoint: Waypoint | None
+
+
+class BookingIssueOpened(BaseModel):
+    """
+    Someone on the haul reported a problem («Muammo bor»). Until an operator resolves it the haul is under review: its step does not move, the waiting clock is paused and the driver's cancellation does not count against them.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    issue_id: UUID
+    booking_id: UUID
+    load_id: UUID
+    shipper_org_id: UUID
+    shipper_user_id: UUID
+    """
+    The person who posted the load.
+    """
+    carrier_org_id: UUID
+    driver_user_id: UUID
+    opened_by: IssueSide
+    reason_code: str
+    """
+    Code from the issue reasons catalogue.
+    """
+    status: str
+    """
+    The booking's step when the issue was opened.
+    """
+    opened_at: AwareDatetime
+
+
+class BookingIssueResolved(BaseModel):
+    """
+    An operator resolved a reported problem; the haul is no longer under review.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    issue_id: UUID
+    booking_id: UUID
+    load_id: UUID
+    shipper_org_id: UUID
+    shipper_user_id: UUID
+    """
+    The person who posted the load.
+    """
+    carrier_org_id: UUID
+    driver_user_id: UUID
+    resolution: IssueResolution
+    amount: Annotated[int | None, Field(ge=0)]
+    """
+    The new price for `reprice`, the added charge for `waiting_fee`, whole so'm; null otherwise.
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    resolved_at: AwareDatetime
 
 
 class BookingPlanDue(BaseModel):
@@ -3094,6 +3294,14 @@ class RatingCreated(BaseModel):
     """
     1 to 5.
     """
+    shipper_user_id: UUID
+    """
+    The person who posted the load: the one rated when `target` is `shipper`.
+    """
+    tags: list[str]
+    """
+    Codes from the rating tags catalogue, for example `on_time`, `cargo_ready`.
+    """
 
 
 class SupportTicketCreated(BaseModel):
@@ -3216,6 +3424,7 @@ class ServerFrame(
         | BoardLoadAddedFrame
         | BoardLoadUpdatedFrame
         | BoardLoadRemovedFrame
+        | BookingUpdatedFrame
     ]
 ):
     root: Annotated[
@@ -3244,7 +3453,8 @@ class ServerFrame(
         | BoardSubscribedFrame
         | BoardLoadAddedFrame
         | BoardLoadUpdatedFrame
-        | BoardLoadRemovedFrame,
+        | BoardLoadRemovedFrame
+        | BookingUpdatedFrame,
         Field(discriminator="type", title="ServerFrame"),
     ]
     """

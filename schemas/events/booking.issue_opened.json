@@ -1,0 +1,77 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BookingIssueOpened",
+  "description": "Someone on the haul reported a problem («Muammo bor»). Until an operator resolves it the haul is under review: its step does not move, the waiting clock is paused and the driver's cancellation does not count against them.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "issue_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "booking_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "load_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "shipper_org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "shipper_user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person who posted the load."
+    },
+    "carrier_org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "driver_user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "opened_by": {
+      "title": "IssueSide",
+      "type": "string",
+      "enum": [
+        "carrier",
+        "shipper"
+      ]
+    },
+    "reason_code": {
+      "type": "string",
+      "description": "Code from the issue reasons catalogue."
+    },
+    "status": {
+      "type": "string",
+      "description": "The booking's step when the issue was opened."
+    },
+    "opened_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "event_id",
+    "issue_id",
+    "booking_id",
+    "load_id",
+    "shipper_org_id",
+    "shipper_user_id",
+    "carrier_org_id",
+    "driver_user_id",
+    "opened_by",
+    "reason_code",
+    "status",
+    "opened_at"
+  ]
+}

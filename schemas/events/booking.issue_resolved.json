@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BookingIssueResolved",
+  "description": "An operator resolved a reported problem; the haul is no longer under review.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "issue_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "booking_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "load_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "shipper_org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "shipper_user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person who posted the load."
+    },
+    "carrier_org_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "driver_user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "resolution": {
+      "title": "IssueResolution",
+      "type": "string",
+      "enum": [
+        "continue",
+        "cancel",
+        "reprice",
+        "waiting_fee"
+      ],
+      "description": "`continue`: the haul goes on as it was. `cancel`: cancelled without penalty to either side (a `booking.cancelled` follows). `reprice`: the price was recalculated. `waiting_fee`: a waiting charge was added."
+    },
+    "amount": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "The new price for `reprice`, the added charge for `waiting_fee`, whole so'm; null otherwise."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "event_id",
+    "issue_id",
+    "booking_id",
+    "load_id",
+    "shipper_org_id",
+    "shipper_user_id",
+    "carrier_org_id",
+    "driver_user_id",
+    "resolution",
+    "amount",
+    "currency",
+    "resolved_at"
+  ]
+}

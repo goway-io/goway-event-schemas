@@ -123,6 +123,7 @@ sealed class ServerFrame {
         'verification_changed' => VerificationChangedMessage(VerificationChangedFrame.fromJson(json)),
         'search_progress' => SearchProgressMessage(SearchProgressFrame.fromJson(json)),
         'search_exhausted' => SearchExhaustedMessage(SearchExhaustedFrame.fromJson(json)),
+        'booking_updated' => BookingUpdatedMessage(BookingUpdatedFrame.fromJson(json)),
         'board_subscribed' => BoardSubscribedMessage(BoardSubscribedFrame.fromJson(json)),
         'board_load_added' => BoardLoadAddedMessage(BoardLoadAddedFrame.fromJson(json)),
         'board_load_updated' => BoardLoadUpdatedMessage(BoardLoadUpdatedFrame.fromJson(json)),
@@ -268,6 +269,13 @@ final class SearchProgressMessage extends ServerFrame {
 final class SearchExhaustedMessage extends ServerFrame {
   const SearchExhaustedMessage(this.frame);
   final SearchExhaustedFrame frame;
+  @override
+  Map<String, dynamic> toJson() => frame.toJson();
+}
+
+final class BookingUpdatedMessage extends ServerFrame {
+  const BookingUpdatedMessage(this.frame);
+  final BookingUpdatedFrame frame;
   @override
   Map<String, dynamic> toJson() => frame.toJson();
 }

@@ -8,9 +8,12 @@
     "booking.completed": "BookingCompleted",
     "booking.created": "BookingCreated",
     "booking.eta_updated": "BookingEtaUpdated",
+    "booking.issue_opened": "BookingIssueOpened",
+    "booking.issue_resolved": "BookingIssueResolved",
     "booking.plan_due": "BookingPlanDue",
     "booking.return_loads": "BookingReturnLoads",
     "booking.status_changed": "BookingStatusChanged",
+    "booking.waiting_started": "BookingWaitingStarted",
     "carrier.document_expired": "CarrierDocumentExpired",
     "carrier.document_expiring": "CarrierDocumentExpiring",
     "carrier.document_reviewed": "CarrierDocumentReviewed",
@@ -40,6 +43,7 @@
     "rating.created": "RatingCreated",
     "region.changed": "RegionChanged",
     "settings.changed": "SettingsChanged",
+    "shipper.stats_changed": "ShipperStatsChanged",
     "support.ticket_created": "SupportTicketCreated",
     "support.ticket_replied": "SupportTicketReplied",
     "user.blocked": "UserBlocked",
@@ -79,6 +83,7 @@
       "booking_created": "BookingCreatedFrame",
       "booking_eta": "BookingEtaFrame",
       "booking_status": "BookingStatusFrame",
+      "booking_updated": "BookingUpdatedFrame",
       "connected": "ConnectedFrame",
       "driver_location": "DriverLocationFrame",
       "error": "ErrorFrame",
@@ -530,6 +535,26 @@
         "penalized": {
           "type": "boolean",
           "description": "The cancellation counts against the driver's acceptance rate: the driver's own cancellation of an instant haul, or of a plan later than goway-loads' free-cancel window before pickup, or an operator's cancellation of a booking whose driver never showed up. False for every other shipper and operator cancellation."
+        },
+        "reason_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Code from the cancellation reasons catalogue; null for older clients and system cancellations."
+        },
+        "fee_amount": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Cancellation fee the shipper owes the carrier, whole so'm (`cancel_fee_percent` once the driver set off); null when none."
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3
         }
       },
       "required": [
@@ -542,7 +567,10 @@
         "carrier_org_id",
         "driver_user_id",
         "plan",
-        "penalized"
+        "penalized",
+        "reason_code",
+        "fee_amount",
+        "currency"
       ]
     },
     "BookingCancelledFrame": {
@@ -568,6 +596,15 @@
         "type",
         "data",
         "ts"
+      ]
+    },
+    "BookingChange": {
+      "title": "BookingChange",
+      "type": "string",
+      "enum": [
+        "issue_opened",
+        "issue_resolved",
+        "waiting_started"
       ]
     },
     "BookingCompleted": {
@@ -946,6 +983,17 @@
         "truck_class": {
           "type": "string",
           "description": "The booked vehicle's truck class code."
+        },
+        "remaining_km": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Road kilometres left to the next stop; null before the haul sets off or while routing is unavailable."
+        },
+        "last_waypoint": {
+          "$ref": "#/definitions/Waypoint"
         }
       },
       "required": [
@@ -961,7 +1009,156 @@
         "eta_to",
         "free_at",
         "free_region_id",
-        "truck_class"
+        "truck_class",
+        "remaining_km",
+        "last_waypoint"
+      ]
+    },
+    "BookingIssueOpened": {
+      "title": "BookingIssueOpened",
+      "description": "Someone on the haul reported a problem («Muammo bor»). Until an operator resolves it the haul is under review: its step does not move, the waiting clock is paused and the driver's cancellation does not count against them.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "issue_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "shipper_org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "shipper_user_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The person who posted the load."
+        },
+        "carrier_org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "driver_user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "opened_by": {
+          "$ref": "#/definitions/IssueSide"
+        },
+        "reason_code": {
+          "type": "string",
+          "description": "Code from the issue reasons catalogue."
+        },
+        "status": {
+          "type": "string",
+          "description": "The booking's step when the issue was opened."
+        },
+        "opened_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "event_id",
+        "issue_id",
+        "booking_id",
+        "load_id",
+        "shipper_org_id",
+        "shipper_user_id",
+        "carrier_org_id",
+        "driver_user_id",
+        "opened_by",
+        "reason_code",
+        "status",
+        "opened_at"
+      ]
+    },
+    "BookingIssueResolved": {
+      "title": "BookingIssueResolved",
+      "description": "An operator resolved a reported problem; the haul is no longer under review.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "issue_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "shipper_org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "shipper_user_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The person who posted the load."
+        },
+        "carrier_org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "driver_user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "resolution": {
+          "$ref": "#/definitions/IssueResolution"
+        },
+        "amount": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "The new price for `reprice`, the added charge for `waiting_fee`, whole so'm; null otherwise."
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3
+        },
+        "resolved_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "event_id",
+        "issue_id",
+        "booking_id",
+        "load_id",
+        "shipper_org_id",
+        "shipper_user_id",
+        "carrier_org_id",
+        "driver_user_id",
+        "resolution",
+        "amount",
+        "currency",
+        "resolved_at"
       ]
     },
     "BookingPlanDue": {
@@ -1137,6 +1334,11 @@
         "carrier_org_id": {
           "type": "string",
           "format": "uuid"
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the step happened: the driver's tap, which an app offline for a while sends late. Steps arrive in order; this is the time to show."
         }
       },
       "required": [
@@ -1145,7 +1347,8 @@
         "load_id",
         "status",
         "shipper_org_id",
-        "carrier_org_id"
+        "carrier_org_id",
+        "occurred_at"
       ]
     },
     "BookingStatusFrame": {
@@ -1171,6 +1374,122 @@
         "type",
         "data",
         "ts"
+      ]
+    },
+    "BookingUpdated": {
+      "title": "BookingUpdated",
+      "description": "Something on a haul changed besides its step; sent to the driver and the shipper without a subscription. A signal: the app reads the booking again.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "change": {
+          "$ref": "#/definitions/BookingChange"
+        },
+        "issue_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "booking_id",
+        "change",
+        "issue_id"
+      ]
+    },
+    "BookingUpdatedFrame": {
+      "title": "BookingUpdatedFrame",
+      "description": "Frame `booking_updated` goway-realtime sends to an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "booking_updated"
+        },
+        "data": {
+          "$ref": "#/definitions/BookingUpdated"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
+    "BookingWaitingStarted": {
+      "title": "BookingWaitingStarted",
+      "description": "The free waiting at the pickup ran out and paid waiting began. Once per booking.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "shipper_org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "shipper_user_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The person who posted the load."
+        },
+        "carrier_org_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "driver_user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "rate_per_minute": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Whole so'm per minute."
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3
+        }
+      },
+      "required": [
+        "event_id",
+        "booking_id",
+        "load_id",
+        "shipper_org_id",
+        "shipper_user_id",
+        "carrier_org_id",
+        "driver_user_id",
+        "started_at",
+        "rate_per_minute",
+        "currency"
       ]
     },
     "CancelledBy": {
@@ -1475,11 +1794,12 @@
       "title": "CompletedBy",
       "type": "string",
       "enum": [
+        "carrier",
         "shipper",
         "operator",
         "system"
       ],
-      "description": "Who closed the haul; `system` is the auto-complete sweep."
+      "description": "Who closed the haul: `carrier` when the driver finishes it at the drop-off, `system` for the auto-complete sweep."
     },
     "Connected": {
       "title": "Connected",
@@ -2185,6 +2505,25 @@
       "enum": [
         "debt",
         "subscription"
+      ]
+    },
+    "IssueResolution": {
+      "title": "IssueResolution",
+      "type": "string",
+      "enum": [
+        "continue",
+        "cancel",
+        "reprice",
+        "waiting_fee"
+      ],
+      "description": "`continue`: the haul goes on as it was. `cancel`: cancelled without penalty to either side (a `booking.cancelled` follows). `reprice`: the price was recalculated. `waiting_fee`: a waiting charge was added."
+    },
+    "IssueSide": {
+      "title": "IssueSide",
+      "type": "string",
+      "enum": [
+        "carrier",
+        "shipper"
       ]
     },
     "Kicked": {
@@ -3929,6 +4268,19 @@
           "minimum": 1,
           "maximum": 5,
           "description": "1 to 5."
+        },
+        "shipper_user_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The person who posted the load: the one rated when `target` is `shipper`."
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "description": "Codes from the rating tags catalogue, for example `on_time`, `cargo_ready`."
         }
       },
       "required": [
@@ -3939,16 +4291,19 @@
         "driver_user_id",
         "carrier_org_id",
         "shipper_org_id",
-        "stars"
+        "stars",
+        "shipper_user_id",
+        "tags"
       ]
     },
     "RatingTarget": {
       "title": "RatingTarget",
       "type": "string",
       "enum": [
-        "driver"
+        "driver",
+        "shipper"
       ],
-      "description": "Who was rated; only the driver today."
+      "description": "Who was rated: the shipper rates the driver, the driver rates the shipper."
     },
     "RegionChanged": {
       "title": "RegionChanged",
@@ -4181,6 +4536,9 @@
         },
         {
           "$ref": "#/definitions/BoardLoadRemovedFrame"
+        },
+        {
+          "$ref": "#/definitions/BookingUpdatedFrame"
         }
       ]
     },
@@ -4323,6 +4681,43 @@
         "service",
         "keys",
         "by"
+      ]
+    },
+    "ShipperStatsChanged": {
+      "title": "ShipperStatsChanged",
+      "description": "A shipper's standing moved: a driver rated them. Replicas show it on the shipper card.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "rating_avg": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Average over the rating window; null before the first rating."
+        },
+        "rating_count": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "All ratings ever received; only grows."
+        }
+      },
+      "required": [
+        "event_id",
+        "user_id",
+        "rating_avg",
+        "rating_count"
       ]
     },
     "SubmittedDocumentStatus": {
@@ -5389,6 +5784,29 @@
         "amount",
         "balance",
         "currency"
+      ]
+    },
+    "Waypoint": {
+      "title": "Waypoint",
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "description": "The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one.",
+      "properties": {
+        "region_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "passed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "region_id",
+        "passed_at"
       ]
     }
   }

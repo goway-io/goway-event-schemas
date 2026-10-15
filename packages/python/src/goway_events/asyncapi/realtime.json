@@ -116,6 +116,9 @@
     "searchExhausted": {
      "$ref": "#/components/messages/searchExhausted"
     },
+    "bookingUpdated": {
+     "$ref": "#/components/messages/bookingUpdated"
+    },
     "notification": {
      "$ref": "#/components/messages/notification"
     },
@@ -239,6 +242,9 @@
     },
     {
      "$ref": "#/channels/socket/messages/searchExhausted"
+    },
+    {
+     "$ref": "#/channels/socket/messages/bookingUpdated"
     },
     {
      "$ref": "#/channels/socket/messages/boardSubscribed"
@@ -1598,6 +1604,11 @@
         "carrier_org_id": {
          "type": "string",
          "format": "uuid"
+        },
+        "occurred_at": {
+         "type": "string",
+         "format": "date-time",
+         "description": "When the step happened: the driver's tap, which an app offline for a while sends late. Steps arrive in order; this is the time to show."
         }
        },
        "required": [
@@ -1606,7 +1617,8 @@
         "load_id",
         "status",
         "shipper_org_id",
-        "carrier_org_id"
+        "carrier_org_id",
+        "occurred_at"
        ]
       },
       "ts": {
@@ -1632,7 +1644,8 @@
         "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
         "status": "at_pickup",
         "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
-        "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05"
+        "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+        "occurred_at": "2026-10-15T07:12:40.512Z"
        },
        "ts": "2026-10-14T09:30:00.123Z"
       }
@@ -1748,6 +1761,37 @@
         "truck_class": {
          "type": "string",
          "description": "The booked vehicle's truck class code."
+        },
+        "remaining_km": {
+         "type": [
+          "number",
+          "null"
+         ],
+         "minimum": 0,
+         "description": "Road kilometres left to the next stop; null before the haul sets off or while routing is unavailable."
+        },
+        "last_waypoint": {
+         "title": "Waypoint",
+         "type": [
+          "object",
+          "null"
+         ],
+         "additionalProperties": false,
+         "description": "The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one.",
+         "properties": {
+          "region_id": {
+           "type": "string",
+           "format": "uuid"
+          },
+          "passed_at": {
+           "type": "string",
+           "format": "date-time"
+          }
+         },
+         "required": [
+          "region_id",
+          "passed_at"
+         ]
         }
        },
        "required": [
@@ -1763,7 +1807,9 @@
         "eta_to",
         "free_at",
         "free_region_id",
-        "truck_class"
+        "truck_class",
+        "remaining_km",
+        "last_waypoint"
        ]
       },
       "ts": {
@@ -1796,7 +1842,9 @@
         "eta_to": "2026-10-14T10:25:00.123Z",
         "free_at": "2026-10-14T17:40:00.123Z",
         "free_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
-        "truck_class": "tent_20t"
+        "truck_class": "tent_20t",
+        "remaining_km": null,
+        "last_waypoint": null
        },
        "ts": "2026-10-14T09:30:00.123Z"
       }
@@ -1869,11 +1917,12 @@
          "title": "CompletedBy",
          "type": "string",
          "enum": [
+          "carrier",
           "shipper",
           "operator",
           "system"
          ],
-         "description": "Who closed the haul; `system` is the auto-complete sweep."
+         "description": "Who closed the haul: `carrier` when the driver finishes it at the drop-off, `system` for the auto-complete sweep."
         },
         "charges": {
          "type": "array",
@@ -2073,6 +2122,26 @@
         "penalized": {
          "type": "boolean",
          "description": "The cancellation counts against the driver's acceptance rate: the driver's own cancellation of an instant haul, or of a plan later than goway-loads' free-cancel window before pickup, or an operator's cancellation of a booking whose driver never showed up. False for every other shipper and operator cancellation."
+        },
+        "reason_code": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "description": "Code from the cancellation reasons catalogue; null for older clients and system cancellations."
+        },
+        "fee_amount": {
+         "type": [
+          "integer",
+          "null"
+         ],
+         "minimum": 0,
+         "description": "Cancellation fee the shipper owes the carrier, whole so'm (`cancel_fee_percent` once the driver set off); null when none."
+        },
+        "currency": {
+         "type": "string",
+         "minLength": 3,
+         "maxLength": 3
         }
        },
        "required": [
@@ -2085,7 +2154,10 @@
         "carrier_org_id",
         "driver_user_id",
         "plan",
-        "penalized"
+        "penalized",
+        "reason_code",
+        "fee_amount",
+        "currency"
        ]
       },
       "ts": {
@@ -2115,7 +2187,10 @@
         "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
         "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
         "plan": false,
-        "penalized": false
+        "penalized": false,
+        "reason_code": null,
+        "fee_amount": null,
+        "currency": "UZS"
        },
        "ts": "2026-10-14T09:30:00.123Z"
       }
@@ -3263,6 +3338,79 @@
         "reason": "booked"
        },
        "ts": "2026-10-15T07:12:40.512Z"
+      }
+     }
+    ]
+   },
+   "bookingUpdated": {
+    "name": "booking_updated",
+    "title": "Booking updated",
+    "payload": {
+     "title": "BookingUpdatedFrame",
+     "description": "Frame `booking_updated` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "booking_updated"
+      },
+      "data": {
+       "title": "BookingUpdated",
+       "description": "Something on a haul changed besides its step; sent to the driver and the shipper without a subscription. A signal: the app reads the booking again.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "booking_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "change": {
+         "title": "BookingChange",
+         "type": "string",
+         "enum": [
+          "issue_opened",
+          "issue_resolved",
+          "waiting_started"
+         ]
+        },
+        "issue_id": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "format": "uuid"
+        }
+       },
+       "required": [
+        "booking_id",
+        "change",
+        "issue_id"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Booking updated",
+      "payload": {
+       "type": "booking_updated",
+       "data": {
+        "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+        "change": "issue_opened",
+        "issue_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0b"
+       },
+       "ts": "2026-10-15T08:20:00.512Z"
       }
      }
     ]

@@ -52,11 +52,12 @@
       "title": "CompletedBy",
       "type": "string",
       "enum": [
+        "carrier",
         "shipper",
         "operator",
         "system"
       ],
-      "description": "Who closed the haul; `system` is the auto-complete sweep."
+      "description": "Who closed the haul: `carrier` when the driver finishes it at the drop-off, `system` for the auto-complete sweep."
     },
     "charges": {
       "type": "array",

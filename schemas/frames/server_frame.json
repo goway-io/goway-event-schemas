@@ -81,6 +81,9 @@
     },
     {
       "$ref": "./server/board_load_removed.json"
+    },
+    {
+      "$ref": "./server/booking_updated.json"
     }
   ]
 }

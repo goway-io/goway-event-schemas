@@ -20,6 +20,7 @@
 //     final bookingCreatedFrame = bookingCreatedFrameFromJson(jsonString);
 //     final bookingEtaFrame = bookingEtaFrameFromJson(jsonString);
 //     final bookingStatusFrame = bookingStatusFrameFromJson(jsonString);
+//     final bookingUpdatedFrame = bookingUpdatedFrameFromJson(jsonString);
 //     final connectedFrame = connectedFrameFromJson(jsonString);
 //     final driverLocationFrame = driverLocationFrameFromJson(jsonString);
 //     final errorFrame = errorFrameFromJson(jsonString);
@@ -118,6 +119,10 @@ String bookingEtaFrameToJson(BookingEtaFrame data) => json.encode(data.toJson())
 BookingStatusFrame bookingStatusFrameFromJson(String str) => BookingStatusFrame.fromJson(json.decode(str));
 
 String bookingStatusFrameToJson(BookingStatusFrame data) => json.encode(data.toJson());
+
+BookingUpdatedFrame bookingUpdatedFrameFromJson(String str) => BookingUpdatedFrame.fromJson(json.decode(str));
+
+String bookingUpdatedFrameToJson(BookingUpdatedFrame data) => json.encode(data.toJson());
 
 ConnectedFrame connectedFrameFromJson(String str) => ConnectedFrame.fromJson(json.decode(str));
 
@@ -905,6 +910,8 @@ class BookingCancelled {
     final CancelledBy by;
     @JsonKey(name: "carrier_org_id")
     final String carrierOrgId;
+    @JsonKey(name: "currency")
+    final String currency;
     
     ///Null when no driver was assigned.
     @JsonKey(name: "driver_user_id")
@@ -913,6 +920,11 @@ class BookingCancelled {
     ///Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
     @JsonKey(name: "event_id")
     final String eventId;
+    
+    ///Cancellation fee the shipper owes the carrier, whole so'm (`cancel_fee_percent` once the
+    ///driver set off); null when none.
+    @JsonKey(name: "fee_amount")
+    final int? feeAmount;
     @JsonKey(name: "load_id")
     final String loadId;
     
@@ -930,6 +942,11 @@ class BookingCancelled {
     ///What the canceller wrote; empty when nothing was written.
     @JsonKey(name: "reason")
     final String reason;
+    
+    ///Code from the cancellation reasons catalogue; null for older clients and system
+    ///cancellations.
+    @JsonKey(name: "reason_code")
+    final String? reasonCode;
     @JsonKey(name: "shipper_org_id")
     final String shipperOrgId;
 
@@ -937,12 +954,15 @@ class BookingCancelled {
         required this.bookingId,
         required this.by,
         required this.carrierOrgId,
+        required this.currency,
         required this.driverUserId,
         required this.eventId,
+        required this.feeAmount,
         required this.loadId,
         required this.penalized,
         required this.plan,
         required this.reason,
+        required this.reasonCode,
         required this.shipperOrgId,
     });
 
@@ -1115,8 +1135,11 @@ class ChargeLine {
 }
 
 
-///Who closed the haul; `system` is the auto-complete sweep.
+///Who closed the haul: `carrier` when the driver finishes it at the drop-off, `system` for
+///the auto-complete sweep.
 enum CompletedBy {
+    @JsonValue("carrier")
+    CARRIER,
     @JsonValue("operator")
     OPERATOR,
     @JsonValue("shipper")
@@ -1126,6 +1149,7 @@ enum CompletedBy {
 }
 
 final completedByValues = EnumValues({
+    "carrier": CompletedBy.CARRIER,
     "operator": CompletedBy.OPERATOR,
     "shipper": CompletedBy.SHIPPER,
     "system": CompletedBy.SYSTEM
@@ -1338,8 +1362,15 @@ class BookingEtaUpdated {
     ///Where the truck will be free: the drop-off region; null when unknown.
     @JsonKey(name: "free_region_id")
     final String? freeRegionId;
+    @JsonKey(name: "last_waypoint")
+    final Waypoint? lastWaypoint;
     @JsonKey(name: "load_id")
     final String loadId;
+    
+    ///Road kilometres left to the next stop; null before the haul sets off or while routing is
+    ///unavailable.
+    @JsonKey(name: "remaining_km")
+    final double? remainingKm;
     @JsonKey(name: "shipper_org_id")
     final String shipperOrgId;
     @JsonKey(name: "status")
@@ -1359,7 +1390,9 @@ class BookingEtaUpdated {
         required this.eventId,
         required this.freeAt,
         required this.freeRegionId,
+        required this.lastWaypoint,
         required this.loadId,
+        required this.remainingKm,
         required this.shipperOrgId,
         required this.status,
         required this.truckClass,
@@ -1381,6 +1414,23 @@ final etaStopValues = EnumValues({
     "dropoff": EtaStop.DROPOFF,
     "pickup": EtaStop.PICKUP
 });
+
+@JsonSerializable()
+class Waypoint {
+    @JsonKey(name: "passed_at")
+    final DateTime passedAt;
+    @JsonKey(name: "region_id")
+    final String regionId;
+
+    Waypoint({
+        required this.passedAt,
+        required this.regionId,
+    });
+
+    factory Waypoint.fromJson(Map<String, dynamic> json) => _$WaypointFromJson(json);
+
+    Map<String, dynamic> toJson() => _$WaypointToJson(this);
+}
 
 enum BookingStatus {
     @JsonValue("at_pickup")
@@ -1462,6 +1512,11 @@ class BookingStatusChanged {
     final String eventId;
     @JsonKey(name: "load_id")
     final String loadId;
+    
+    ///When the step happened: the driver's tap, which an app offline for a while sends late.
+    ///Steps arrive in order; this is the time to show.
+    @JsonKey(name: "occurred_at")
+    final DateTime occurredAt;
     @JsonKey(name: "shipper_org_id")
     final String shipperOrgId;
     @JsonKey(name: "status")
@@ -1472,6 +1527,7 @@ class BookingStatusChanged {
         required this.carrierOrgId,
         required this.eventId,
         required this.loadId,
+        required this.occurredAt,
         required this.shipperOrgId,
         required this.status,
     });
@@ -1488,6 +1544,77 @@ enum BookingStatusFrameType {
 
 final bookingStatusFrameTypeValues = EnumValues({
     "booking_status": BookingStatusFrameType.BOOKING_STATUS
+});
+
+
+///Frame `booking_updated` goway-realtime sends to an app.
+@JsonSerializable()
+class BookingUpdatedFrame {
+    @JsonKey(name: "data")
+    final BookingUpdated data;
+    
+    ///When the server sent the frame, RFC 3339 UTC.
+    @JsonKey(name: "ts")
+    final DateTime ts;
+    @JsonKey(name: "type")
+    final BookingUpdatedFrameType type;
+
+    BookingUpdatedFrame({
+        required this.data,
+        required this.ts,
+        required this.type,
+    });
+
+    factory BookingUpdatedFrame.fromJson(Map<String, dynamic> json) => _$BookingUpdatedFrameFromJson(json);
+
+    Map<String, dynamic> toJson() => _$BookingUpdatedFrameToJson(this);
+}
+
+
+///Something on a haul changed besides its step; sent to the driver and the shipper without
+///a subscription. A signal: the app reads the booking again.
+@JsonSerializable()
+class BookingUpdated {
+    @JsonKey(name: "booking_id")
+    final String bookingId;
+    @JsonKey(name: "change")
+    final BookingChange change;
+    @JsonKey(name: "issue_id")
+    final String? issueId;
+
+    BookingUpdated({
+        required this.bookingId,
+        required this.change,
+        required this.issueId,
+    });
+
+    factory BookingUpdated.fromJson(Map<String, dynamic> json) => _$BookingUpdatedFromJson(json);
+
+    Map<String, dynamic> toJson() => _$BookingUpdatedToJson(this);
+}
+
+enum BookingChange {
+    @JsonValue("issue_opened")
+    ISSUE_OPENED,
+    @JsonValue("issue_resolved")
+    ISSUE_RESOLVED,
+    @JsonValue("waiting_started")
+    WAITING_STARTED
+}
+
+final bookingChangeValues = EnumValues({
+    "issue_opened": BookingChange.ISSUE_OPENED,
+    "issue_resolved": BookingChange.ISSUE_RESOLVED,
+    "waiting_started": BookingChange.WAITING_STARTED
+});
+
+enum BookingUpdatedFrameType {
+    @JsonValue("booking_updated")
+    BOOKING_UPDATED
+}
+
+final bookingUpdatedFrameTypeValues = EnumValues({
+    "booking_updated": BookingUpdatedFrameType.BOOKING_UPDATED
 });
 
 

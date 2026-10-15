@@ -55,6 +55,26 @@
     "penalized": {
       "type": "boolean",
       "description": "The cancellation counts against the driver's acceptance rate: the driver's own cancellation of an instant haul, or of a plan later than goway-loads' free-cancel window before pickup, or an operator's cancellation of a booking whose driver never showed up. False for every other shipper and operator cancellation."
+    },
+    "reason_code": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Code from the cancellation reasons catalogue; null for older clients and system cancellations."
+    },
+    "fee_amount": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Cancellation fee the shipper owes the carrier, whole so'm (`cancel_fee_percent` once the driver set off); null when none."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3
     }
   },
   "required": [
@@ -67,6 +87,9 @@
     "carrier_org_id",
     "driver_user_id",
     "plan",
-    "penalized"
+    "penalized",
+    "reason_code",
+    "fee_amount",
+    "currency"
   ]
 }

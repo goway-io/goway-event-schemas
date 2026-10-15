@@ -31,12 +31,17 @@ export type BookingStatus =
  */
 export type CancelledBy = "shipper" | "carrier" | "operator";
 /**
- * Who closed the haul; `system` is the auto-complete sweep.
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BookingChange".
+ */
+export type BookingChange = "issue_opened" | "issue_resolved" | "waiting_started";
+/**
+ * Who closed the haul: `carrier` when the driver finishes it at the drop-off, `system` for the auto-complete sweep.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "CompletedBy".
  */
-export type CompletedBy = "shipper" | "operator" | "system";
+export type CompletedBy = "carrier" | "shipper" | "operator" | "system";
 /**
  * Present only for an instant claim from dispatch; an accepted offer leaves it out.
  *
@@ -49,6 +54,28 @@ export type BookingSource = "instant";
  * via the `definition` "EtaStop".
  */
 export type EtaStop = "pickup" | "dropoff";
+/**
+ * The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "Waypoint".
+ */
+export type Waypoint = {
+  region_id: string;
+  passed_at: string;
+} | null;
+/**
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "IssueSide".
+ */
+export type IssueSide = "carrier" | "shipper";
+/**
+ * `continue`: the haul goes on as it was. `cancel`: cancelled without penalty to either side (a `booking.cancelled` follows). `reprice`: the price was recalculated. `waiting_fee`: a waiting charge was added.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "IssueResolution".
+ */
+export type IssueResolution = "continue" | "cancel" | "reprice" | "waiting_fee";
 /**
  * `reminder`: the pickup is `plan_reminder_minutes` away. `departure`: `plan_departure_minutes` away, the app opens navigation. `overdue`: the pickup time came and the haul has not set off; operators are told too.
  *
@@ -175,12 +202,12 @@ export type OffersBlockedReason = "BALANCE_INSUFFICIENT" | "SUBSCRIPTION_REQUIRE
  */
 export type OfflineReason = "documents_expired" | "verification_rejected" | "vehicle_unavailable";
 /**
- * Who was rated; only the driver today.
+ * Who was rated: the shipper rates the driver, the driver rates the shipper.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "RatingTarget".
  */
-export type RatingTarget = "driver";
+export type RatingTarget = "driver" | "shipper";
 /**
  * Any frame goway-realtime may send; `type` tells which.
  *
@@ -213,7 +240,8 @@ export type ServerFrame =
   | BoardSubscribedFrame
   | BoardLoadAddedFrame
   | BoardLoadUpdatedFrame
-  | BoardLoadRemovedFrame;
+  | BoardLoadRemovedFrame
+  | BookingUpdatedFrame;
 /**
  * Why every session of the user was closed. An operator's own note on a block stays with staff.
  *
@@ -505,6 +533,15 @@ export interface BookingCancelled {
    * The cancellation counts against the driver's acceptance rate: the driver's own cancellation of an instant haul, or of a plan later than goway-loads' free-cancel window before pickup, or an operator's cancellation of a booking whose driver never showed up. False for every other shipper and operator cancellation.
    */
   penalized: boolean;
+  /**
+   * Code from the cancellation reasons catalogue; null for older clients and system cancellations.
+   */
+  reason_code: string | null;
+  /**
+   * Cancellation fee the shipper owes the carrier, whole so'm (`cancel_fee_percent` once the driver set off); null when none.
+   */
+  fee_amount: number | null;
+  currency: string;
 }
 /**
  * Frame `booking_cancelled` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.cancelled` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
@@ -731,6 +768,72 @@ export interface BookingEtaUpdated {
    * The booked vehicle's truck class code.
    */
   truck_class: string;
+  /**
+   * Road kilometres left to the next stop; null before the haul sets off or while routing is unavailable.
+   */
+  remaining_km: number | null;
+  last_waypoint: Waypoint;
+}
+/**
+ * Someone on the haul reported a problem («Muammo bor»). Until an operator resolves it the haul is under review: its step does not move, the waiting clock is paused and the driver's cancellation does not count against them.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BookingIssueOpened".
+ */
+export interface BookingIssueOpened {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  issue_id: string;
+  booking_id: string;
+  load_id: string;
+  shipper_org_id: string;
+  /**
+   * The person who posted the load.
+   */
+  shipper_user_id: string;
+  carrier_org_id: string;
+  driver_user_id: string;
+  opened_by: IssueSide;
+  /**
+   * Code from the issue reasons catalogue.
+   */
+  reason_code: string;
+  /**
+   * The booking's step when the issue was opened.
+   */
+  status: string;
+  opened_at: string;
+}
+/**
+ * An operator resolved a reported problem; the haul is no longer under review.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BookingIssueResolved".
+ */
+export interface BookingIssueResolved {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  issue_id: string;
+  booking_id: string;
+  load_id: string;
+  shipper_org_id: string;
+  /**
+   * The person who posted the load.
+   */
+  shipper_user_id: string;
+  carrier_org_id: string;
+  driver_user_id: string;
+  resolution: IssueResolution;
+  /**
+   * The new price for `reprice`, the added charge for `waiting_fee`, whole so'm; null otherwise.
+   */
+  amount: number | null;
+  currency: string;
+  resolved_at: string;
 }
 /**
  * A booked plan's pickup is near: time for the reminder, time to set off, or the pickup time came and the driver has not set off. One event per stage per booking.
@@ -802,6 +905,10 @@ export interface BookingStatusChanged {
   status: BookingStatus;
   shipper_org_id: string;
   carrier_org_id: string;
+  /**
+   * When the step happened: the driver's tap, which an app offline for a while sends late. Steps arrive in order; this is the time to show.
+   */
+  occurred_at: string;
 }
 /**
  * Frame `booking_status` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.status_changed` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
@@ -816,6 +923,58 @@ export interface BookingStatusFrame {
    * When the server sent the frame, RFC 3339 UTC.
    */
   ts: string;
+}
+/**
+ * Something on a haul changed besides its step; sent to the driver and the shipper without a subscription. A signal: the app reads the booking again.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BookingUpdated".
+ */
+export interface BookingUpdated {
+  booking_id: string;
+  change: BookingChange;
+  issue_id: string | null;
+}
+/**
+ * Frame `booking_updated` goway-realtime sends to an app.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BookingUpdatedFrame".
+ */
+export interface BookingUpdatedFrame {
+  type: "booking_updated";
+  data: BookingUpdated;
+  /**
+   * When the server sent the frame, RFC 3339 UTC.
+   */
+  ts: string;
+}
+/**
+ * The free waiting at the pickup ran out and paid waiting began. Once per booking.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BookingWaitingStarted".
+ */
+export interface BookingWaitingStarted {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  booking_id: string;
+  load_id: string;
+  shipper_org_id: string;
+  /**
+   * The person who posted the load.
+   */
+  shipper_user_id: string;
+  carrier_org_id: string;
+  driver_user_id: string;
+  started_at: string;
+  /**
+   * Whole so'm per minute.
+   */
+  rate_per_minute: number;
+  currency: string;
 }
 /**
  * A carrier's document passed its expiry date; the hourly sweep marked it expired.
@@ -2266,6 +2425,14 @@ export interface RatingCreated {
    * 1 to 5.
    */
   stars: number;
+  /**
+   * The person who posted the load: the one rated when `target` is `shipper`.
+   */
+  shipper_user_id: string;
+  /**
+   * Codes from the rating tags catalogue, for example `on_time`, `cargo_ready`.
+   */
+  tags: string[];
 }
 /**
  * An admin opened or closed a region for the marketplace.
@@ -2451,6 +2618,27 @@ export interface SettingsChanged {
    * The admin who changed them; null when not known.
    */
   by: string | null;
+}
+/**
+ * A shipper's standing moved: a driver rated them. Replicas show it on the shipper card.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "ShipperStatsChanged".
+ */
+export interface ShipperStatsChanged {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  user_id: string;
+  /**
+   * Average over the rating window; null before the first rating.
+   */
+  rating_avg: number | null;
+  /**
+   * All ratings ever received; only grows.
+   */
+  rating_count: number;
 }
 /**
  * A user opened a support ticket.

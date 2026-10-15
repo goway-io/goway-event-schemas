@@ -11,5 +11,7 @@
   "eta_to": "2026-10-14T10:25:00.123456+00:00",
   "free_at": "2026-10-14T17:40:00.123456+00:00",
   "free_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
-  "truck_class": "tent_20t"
+  "truck_class": "tent_20t",
+  "remaining_km": null,
+  "last_waypoint": null
 }

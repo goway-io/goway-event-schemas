@@ -34,6 +34,8 @@ export function describe(frame: ServerFrame): string {
       return frame.data.reason;
     case "search_progress":
       return `${frame.data.seen} saw it since ${frame.data.started_at}`;
+    case "booking_updated":
+      return `${frame.data.booking_id} ${frame.data.change}`;
     case "board_subscribed":
       return `${frame.data.from_region_id}→${frame.data.to_region_id}`;
     case "board_load_added":

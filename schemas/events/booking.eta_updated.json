@@ -95,6 +95,37 @@
     "truck_class": {
       "type": "string",
       "description": "The booked vehicle's truck class code."
+    },
+    "remaining_km": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Road kilometres left to the next stop; null before the haul sets off or while routing is unavailable."
+    },
+    "last_waypoint": {
+      "title": "Waypoint",
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "description": "The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one.",
+      "properties": {
+        "region_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "passed_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "region_id",
+        "passed_at"
+      ]
     }
   },
   "required": [
@@ -110,6 +141,8 @@
     "eta_to",
     "free_at",
     "free_region_id",
-    "truck_class"
+    "truck_class",
+    "remaining_km",
+    "last_waypoint"
   ]
 }

@@ -22,9 +22,10 @@
       "title": "RatingTarget",
       "type": "string",
       "enum": [
-        "driver"
+        "driver",
+        "shipper"
       ],
-      "description": "Who was rated; only the driver today."
+      "description": "Who was rated: the shipper rates the driver, the driver rates the shipper."
     },
     "driver_user_id": {
       "type": [
@@ -47,6 +48,19 @@
       "minimum": 1,
       "maximum": 5,
       "description": "1 to 5."
+    },
+    "shipper_user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person who posted the load: the one rated when `target` is `shipper`."
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "description": "Codes from the rating tags catalogue, for example `on_time`, `cargo_ready`."
     }
   },
   "required": [
@@ -57,6 +71,8 @@
     "driver_user_id",
     "carrier_org_id",
     "shipper_org_id",
-    "stars"
+    "stars",
+    "shipper_user_id",
+    "tags"
   ]
 }

@@ -113,6 +113,8 @@ channels:
         $ref: '#/components/messages/searchProgress'
       searchExhausted:
         $ref: '#/components/messages/searchExhausted'
+      bookingUpdated:
+        $ref: '#/components/messages/bookingUpdated'
       notification:
         $ref: '#/components/messages/notification'
       sessionStarted:
@@ -168,6 +170,7 @@ operations:
       - $ref: '#/channels/socket/messages/offersUnblocked'
       - $ref: '#/channels/socket/messages/searchProgress'
       - $ref: '#/channels/socket/messages/searchExhausted'
+      - $ref: '#/channels/socket/messages/bookingUpdated'
       - $ref: '#/channels/socket/messages/boardSubscribed'
       - $ref: '#/channels/socket/messages/boardLoadAdded'
       - $ref: '#/channels/socket/messages/boardLoadUpdated'
@@ -358,3 +361,8 @@ components:
       title: Load left the board
       payload:
         $ref: '../schemas/frames/server/board_load_removed.json'
+    bookingUpdated:
+      name: booking_updated
+      title: Booking updated
+      payload:
+        $ref: '../schemas/frames/server/booking_updated.json'

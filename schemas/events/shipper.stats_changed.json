@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ShipperStatsChanged",
+  "description": "A shipper's standing moved: a driver rated them. Replicas show it on the shipper card.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "rating_avg": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Average over the rating window; null before the first rating."
+    },
+    "rating_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "All ratings ever received; only grows."
+    }
+  },
+  "required": [
+    "event_id",
+    "user_id",
+    "rating_avg",
+    "rating_count"
+  ]
+}

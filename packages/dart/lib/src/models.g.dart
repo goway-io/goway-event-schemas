@@ -639,12 +639,15 @@ BookingCancelled _$BookingCancelledFromJson(Map<String, dynamic> json) =>
             (v) => $enumDecode(_$CancelledByEnumMap, v),
           ),
           carrierOrgId: $checkedConvert('carrier_org_id', (v) => v as String),
+          currency: $checkedConvert('currency', (v) => v as String),
           driverUserId: $checkedConvert('driver_user_id', (v) => v as String?),
           eventId: $checkedConvert('event_id', (v) => v as String),
+          feeAmount: $checkedConvert('fee_amount', (v) => (v as num?)?.toInt()),
           loadId: $checkedConvert('load_id', (v) => v as String),
           penalized: $checkedConvert('penalized', (v) => v as bool),
           plan: $checkedConvert('plan', (v) => v as bool),
           reason: $checkedConvert('reason', (v) => v as String),
+          reasonCode: $checkedConvert('reason_code', (v) => v as String?),
           shipperOrgId: $checkedConvert('shipper_org_id', (v) => v as String),
         );
         return val;
@@ -654,7 +657,9 @@ BookingCancelled _$BookingCancelledFromJson(Map<String, dynamic> json) =>
         'carrierOrgId': 'carrier_org_id',
         'driverUserId': 'driver_user_id',
         'eventId': 'event_id',
+        'feeAmount': 'fee_amount',
         'loadId': 'load_id',
+        'reasonCode': 'reason_code',
         'shipperOrgId': 'shipper_org_id',
       },
     );
@@ -664,12 +669,15 @@ Map<String, dynamic> _$BookingCancelledToJson(BookingCancelled instance) =>
       'booking_id': instance.bookingId,
       'by': _$CancelledByEnumMap[instance.by]!,
       'carrier_org_id': instance.carrierOrgId,
+      'currency': instance.currency,
       'driver_user_id': ?instance.driverUserId,
       'event_id': instance.eventId,
+      'fee_amount': ?instance.feeAmount,
       'load_id': instance.loadId,
       'penalized': instance.penalized,
       'plan': instance.plan,
       'reason': instance.reason,
+      'reason_code': ?instance.reasonCode,
       'shipper_org_id': instance.shipperOrgId,
     };
 
@@ -793,6 +801,7 @@ Map<String, dynamic> _$BookingCompletedToJson(BookingCompleted instance) =>
     };
 
 const _$CompletedByEnumMap = {
+  CompletedBy.CARRIER: 'carrier',
   CompletedBy.OPERATOR: 'operator',
   CompletedBy.SHIPPER: 'shipper',
   CompletedBy.SYSTEM: 'system',
@@ -977,7 +986,16 @@ BookingEtaUpdated _$BookingEtaUpdatedFromJson(Map<String, dynamic> json) =>
             (v) => v == null ? null : DateTime.parse(v as String),
           ),
           freeRegionId: $checkedConvert('free_region_id', (v) => v as String?),
+          lastWaypoint: $checkedConvert(
+            'last_waypoint',
+            (v) =>
+                v == null ? null : Waypoint.fromJson(v as Map<String, dynamic>),
+          ),
           loadId: $checkedConvert('load_id', (v) => v as String),
+          remainingKm: $checkedConvert(
+            'remaining_km',
+            (v) => (v as num?)?.toDouble(),
+          ),
           shipperOrgId: $checkedConvert('shipper_org_id', (v) => v as String),
           status: $checkedConvert(
             'status',
@@ -997,7 +1015,9 @@ BookingEtaUpdated _$BookingEtaUpdatedFromJson(Map<String, dynamic> json) =>
         'eventId': 'event_id',
         'freeAt': 'free_at',
         'freeRegionId': 'free_region_id',
+        'lastWaypoint': 'last_waypoint',
         'loadId': 'load_id',
+        'remainingKm': 'remaining_km',
         'shipperOrgId': 'shipper_org_id',
         'truckClass': 'truck_class',
       },
@@ -1014,7 +1034,9 @@ Map<String, dynamic> _$BookingEtaUpdatedToJson(BookingEtaUpdated instance) =>
       'event_id': instance.eventId,
       'free_at': ?instance.freeAt?.toIso8601String(),
       'free_region_id': ?instance.freeRegionId,
+      'last_waypoint': ?instance.lastWaypoint,
       'load_id': instance.loadId,
+      'remaining_km': ?instance.remainingKm,
       'shipper_org_id': instance.shipperOrgId,
       'status': _$BookingStatusEnumMap[instance.status]!,
       'truck_class': instance.truckClass,
@@ -1031,6 +1053,23 @@ const _$BookingStatusEnumMap = {
   BookingStatus.EN_ROUTE: 'en_route',
   BookingStatus.IN_TRANSIT: 'in_transit',
   BookingStatus.LOADING: 'loading',
+};
+
+Waypoint _$WaypointFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('Waypoint', json, ($checkedConvert) {
+      final val = Waypoint(
+        passedAt: $checkedConvert(
+          'passed_at',
+          (v) => DateTime.parse(v as String),
+        ),
+        regionId: $checkedConvert('region_id', (v) => v as String),
+      );
+      return val;
+    }, fieldKeyMap: const {'passedAt': 'passed_at', 'regionId': 'region_id'});
+
+Map<String, dynamic> _$WaypointToJson(Waypoint instance) => <String, dynamic>{
+  'passed_at': instance.passedAt.toIso8601String(),
+  'region_id': instance.regionId,
 };
 
 BookingStatusFrame _$BookingStatusFrameFromJson(Map<String, dynamic> json) =>
@@ -1071,6 +1110,10 @@ BookingStatusChanged _$BookingStatusChangedFromJson(
       carrierOrgId: $checkedConvert('carrier_org_id', (v) => v as String),
       eventId: $checkedConvert('event_id', (v) => v as String),
       loadId: $checkedConvert('load_id', (v) => v as String),
+      occurredAt: $checkedConvert(
+        'occurred_at',
+        (v) => DateTime.parse(v as String),
+      ),
       shipperOrgId: $checkedConvert('shipper_org_id', (v) => v as String),
       status: $checkedConvert(
         'status',
@@ -1084,6 +1127,7 @@ BookingStatusChanged _$BookingStatusChangedFromJson(
     'carrierOrgId': 'carrier_org_id',
     'eventId': 'event_id',
     'loadId': 'load_id',
+    'occurredAt': 'occurred_at',
     'shipperOrgId': 'shipper_org_id',
   },
 );
@@ -1095,8 +1139,63 @@ Map<String, dynamic> _$BookingStatusChangedToJson(
   'carrier_org_id': instance.carrierOrgId,
   'event_id': instance.eventId,
   'load_id': instance.loadId,
+  'occurred_at': instance.occurredAt.toIso8601String(),
   'shipper_org_id': instance.shipperOrgId,
   'status': _$BookingStatusEnumMap[instance.status]!,
+};
+
+BookingUpdatedFrame _$BookingUpdatedFrameFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('BookingUpdatedFrame', json, ($checkedConvert) {
+      final val = BookingUpdatedFrame(
+        data: $checkedConvert(
+          'data',
+          (v) => BookingUpdated.fromJson(v as Map<String, dynamic>),
+        ),
+        ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
+        type: $checkedConvert(
+          'type',
+          (v) => $enumDecode(_$BookingUpdatedFrameTypeEnumMap, v),
+        ),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$BookingUpdatedFrameToJson(
+  BookingUpdatedFrame instance,
+) => <String, dynamic>{
+  'data': instance.data,
+  'ts': instance.ts.toIso8601String(),
+  'type': _$BookingUpdatedFrameTypeEnumMap[instance.type]!,
+};
+
+const _$BookingUpdatedFrameTypeEnumMap = {
+  BookingUpdatedFrameType.BOOKING_UPDATED: 'booking_updated',
+};
+
+BookingUpdated _$BookingUpdatedFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('BookingUpdated', json, ($checkedConvert) {
+      final val = BookingUpdated(
+        bookingId: $checkedConvert('booking_id', (v) => v as String),
+        change: $checkedConvert(
+          'change',
+          (v) => $enumDecode(_$BookingChangeEnumMap, v),
+        ),
+        issueId: $checkedConvert('issue_id', (v) => v as String?),
+      );
+      return val;
+    }, fieldKeyMap: const {'bookingId': 'booking_id', 'issueId': 'issue_id'});
+
+Map<String, dynamic> _$BookingUpdatedToJson(BookingUpdated instance) =>
+    <String, dynamic>{
+      'booking_id': instance.bookingId,
+      'change': _$BookingChangeEnumMap[instance.change]!,
+      'issue_id': ?instance.issueId,
+    };
+
+const _$BookingChangeEnumMap = {
+  BookingChange.ISSUE_OPENED: 'issue_opened',
+  BookingChange.ISSUE_RESOLVED: 'issue_resolved',
+  BookingChange.WAITING_STARTED: 'waiting_started',
 };
 
 ConnectedFrame _$ConnectedFrameFromJson(Map<String, dynamic> json) =>

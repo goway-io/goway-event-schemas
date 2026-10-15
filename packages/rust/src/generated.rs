@@ -304,11 +304,15 @@ pub struct BookingCancelled {
     pub booking_id: ::uuid::Uuid,
     pub by: CancelledBy,
     pub carrier_org_id: ::uuid::Uuid,
+    pub currency: BookingCancelledCurrency,
     #[doc = "Null when no driver was assigned."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub driver_user_id: ::std::option::Option<::uuid::Uuid>,
     #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
     pub event_id: ::uuid::Uuid,
+    #[doc = "Cancellation fee the shipper owes the carrier, whole so'm (`cancel_fee_percent` once the driver set off); null when none."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub fee_amount: ::std::option::Option<u64>,
     pub load_id: ::uuid::Uuid,
     #[doc = "The cancellation counts against the driver's acceptance rate: the driver's own cancellation of an instant haul, or of a plan later than goway-loads' free-cancel window before pickup, or an operator's cancellation of a booking whose driver never showed up. False for every other shipper and operator cancellation."]
     pub penalized: bool,
@@ -316,7 +320,59 @@ pub struct BookingCancelled {
     pub plan: bool,
     #[doc = "What the canceller wrote; empty when nothing was written."]
     pub reason: ::std::string::String,
+    #[doc = "Code from the cancellation reasons catalogue; null for older clients and system cancellations."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub reason_code: ::std::option::Option<::std::string::String>,
     pub shipper_org_id: ::uuid::Uuid,
+}
+#[doc = "`BookingCancelledCurrency`"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BookingCancelledCurrency(::std::string::String);
+impl ::std::ops::Deref for BookingCancelledCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BookingCancelledCurrency> for ::std::string::String {
+    fn from(value: BookingCancelledCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BookingCancelledCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 3usize {
+            return Err("longer than 3 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BookingCancelledCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BookingCancelledCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BookingCancelledCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
 }
 #[doc = "Frame `booking_cancelled` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.cancelled` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
@@ -326,6 +382,48 @@ pub struct BookingCancelledFrame {
     pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
     #[serde(rename = "type")]
     pub type_: ::std::string::String,
+}
+#[doc = "`BookingChange`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum BookingChange {
+    #[serde(rename = "issue_opened")]
+    IssueOpened,
+    #[serde(rename = "issue_resolved")]
+    IssueResolved,
+    #[serde(rename = "waiting_started")]
+    WaitingStarted,
+}
+impl ::std::fmt::Display for BookingChange {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::IssueOpened => f.write_str("issue_opened"),
+            Self::IssueResolved => f.write_str("issue_resolved"),
+            Self::WaitingStarted => f.write_str("waiting_started"),
+        }
+    }
+}
+impl ::std::str::FromStr for BookingChange {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "issue_opened" => Ok(Self::IssueOpened),
+            "issue_resolved" => Ok(Self::IssueResolved),
+            "waiting_started" => Ok(Self::WaitingStarted),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BookingChange {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BookingChange {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
 }
 #[doc = "A delivered haul was closed: by the shipper, by an operator, or by the auto-complete sweep. All three send the same fields. Billing charges its commission from this event."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
@@ -544,11 +642,104 @@ pub struct BookingEtaUpdated {
     #[doc = "Where the truck will be free: the drop-off region; null when unknown."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub free_region_id: ::std::option::Option<::uuid::Uuid>,
+    pub last_waypoint: Waypoint,
     pub load_id: ::uuid::Uuid,
+    #[doc = "Road kilometres left to the next stop; null before the haul sets off or while routing is unavailable."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub remaining_km: ::std::option::Option<f64>,
     pub shipper_org_id: ::uuid::Uuid,
     pub status: BookingStatus,
     #[doc = "The booked vehicle's truck class code."]
     pub truck_class: ::std::string::String,
+}
+#[doc = "Someone on the haul reported a problem («Muammo bor»). Until an operator resolves it the haul is under review: its step does not move, the waiting clock is paused and the driver's cancellation does not count against them."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BookingIssueOpened {
+    pub booking_id: ::uuid::Uuid,
+    pub carrier_org_id: ::uuid::Uuid,
+    pub driver_user_id: ::uuid::Uuid,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub issue_id: ::uuid::Uuid,
+    pub load_id: ::uuid::Uuid,
+    pub opened_at: ::chrono::DateTime<::chrono::offset::Utc>,
+    pub opened_by: IssueSide,
+    #[doc = "Code from the issue reasons catalogue."]
+    pub reason_code: ::std::string::String,
+    pub shipper_org_id: ::uuid::Uuid,
+    #[doc = "The person who posted the load."]
+    pub shipper_user_id: ::uuid::Uuid,
+    #[doc = "The booking's step when the issue was opened."]
+    pub status: ::std::string::String,
+}
+#[doc = "An operator resolved a reported problem; the haul is no longer under review."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BookingIssueResolved {
+    #[doc = "The new price for `reprice`, the added charge for `waiting_fee`, whole so'm; null otherwise."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub amount: ::std::option::Option<u64>,
+    pub booking_id: ::uuid::Uuid,
+    pub carrier_org_id: ::uuid::Uuid,
+    pub currency: BookingIssueResolvedCurrency,
+    pub driver_user_id: ::uuid::Uuid,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub issue_id: ::uuid::Uuid,
+    pub load_id: ::uuid::Uuid,
+    pub resolution: IssueResolution,
+    pub resolved_at: ::chrono::DateTime<::chrono::offset::Utc>,
+    pub shipper_org_id: ::uuid::Uuid,
+    #[doc = "The person who posted the load."]
+    pub shipper_user_id: ::uuid::Uuid,
+}
+#[doc = "`BookingIssueResolvedCurrency`"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BookingIssueResolvedCurrency(::std::string::String);
+impl ::std::ops::Deref for BookingIssueResolvedCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BookingIssueResolvedCurrency> for ::std::string::String {
+    fn from(value: BookingIssueResolvedCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BookingIssueResolvedCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 3usize {
+            return Err("longer than 3 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BookingIssueResolvedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BookingIssueResolvedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BookingIssueResolvedCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
 }
 #[doc = "A booked plan's pickup is near: time for the reminder, time to set off, or the pickup time came and the driver has not set off. One event per stage per booking."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
@@ -725,6 +916,8 @@ pub struct BookingStatusChanged {
     #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
     pub event_id: ::uuid::Uuid,
     pub load_id: ::uuid::Uuid,
+    #[doc = "When the step happened: the driver's tap, which an app offline for a while sends late. Steps arrive in order; this is the time to show."]
+    pub occurred_at: ::chrono::DateTime<::chrono::offset::Utc>,
     pub shipper_org_id: ::uuid::Uuid,
     pub status: BookingStatus,
 }
@@ -736,6 +929,89 @@ pub struct BookingStatusFrame {
     pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
     #[serde(rename = "type")]
     pub type_: ::std::string::String,
+}
+#[doc = "Something on a haul changed besides its step; sent to the driver and the shipper without a subscription. A signal: the app reads the booking again."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BookingUpdated {
+    pub booking_id: ::uuid::Uuid,
+    pub change: BookingChange,
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub issue_id: ::std::option::Option<::uuid::Uuid>,
+}
+#[doc = "Frame `booking_updated` goway-realtime sends to an app."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BookingUpdatedFrame {
+    pub data: BookingUpdated,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "The free waiting at the pickup ran out and paid waiting began. Once per booking."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BookingWaitingStarted {
+    pub booking_id: ::uuid::Uuid,
+    pub carrier_org_id: ::uuid::Uuid,
+    pub currency: BookingWaitingStartedCurrency,
+    pub driver_user_id: ::uuid::Uuid,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub load_id: ::uuid::Uuid,
+    #[doc = "Whole so'm per minute."]
+    pub rate_per_minute: u64,
+    pub shipper_org_id: ::uuid::Uuid,
+    #[doc = "The person who posted the load."]
+    pub shipper_user_id: ::uuid::Uuid,
+    pub started_at: ::chrono::DateTime<::chrono::offset::Utc>,
+}
+#[doc = "`BookingWaitingStartedCurrency`"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct BookingWaitingStartedCurrency(::std::string::String);
+impl ::std::ops::Deref for BookingWaitingStartedCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<BookingWaitingStartedCurrency> for ::std::string::String {
+    fn from(value: BookingWaitingStartedCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for BookingWaitingStartedCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 3usize {
+            return Err("longer than 3 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for BookingWaitingStartedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BookingWaitingStartedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for BookingWaitingStartedCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
 }
 #[doc = "Who cancelled."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -901,9 +1177,11 @@ pub enum ClientFrame {
     #[serde(rename = "unsubscribe_board")]
     UnsubscribeBoard { data: UnsubscribeBoard },
 }
-#[doc = "Who closed the haul; `system` is the auto-complete sweep."]
+#[doc = "Who closed the haul: `carrier` when the driver finishes it at the drop-off, `system` for the auto-complete sweep."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum CompletedBy {
+    #[serde(rename = "carrier")]
+    Carrier,
     #[serde(rename = "shipper")]
     Shipper,
     #[serde(rename = "operator")]
@@ -914,6 +1192,7 @@ pub enum CompletedBy {
 impl ::std::fmt::Display for CompletedBy {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         match *self {
+            Self::Carrier => f.write_str("carrier"),
             Self::Shipper => f.write_str("shipper"),
             Self::Operator => f.write_str("operator"),
             Self::System => f.write_str("system"),
@@ -924,6 +1203,7 @@ impl ::std::str::FromStr for CompletedBy {
     type Err = self::error::ConversionError;
     fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
         match value {
+            "carrier" => Ok(Self::Carrier),
             "shipper" => Ok(Self::Shipper),
             "operator" => Ok(Self::Operator),
             "system" => Ok(Self::System),
@@ -1527,6 +1807,90 @@ impl ::std::convert::TryFrom<&str> for IneligibleReason {
     }
 }
 impl ::std::convert::TryFrom<::std::string::String> for IneligibleReason {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`continue`: the haul goes on as it was. `cancel`: cancelled without penalty to either side (a `booking.cancelled` follows). `reprice`: the price was recalculated. `waiting_fee`: a waiting charge was added."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum IssueResolution {
+    #[serde(rename = "continue")]
+    Continue,
+    #[serde(rename = "cancel")]
+    Cancel,
+    #[serde(rename = "reprice")]
+    Reprice,
+    #[serde(rename = "waiting_fee")]
+    WaitingFee,
+}
+impl ::std::fmt::Display for IssueResolution {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Continue => f.write_str("continue"),
+            Self::Cancel => f.write_str("cancel"),
+            Self::Reprice => f.write_str("reprice"),
+            Self::WaitingFee => f.write_str("waiting_fee"),
+        }
+    }
+}
+impl ::std::str::FromStr for IssueResolution {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "continue" => Ok(Self::Continue),
+            "cancel" => Ok(Self::Cancel),
+            "reprice" => Ok(Self::Reprice),
+            "waiting_fee" => Ok(Self::WaitingFee),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for IssueResolution {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for IssueResolution {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`IssueSide`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum IssueSide {
+    #[serde(rename = "carrier")]
+    Carrier,
+    #[serde(rename = "shipper")]
+    Shipper,
+}
+impl ::std::fmt::Display for IssueSide {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Carrier => f.write_str("carrier"),
+            Self::Shipper => f.write_str("shipper"),
+        }
+    }
+}
+impl ::std::str::FromStr for IssueSide {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "carrier" => Ok(Self::Carrier),
+            "shipper" => Ok(Self::Shipper),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for IssueSide {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for IssueSide {
     type Error = self::error::ConversionError;
     fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
@@ -2854,20 +3218,27 @@ pub struct RatingCreated {
     pub event_id: ::uuid::Uuid,
     pub load_id: ::uuid::Uuid,
     pub shipper_org_id: ::uuid::Uuid,
+    #[doc = "The person who posted the load: the one rated when `target` is `shipper`."]
+    pub shipper_user_id: ::uuid::Uuid,
     #[doc = "1 to 5."]
     pub stars: ::std::num::NonZeroU64,
+    #[doc = "Codes from the rating tags catalogue, for example `on_time`, `cargo_ready`."]
+    pub tags: ::std::vec::Vec<::std::string::String>,
     pub target: RatingTarget,
 }
-#[doc = "Who was rated; only the driver today."]
+#[doc = "Who was rated: the shipper rates the driver, the driver rates the shipper."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum RatingTarget {
     #[serde(rename = "driver")]
     Driver,
+    #[serde(rename = "shipper")]
+    Shipper,
 }
 impl ::std::fmt::Display for RatingTarget {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
         match *self {
             Self::Driver => f.write_str("driver"),
+            Self::Shipper => f.write_str("shipper"),
         }
     }
 }
@@ -2876,6 +3247,7 @@ impl ::std::str::FromStr for RatingTarget {
     fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
         match value {
             "driver" => Ok(Self::Driver),
+            "shipper" => Ok(Self::Shipper),
             _ => Err("invalid value".into()),
         }
     }
@@ -3211,6 +3583,13 @@ pub enum ServerFrame {
         #[doc = "When the server sent the frame, RFC 3339 UTC."]
         ts: ::chrono::DateTime<::chrono::offset::Utc>,
     },
+    #[doc = "Frame `booking_updated` goway-realtime sends to an app."]
+    #[serde(rename = "booking_updated")]
+    BookingUpdated {
+        data: BookingUpdated,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
 }
 #[doc = "Why every session of the user was closed. An operator's own note on a block stays with staff."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -3335,6 +3714,18 @@ pub struct SettingsChanged {
     pub keys: ::std::vec::Vec<::std::string::String>,
     #[doc = "The service whose settings changed, for example `goway-loads`."]
     pub service: ::std::string::String,
+}
+#[doc = "A shipper's standing moved: a driver rated them. Replicas show it on the shipper card."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct ShipperStatsChanged {
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "Average over the rating window; null before the first rating."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub rating_avg: ::std::option::Option<f64>,
+    #[doc = "All ratings ever received; only grows."]
+    pub rating_count: u64,
+    pub user_id: ::uuid::Uuid,
 }
 #[doc = "A new version always waits for review."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -4327,6 +4718,32 @@ impl<'de> ::serde::Deserialize<'de> for WalletToppedUpCurrency {
             .parse()
             .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
     }
+}
+#[doc = "The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+#[serde(transparent)]
+pub struct Waypoint(pub ::std::option::Option<Waypoint>);
+impl ::std::ops::Deref for Waypoint {
+    type Target = ::std::option::Option<Waypoint>;
+    fn deref(&self) -> &::std::option::Option<Waypoint> {
+        &self.0
+    }
+}
+impl ::std::convert::From<Waypoint> for ::std::option::Option<Waypoint> {
+    fn from(value: Waypoint) -> Self {
+        value.0
+    }
+}
+impl ::std::convert::From<::std::option::Option<Waypoint>> for Waypoint {
+    fn from(value: ::std::option::Option<Waypoint>) -> Self {
+        Self(value)
+    }
+}
+#[doc = "The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct Waypoint {
+    pub passed_at: ::chrono::DateTime<::chrono::offset::Utc>,
+    pub region_id: ::uuid::Uuid,
 }
 #[doc = " Error types."]
 pub mod error {
