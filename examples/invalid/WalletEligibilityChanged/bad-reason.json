@@ -5,5 +5,6 @@
   "eligible": false,
   "balance": -150000,
   "debt_limit": 100000,
-  "reason": "fraud"
+  "reason": "fraud",
+  "side": "carrier"
 }

@@ -5022,7 +5022,7 @@
     "title": "Wallet eligibility changed",
     "payload": {
      "title": "WalletEligibilityChanged",
-     "description": "An organization's wallet started or stopped being allowed to receive offers. One event per user of the organization, or a single event with a null `user_id` when billing knows no user of it yet.",
+     "description": "An organization's wallet started or stopped being allowed to receive offers. One event per user of the organization, or a single event with a null `user_id` when billing knows no user of it yet. `side` says which: realtime acts only on carriers, goway-loads refuses posting for shippers.",
      "type": "object",
      "additionalProperties": false,
      "properties": {
@@ -5070,6 +5070,15 @@
         }
        ],
        "description": "Why offers stopped; null when the wallet is eligible."
+      },
+      "side": {
+       "title": "WalletSide",
+       "type": "string",
+       "enum": [
+        "carrier",
+        "shipper"
+       ],
+       "description": "Whose wallet: a carrier's stops instant offers past the debt limit; a shipper's stops posting new loads at any debt."
       }
      },
      "required": [
@@ -5079,7 +5088,8 @@
       "eligible",
       "balance",
       "debt_limit",
-      "reason"
+      "reason",
+      "side"
      ]
     },
     "examples": [
@@ -5092,7 +5102,8 @@
        "eligible": false,
        "balance": -150000,
        "debt_limit": 100000,
-       "reason": "debt"
+       "reason": "debt",
+       "side": "carrier"
       }
      },
      {
@@ -5104,7 +5115,8 @@
        "eligible": false,
        "balance": -150000,
        "debt_limit": 100000,
-       "reason": "debt"
+       "reason": "debt",
+       "side": "carrier"
       }
      },
      {
@@ -5116,7 +5128,21 @@
        "eligible": true,
        "balance": 25000,
        "debt_limit": 100000,
-       "reason": null
+       "reason": null,
+       "side": "carrier"
+      }
+     },
+     {
+      "name": "Shipper debt",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "eligible": false,
+       "balance": -360000,
+       "debt_limit": 0,
+       "reason": "debt",
+       "side": "shipper"
       }
      }
     ]

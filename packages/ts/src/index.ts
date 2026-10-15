@@ -311,6 +311,13 @@ export type VehicleColor =
  */
 export type VehicleLoadingMethod = "top" | "rear" | "both";
 /**
+ * Whose wallet: a carrier's stops instant offers past the debt limit; a shipper's stops posting new loads at any debt.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "WalletSide".
+ */
+export type WalletSide = "carrier" | "shipper";
+/**
  * Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -3251,7 +3258,7 @@ export interface VehicleUpserted {
   updated_at: string;
 }
 /**
- * An organization's wallet started or stopped being allowed to receive offers. One event per user of the organization, or a single event with a null `user_id` when billing knows no user of it yet.
+ * An organization's wallet started or stopped being allowed to receive offers. One event per user of the organization, or a single event with a null `user_id` when billing knows no user of it yet. `side` says which: realtime acts only on carriers, goway-loads refuses posting for shippers.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "WalletEligibilityChanged".
@@ -3279,6 +3286,7 @@ export interface WalletEligibilityChanged {
    * Why offers stopped; null when the wallet is eligible.
    */
   reason: IneligibleReason | null;
+  side: WalletSide;
 }
 /**
  * A line was written to an organization's wallet ledger.

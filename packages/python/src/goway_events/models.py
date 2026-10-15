@@ -2246,38 +2246,6 @@ class VerificationStatus(StrEnum):
     EXPIRED = "expired"
 
 
-class WalletEligibilityChanged(BaseModel):
-    """
-    An organization's wallet started or stopped being allowed to receive offers. One event per user of the organization, or a single event with a null `user_id` when billing knows no user of it yet.
-    """
-
-    model_config = ConfigDict(
-        extra="ignore",
-    )
-    event_id: UUID
-    """
-    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
-    """
-    org_id: UUID
-    user_id: UUID | None
-    """
-    Null when billing's replica holds no user of the organization.
-    """
-    eligible: bool
-    balance: int
-    """
-    Wallet balance in so'm; negative means debt.
-    """
-    debt_limit: Annotated[int, Field(ge=0)]
-    """
-    How far below zero the balance may go, so'm.
-    """
-    reason: IneligibleReason | None
-    """
-    Why offers stopped; null when the wallet is eligible.
-    """
-
-
 class WalletEntryKind(StrEnum):
     """
     Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it.
@@ -2357,6 +2325,15 @@ class WalletLowBalance(BaseModel):
     What is left before offers stop: `balance + debt_limit`.
     """
     currency: Annotated[str, Field(max_length=3, min_length=3)]
+
+
+class WalletSide(StrEnum):
+    """
+    Whose wallet: a carrier's stops instant offers past the debt limit; a shipper's stops posting new loads at any debt.
+    """
+
+    CARRIER = "carrier"
+    SHIPPER = "shipper"
 
 
 class WalletToppedUp(BaseModel):
@@ -3716,6 +3693,39 @@ class VerificationChangedFrame(BaseModel):
     """
     When the server sent the frame, RFC 3339 UTC.
     """
+
+
+class WalletEligibilityChanged(BaseModel):
+    """
+    An organization's wallet started or stopped being allowed to receive offers. One event per user of the organization, or a single event with a null `user_id` when billing knows no user of it yet. `side` says which: realtime acts only on carriers, goway-loads refuses posting for shippers.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    org_id: UUID
+    user_id: UUID | None
+    """
+    Null when billing's replica holds no user of the organization.
+    """
+    eligible: bool
+    balance: int
+    """
+    Wallet balance in so'm; negative means debt.
+    """
+    debt_limit: Annotated[int, Field(ge=0)]
+    """
+    How far below zero the balance may go, so'm.
+    """
+    reason: IneligibleReason | None
+    """
+    Why offers stopped; null when the wallet is eligible.
+    """
+    side: WalletSide
 
 
 class BookingEtaFrame(BaseModel):

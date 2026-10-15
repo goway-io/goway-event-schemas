@@ -5053,7 +5053,7 @@ impl ::std::convert::TryFrom<::std::string::String> for VerificationStatus {
         value.parse()
     }
 }
-#[doc = "An organization's wallet started or stopped being allowed to receive offers. One event per user of the organization, or a single event with a null `user_id` when billing knows no user of it yet."]
+#[doc = "An organization's wallet started or stopped being allowed to receive offers. One event per user of the organization, or a single event with a null `user_id` when billing knows no user of it yet. `side` says which: realtime acts only on carriers, goway-loads refuses posting for shippers."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct WalletEligibilityChanged {
     #[doc = "Wallet balance in so'm; negative means debt."]
@@ -5067,6 +5067,7 @@ pub struct WalletEligibilityChanged {
     #[doc = "Why offers stopped; null when the wallet is eligible."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub reason: ::std::option::Option<IneligibleReason>,
+    pub side: WalletSide,
     #[doc = "Null when billing's replica holds no user of the organization."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub user_id: ::std::option::Option<::uuid::Uuid>,
@@ -5281,6 +5282,44 @@ impl<'de> ::serde::Deserialize<'de> for WalletLowBalanceCurrency {
         ::std::string::String::deserialize(deserializer)?
             .parse()
             .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+#[doc = "Whose wallet: a carrier's stops instant offers past the debt limit; a shipper's stops posting new loads at any debt."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum WalletSide {
+    #[serde(rename = "carrier")]
+    Carrier,
+    #[serde(rename = "shipper")]
+    Shipper,
+}
+impl ::std::fmt::Display for WalletSide {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Carrier => f.write_str("carrier"),
+            Self::Shipper => f.write_str("shipper"),
+        }
+    }
+}
+impl ::std::str::FromStr for WalletSide {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "carrier" => Ok(Self::Carrier),
+            "shipper" => Ok(Self::Shipper),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for WalletSide {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for WalletSide {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
     }
 }
 #[doc = "An operator took cash for an organization's wallet and issued a receipt."]
