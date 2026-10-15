@@ -2303,7 +2303,7 @@ class BookingAmountClaimed(BaseModel):
 
 class BookingAmountSettled(BaseModel):
     """
-    An operator accepted an amount claim; the haul now settles at `settled_amount` and billing adjusts its commission.
+    An operator accepted an amount claim; the haul now settles at `settled_amount` and billing adjusts its commission. `claim_side` says whose claim the operator accepted; a shipper's objection is also announced by `booking.objection_resolved`.
     """
 
     model_config = ConfigDict(
@@ -2334,6 +2334,7 @@ class BookingAmountSettled(BaseModel):
     """
     ISO 4217 code; `UZS` today.
     """
+    claim_side: BookingSide
 
 
 class BookingCancelled(BaseModel):

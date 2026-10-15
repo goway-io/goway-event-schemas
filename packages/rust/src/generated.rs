@@ -229,11 +229,12 @@ impl<'de> ::serde::Deserialize<'de> for BookingAmountClaimedCurrency {
             .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
     }
 }
-#[doc = "An operator accepted an amount claim; the haul now settles at `settled_amount` and billing adjusts its commission."]
+#[doc = "An operator accepted an amount claim; the haul now settles at `settled_amount` and billing adjusts its commission. `claim_side` says whose claim the operator accepted; a shipper's objection is also announced by `booking.objection_resolved`."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct BookingAmountSettled {
     pub booking_id: ::uuid::Uuid,
     pub carrier_org_id: ::uuid::Uuid,
+    pub claim_side: BookingSide,
     #[doc = "ISO 4217 code; `UZS` today."]
     pub currency: BookingAmountSettledCurrency,
     pub driver_user_id: ::uuid::Uuid,

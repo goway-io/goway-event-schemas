@@ -4470,7 +4470,7 @@
     "title": "Amount settled",
     "payload": {
      "title": "BookingAmountSettled",
-     "description": "An operator accepted an amount claim; the haul now settles at `settled_amount` and billing adjusts its commission.",
+     "description": "An operator accepted an amount claim; the haul now settles at `settled_amount` and billing adjusts its commission. `claim_side` says whose claim the operator accepted; a shipper's objection is also announced by `booking.objection_resolved`.",
      "type": "object",
      "additionalProperties": false,
      "properties": {
@@ -4532,6 +4532,15 @@
        "minLength": 3,
        "maxLength": 3,
        "description": "ISO 4217 code; `UZS` today."
+      },
+      "claim_side": {
+       "title": "BookingSide",
+       "type": "string",
+       "enum": [
+        "shipper",
+        "carrier"
+       ],
+       "description": "Which side claims."
       }
      },
      "required": [
@@ -4544,7 +4553,8 @@
       "status",
       "previous_amount",
       "settled_amount",
-      "currency"
+      "currency",
+      "claim_side"
      ]
     },
     "examples": [
@@ -4560,7 +4570,8 @@
        "status": "completed",
        "previous_amount": 4350000,
        "settled_amount": 4600000,
-       "currency": "UZS"
+       "currency": "UZS",
+       "claim_side": "carrier"
       }
      },
      {
@@ -4575,7 +4586,8 @@
        "status": "delivered",
        "previous_amount": 4350000,
        "settled_amount": 4600000,
-       "currency": "UZS"
+       "currency": "UZS",
+       "claim_side": "carrier"
       }
      }
     ]

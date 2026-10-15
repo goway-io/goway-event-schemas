@@ -466,7 +466,7 @@ export interface BookingAmountClaimed {
   currency: string;
 }
 /**
- * An operator accepted an amount claim; the haul now settles at `settled_amount` and billing adjusts its commission.
+ * An operator accepted an amount claim; the haul now settles at `settled_amount` and billing adjusts its commission. `claim_side` says whose claim the operator accepted; a shipper's objection is also announced by `booking.objection_resolved`.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "BookingAmountSettled".
@@ -497,6 +497,7 @@ export interface BookingAmountSettled {
    * ISO 4217 code; `UZS` today.
    */
   currency: string;
+  claim_side: BookingSide;
 }
 /**
  * A booking ended without being completed: either side cancelled before the cargo was loaded (`by` is `shipper` or `carrier`), or an operator cancelled it (`by` is `operator`), which after loading happens only through a reported issue. The load goes back to the board unless the operator withdrew it, which a `load.cancelled` then says.

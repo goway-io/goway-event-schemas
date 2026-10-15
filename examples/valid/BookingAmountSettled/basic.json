@@ -8,5 +8,6 @@
   "status": "completed",
   "previous_amount": 4350000,
   "settled_amount": 4600000,
-  "currency": "UZS"
+  "currency": "UZS",
+  "claim_side": "carrier"
 }

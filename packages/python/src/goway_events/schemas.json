@@ -422,7 +422,7 @@
     },
     "BookingAmountSettled": {
       "title": "BookingAmountSettled",
-      "description": "An operator accepted an amount claim; the haul now settles at `settled_amount` and billing adjusts its commission.",
+      "description": "An operator accepted an amount claim; the haul now settles at `settled_amount` and billing adjusts its commission. `claim_side` says whose claim the operator accepted; a shipper's objection is also announced by `booking.objection_resolved`.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -473,6 +473,9 @@
           "minLength": 3,
           "maxLength": 3,
           "description": "ISO 4217 code; `UZS` today."
+        },
+        "claim_side": {
+          "$ref": "#/definitions/BookingSide"
         }
       },
       "required": [
@@ -485,7 +488,8 @@
         "status",
         "previous_amount",
         "settled_amount",
-        "currency"
+        "currency",
+        "claim_side"
       ]
     },
     "BookingCancelled": {
