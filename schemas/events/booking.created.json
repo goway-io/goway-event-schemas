@@ -94,6 +94,10 @@
       ],
       "format": "date-time",
       "description": "End of that span; null when the haul's duration is unknown, which keeps the driver busy until the booking ends."
+    },
+    "plan": {
+      "type": "boolean",
+      "description": "The driver booked a plan: a load scheduled ahead, taken from the plan list."
     }
   },
   "required": [
@@ -110,6 +114,7 @@
     "pickup_to",
     "duration_min",
     "busy_from",
-    "busy_until"
+    "busy_until",
+    "plan"
   ]
 }

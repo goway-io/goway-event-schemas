@@ -424,6 +424,22 @@ channels:
         $ref: '#/components/messages/driverOfferFilterChanged'
     x-publisher: goway-auth
     x-consumers: [goway-realtime]
+  bookingPlanDue:
+    address: booking.plan_due
+    description: A booked plan's pickup is near, or came and the driver has not set off.
+    messages:
+      bookingPlanDue:
+        $ref: '#/components/messages/bookingPlanDue'
+    x-publisher: goway-loads
+    x-consumers: [goway-notify]
+  loadPlanUnclaimed:
+    address: load.plan_unclaimed
+    description: A plan is close to its pickup and no driver booked it yet.
+    messages:
+      loadPlanUnclaimed:
+        $ref: '#/components/messages/loadPlanUnclaimed'
+    x-publisher: goway-loads
+    x-consumers: [goway-notify]
 operations:
   publishUserCreated:
     action: send
@@ -680,6 +696,16 @@ operations:
     channel:
       $ref: '#/channels/driverOfferFilterChanged'
     description: Published when a driver saves their offer filter.
+  publishBookingPlanDue:
+    action: send
+    channel:
+      $ref: '#/channels/bookingPlanDue'
+    description: "Published by the loads worker once per stage per booking: reminder, departure and overdue."
+  publishLoadPlanUnclaimed:
+    action: send
+    channel:
+      $ref: '#/channels/loadPlanUnclaimed'
+    description: Published by the loads worker once per load.
 components:
   messages:
     userCreated:
@@ -937,3 +963,13 @@ components:
       title: Offer filter changed
       payload:
         $ref: '../schemas/events/driver.offer_filter_changed.json'
+    bookingPlanDue:
+      name: booking.plan_due
+      title: Plan due
+      payload:
+        $ref: '../schemas/events/booking.plan_due.json'
+    loadPlanUnclaimed:
+      name: load.plan_unclaimed
+      title: Plan unclaimed
+      payload:
+        $ref: '../schemas/events/load.plan_unclaimed.json'

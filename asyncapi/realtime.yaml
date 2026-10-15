@@ -65,6 +65,18 @@ channels:
         $ref: '#/components/messages/subscribeBooking'
       unsubscribeBooking:
         $ref: '#/components/messages/unsubscribeBooking'
+      subscribeBoard:
+        $ref: '#/components/messages/subscribeBoard'
+      unsubscribeBoard:
+        $ref: '#/components/messages/unsubscribeBoard'
+      boardSubscribed:
+        $ref: '#/components/messages/boardSubscribed'
+      boardLoadAdded:
+        $ref: '#/components/messages/boardLoadAdded'
+      boardLoadUpdated:
+        $ref: '#/components/messages/boardLoadUpdated'
+      boardLoadRemoved:
+        $ref: '#/components/messages/boardLoadRemoved'
       connected:
         $ref: '#/components/messages/connected'
       pong:
@@ -129,6 +141,8 @@ operations:
       - $ref: '#/channels/socket/messages/offerResponse'
       - $ref: '#/channels/socket/messages/subscribeBooking'
       - $ref: '#/channels/socket/messages/unsubscribeBooking'
+      - $ref: '#/channels/socket/messages/subscribeBoard'
+      - $ref: '#/channels/socket/messages/unsubscribeBoard'
   sendToApp:
     title: To the app
     action: send
@@ -154,6 +168,10 @@ operations:
       - $ref: '#/channels/socket/messages/offersUnblocked'
       - $ref: '#/channels/socket/messages/searchProgress'
       - $ref: '#/channels/socket/messages/searchExhausted'
+      - $ref: '#/channels/socket/messages/boardSubscribed'
+      - $ref: '#/channels/socket/messages/boardLoadAdded'
+      - $ref: '#/channels/socket/messages/boardLoadUpdated'
+      - $ref: '#/channels/socket/messages/boardLoadRemoved'
       - $ref: '#/channels/socket/messages/notification'
       - $ref: '#/channels/socket/messages/sessionStarted'
       - $ref: '#/channels/socket/messages/kicked'
@@ -310,3 +328,33 @@ components:
       title: Search exhausted
       payload:
         $ref: '../schemas/frames/server/search_exhausted.json'
+    subscribeBoard:
+      name: subscribe_board
+      title: Watch a lane's board
+      payload:
+        $ref: '../schemas/frames/client/subscribe_board.json'
+    unsubscribeBoard:
+      name: unsubscribe_board
+      title: Stop watching a lane's board
+      payload:
+        $ref: '../schemas/frames/client/unsubscribe_board.json'
+    boardSubscribed:
+      name: board_subscribed
+      title: Board subscribed
+      payload:
+        $ref: '../schemas/frames/server/board_subscribed.json'
+    boardLoadAdded:
+      name: board_load_added
+      title: Load added to the board
+      payload:
+        $ref: '../schemas/frames/server/board_load_added.json'
+    boardLoadUpdated:
+      name: board_load_updated
+      title: Load on the board changed
+      payload:
+        $ref: '../schemas/frames/server/board_load_updated.json'
+    boardLoadRemoved:
+      name: board_load_removed
+      title: Load left the board
+      payload:
+        $ref: '../schemas/frames/server/board_load_removed.json'

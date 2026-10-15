@@ -47,6 +47,100 @@ class AuthFrame(BaseModel):
     data: Auth
 
 
+class BoardLoadAdded(BaseModel):
+    """
+    A load appeared on a subscribed lane: newly posted or back after a cancelled booking. A signal; the app reads the list again over REST.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    load_id: UUID
+    from_region_id: UUID
+    to_region_id: UUID
+    plan: bool
+
+
+class BoardLoadAddedFrame(BaseModel):
+    """
+    Frame `board_load_added` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["board_load_added"]
+    data: BoardLoadAdded
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class BoardLoadUpdated(BaseModel):
+    """
+    A load on a subscribed lane was edited: price, pickup window or note. A signal; the app reads it again over REST.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    load_id: UUID
+    from_region_id: UUID
+    to_region_id: UUID
+    plan: bool
+
+
+class BoardLoadUpdatedFrame(BaseModel):
+    """
+    Frame `board_load_updated` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["board_load_updated"]
+    data: BoardLoadUpdated
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class BoardRemovalReason(StrEnum):
+    BOOKED = "booked"
+    CANCELLED = "cancelled"
+    EXPIRED = "expired"
+
+
+class BoardSubscribed(BaseModel):
+    """
+    `subscribe_board` was accepted.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    from_region_id: UUID
+    to_region_id: UUID
+
+
+class BoardSubscribedFrame(BaseModel):
+    """
+    Frame `board_subscribed` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["board_subscribed"]
+    data: BoardSubscribed
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
 class BookingReturnLoads(BaseModel):
     """
     Hours before a truck is empty: loads are waiting in the region where it unloads. Sent once per haul.
@@ -663,6 +757,7 @@ class LoadChangedField(StrEnum):
     PICKUP_FROM = "pickup_from"
     PICKUP_TO = "pickup_to"
     NOTE = "note"
+    PLAN = "plan"
 
 
 class LoadExpired(BaseModel):
@@ -681,6 +776,41 @@ class LoadExpired(BaseModel):
     org_id: UUID
     """
     The shipper organization.
+    """
+
+
+class LoadPlanUnclaimed(BaseModel):
+    """
+    A plan is close to its pickup and no driver has booked it yet; the shipper is told they may raise the price. Once per load.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    load_id: UUID
+    org_id: UUID
+    """
+    The shipper's organization.
+    """
+    created_by: UUID
+    """
+    The person who posted the load.
+    """
+    from_region_id: UUID
+    to_region_id: UUID
+    pickup_from: AwareDatetime
+    amount: Annotated[int | None, Field(ge=0)]
+    """
+    Current price, whole so'm; null for a load without an asking price.
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    views: Annotated[int, Field(ge=0)]
+    """
+    Drivers who saw the plan so far.
     """
 
 
@@ -1138,6 +1268,16 @@ class PingFrame(BaseModel):
     data: Ping | None = None
 
 
+class PlanStage(StrEnum):
+    """
+    `reminder`: the pickup is `plan_reminder_minutes` away. `departure`: `plan_departure_minutes` away, the app opens navigation. `overdue`: the pickup time came and the haul has not set off; operators are told too.
+    """
+
+    REMINDER = "reminder"
+    DEPARTURE = "departure"
+    OVERDUE = "overdue"
+
+
 class Pong(BaseModel):
     """
     The answer to `ping`; nothing in it.
@@ -1369,6 +1509,30 @@ class SubmittedDocumentStatus(StrEnum):
     PENDING = "pending"
 
 
+class SubscribeBoard(BaseModel):
+    """
+    Hear when loads on a lane appear, change or leave the board, for a live plan list. One direction per frame; a driver with a way back subscribes to both.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    from_region_id: UUID
+    to_region_id: UUID
+
+
+class SubscribeBoardFrame(BaseModel):
+    """
+    Frame `subscribe_board` an app sends to goway-realtime.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["subscribe_board"]
+    data: SubscribeBoard
+
+
 class SubscribeBooking(BaseModel):
     """
     Watch a booking of the caller's organization: status, arrival window and the driver's position.
@@ -1452,6 +1616,30 @@ class TicketReplyStatus(StrEnum):
 
     ANSWERED = "answered"
     CLOSED = "closed"
+
+
+class UnsubscribeBoard(BaseModel):
+    """
+    Stop hearing about a lane.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    from_region_id: UUID
+    to_region_id: UUID
+
+
+class UnsubscribeBoardFrame(BaseModel):
+    """
+    Frame `unsubscribe_board` an app sends to goway-realtime.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["unsubscribe_board"]
+    data: UnsubscribeBoard
 
 
 class UnsubscribeBooking(BaseModel):
@@ -1927,6 +2115,36 @@ class WalletToppedUp(BaseModel):
     """
 
 
+class BoardLoadRemoved(BaseModel):
+    """
+    A load left a subscribed lane's board. A signal; the app drops it from the list.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    load_id: UUID
+    from_region_id: UUID
+    to_region_id: UUID
+    reason: BoardRemovalReason
+
+
+class BoardLoadRemovedFrame(BaseModel):
+    """
+    Frame `board_load_removed` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["board_load_removed"]
+    data: BoardLoadRemoved
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
 class BookingAmountClaimed(BaseModel):
     """
     One side of a delivered haul says it settled at another sum; nothing changes until an operator decides.
@@ -2015,6 +2233,14 @@ class BookingCancelled(BaseModel):
     driver_user_id: UUID | None
     """
     Null when no driver was assigned.
+    """
+    plan: bool
+    """
+    The cancelled booking was a plan.
+    """
+    penalized: bool
+    """
+    The cancellation counts against the driver's acceptance rate: a driver's cancellation of an instant haul, or of a plan later than goway-loads' free-cancel window before pickup. Always false for shipper and operator cancellations.
     """
 
 
@@ -2159,6 +2385,10 @@ class BookingCreated(BaseModel):
     """
     End of that span; null when the haul's duration is unknown, which keeps the driver busy until the booking ends.
     """
+    plan: bool
+    """
+    The driver booked a plan: a load scheduled ahead, taken from the plan list.
+    """
 
 
 class BookingCreatedFrame(BaseModel):
@@ -2218,6 +2448,31 @@ class BookingEtaUpdated(BaseModel):
     truck_class: str
     """
     The booked vehicle's truck class code.
+    """
+
+
+class BookingPlanDue(BaseModel):
+    """
+    A booked plan's pickup is near: time for the reminder, time to set off, or the pickup time came and the driver has not set off. One event per stage per booking.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    booking_id: UUID
+    load_id: UUID
+    driver_user_id: UUID
+    carrier_org_id: UUID
+    shipper_org_id: UUID
+    stage: PlanStage
+    pickup_from: AwareDatetime
+    pickup_address: str | None
+    """
+    First pickup stop's address; null only when the load has no stops.
     """
 
 
@@ -2333,6 +2588,8 @@ class ClientFrame(
         | OfferResponseFrame
         | SubscribeBookingFrame
         | UnsubscribeBookingFrame
+        | SubscribeBoardFrame
+        | UnsubscribeBoardFrame
     ]
 ):
     root: Annotated[
@@ -2343,7 +2600,9 @@ class ClientFrame(
         | LocationFrame
         | OfferResponseFrame
         | SubscribeBookingFrame
-        | UnsubscribeBookingFrame,
+        | UnsubscribeBookingFrame
+        | SubscribeBoardFrame
+        | UnsubscribeBoardFrame,
         Field(discriminator="type", title="ClientFrame"),
     ]
     """
@@ -2515,6 +2774,10 @@ class LoadPosted(BaseModel):
     """
     Loaders the shipper ordered with the truck.
     """
+    plan: bool
+    """
+    The pickup is scheduled more than goway-loads' instant horizon ahead: drivers book it from the plan list, and dispatch makes no instant offers for it.
+    """
 
 
 class LoadUpdated(BaseModel):
@@ -2627,11 +2890,15 @@ class LoadUpdated(BaseModel):
     """
     changed: Annotated[list[LoadChangedField], Field(min_length=1)]
     """
-    Fields this edit changed. A changed price or pickup window restarts the instant search, so every fitting driver is offered it again.
+    Fields this edit changed. A changed price or pickup window restarts the instant search, so every fitting driver is offered it again; `plan` changes when the new pickup moves the load across the instant horizon.
     """
     updated_at: AwareDatetime
     """
     When the edit was saved; consumers ignore an edit older than the one they hold.
+    """
+    plan: bool
+    """
+    The pickup is scheduled more than goway-loads' instant horizon ahead: drivers book it from the plan list, and dispatch makes no instant offers for it.
     """
 
 
@@ -2945,6 +3212,10 @@ class ServerFrame(
         | VerificationChangedFrame
         | SearchProgressFrame
         | SearchExhaustedFrame
+        | BoardSubscribedFrame
+        | BoardLoadAddedFrame
+        | BoardLoadUpdatedFrame
+        | BoardLoadRemovedFrame
     ]
 ):
     root: Annotated[
@@ -2969,7 +3240,11 @@ class ServerFrame(
         | ErrorFrame
         | VerificationChangedFrame
         | SearchProgressFrame
-        | SearchExhaustedFrame,
+        | SearchExhaustedFrame
+        | BoardSubscribedFrame
+        | BoardLoadAddedFrame
+        | BoardLoadUpdatedFrame
+        | BoardLoadRemovedFrame,
         Field(discriminator="type", title="ServerFrame"),
     ]
     """

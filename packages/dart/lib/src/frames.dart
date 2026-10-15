@@ -19,6 +19,8 @@ sealed class ClientFrame {
         'offer_response' => OfferResponseMessage(OfferResponseFrame.fromJson(json)),
         'subscribe_booking' => SubscribeBookingMessage(SubscribeBookingFrame.fromJson(json)),
         'unsubscribe_booking' => UnsubscribeBookingMessage(UnsubscribeBookingFrame.fromJson(json)),
+        'subscribe_board' => SubscribeBoardMessage(SubscribeBoardFrame.fromJson(json)),
+        'unsubscribe_board' => UnsubscribeBoardMessage(UnsubscribeBoardFrame.fromJson(json)),
         final other => throw FormatException('unknown client frame type: $other'),
       };
 }
@@ -79,6 +81,20 @@ final class UnsubscribeBookingMessage extends ClientFrame {
   Map<String, dynamic> toJson() => frame.toJson();
 }
 
+final class SubscribeBoardMessage extends ClientFrame {
+  const SubscribeBoardMessage(this.frame);
+  final SubscribeBoardFrame frame;
+  @override
+  Map<String, dynamic> toJson() => frame.toJson();
+}
+
+final class UnsubscribeBoardMessage extends ClientFrame {
+  const UnsubscribeBoardMessage(this.frame);
+  final UnsubscribeBoardFrame frame;
+  @override
+  Map<String, dynamic> toJson() => frame.toJson();
+}
+
 /// Any frame goway-realtime sends; `type` tells which.
 ///
 /// A new server frame type is additive: a server newer than this package may send one, and it arrives as
@@ -107,6 +123,10 @@ sealed class ServerFrame {
         'verification_changed' => VerificationChangedMessage(VerificationChangedFrame.fromJson(json)),
         'search_progress' => SearchProgressMessage(SearchProgressFrame.fromJson(json)),
         'search_exhausted' => SearchExhaustedMessage(SearchExhaustedFrame.fromJson(json)),
+        'board_subscribed' => BoardSubscribedMessage(BoardSubscribedFrame.fromJson(json)),
+        'board_load_added' => BoardLoadAddedMessage(BoardLoadAddedFrame.fromJson(json)),
+        'board_load_updated' => BoardLoadUpdatedMessage(BoardLoadUpdatedFrame.fromJson(json)),
+        'board_load_removed' => BoardLoadRemovedMessage(BoardLoadRemovedFrame.fromJson(json)),
         'notification' => NotificationMessage(NotificationFrame.fromJson(json)),
         'session_started' => SessionStartedMessage(SessionStartedFrame.fromJson(json)),
         'kicked' => KickedMessage(KickedFrame.fromJson(json)),
@@ -248,6 +268,34 @@ final class SearchProgressMessage extends ServerFrame {
 final class SearchExhaustedMessage extends ServerFrame {
   const SearchExhaustedMessage(this.frame);
   final SearchExhaustedFrame frame;
+  @override
+  Map<String, dynamic> toJson() => frame.toJson();
+}
+
+final class BoardSubscribedMessage extends ServerFrame {
+  const BoardSubscribedMessage(this.frame);
+  final BoardSubscribedFrame frame;
+  @override
+  Map<String, dynamic> toJson() => frame.toJson();
+}
+
+final class BoardLoadAddedMessage extends ServerFrame {
+  const BoardLoadAddedMessage(this.frame);
+  final BoardLoadAddedFrame frame;
+  @override
+  Map<String, dynamic> toJson() => frame.toJson();
+}
+
+final class BoardLoadUpdatedMessage extends ServerFrame {
+  const BoardLoadUpdatedMessage(this.frame);
+  final BoardLoadUpdatedFrame frame;
+  @override
+  Map<String, dynamic> toJson() => frame.toJson();
+}
+
+final class BoardLoadRemovedMessage extends ServerFrame {
+  const BoardLoadRemovedMessage(this.frame);
+  final BoardLoadRemovedFrame frame;
   @override
   Map<String, dynamic> toJson() => frame.toJson();
 }

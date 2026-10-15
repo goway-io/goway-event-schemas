@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LoadPlanUnclaimed",
+  "description": "A plan is close to its pickup and no driver has booked it yet; the shipper is told they may raise the price. Once per load.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "load_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The shipper's organization."
+    },
+    "created_by": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person who posted the load."
+    },
+    "from_region_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "to_region_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "pickup_from": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "amount": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "Current price, whole so'm; null for a load without an asking price."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3
+    },
+    "views": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Drivers who saw the plan so far."
+    }
+  },
+  "required": [
+    "event_id",
+    "load_id",
+    "org_id",
+    "created_by",
+    "from_region_id",
+    "to_region_id",
+    "pickup_from",
+    "amount",
+    "currency",
+    "views"
+  ]
+}

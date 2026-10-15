@@ -192,6 +192,55 @@ Map<String, dynamic> _$PingFrameToJson(PingFrame instance) => <String, dynamic>{
 
 const _$PingFrameTypeEnumMap = {PingFrameType.PING: 'ping'};
 
+SubscribeBoardFrame _$SubscribeBoardFrameFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('SubscribeBoardFrame', json, ($checkedConvert) {
+      final val = SubscribeBoardFrame(
+        data: $checkedConvert(
+          'data',
+          (v) => SubscribeBoard.fromJson(v as Map<String, dynamic>),
+        ),
+        type: $checkedConvert(
+          'type',
+          (v) => $enumDecode(_$SubscribeBoardFrameTypeEnumMap, v),
+        ),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$SubscribeBoardFrameToJson(
+  SubscribeBoardFrame instance,
+) => <String, dynamic>{
+  'data': instance.data,
+  'type': _$SubscribeBoardFrameTypeEnumMap[instance.type]!,
+};
+
+const _$SubscribeBoardFrameTypeEnumMap = {
+  SubscribeBoardFrameType.SUBSCRIBE_BOARD: 'subscribe_board',
+};
+
+SubscribeBoard _$SubscribeBoardFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'SubscribeBoard',
+      json,
+      ($checkedConvert) {
+        final val = SubscribeBoard(
+          fromRegionId: $checkedConvert('from_region_id', (v) => v as String),
+          toRegionId: $checkedConvert('to_region_id', (v) => v as String),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'fromRegionId': 'from_region_id',
+        'toRegionId': 'to_region_id',
+      },
+    );
+
+Map<String, dynamic> _$SubscribeBoardToJson(SubscribeBoard instance) =>
+    <String, dynamic>{
+      'from_region_id': instance.fromRegionId,
+      'to_region_id': instance.toRegionId,
+    };
+
 SubscribeBookingFrame _$SubscribeBookingFrameFromJson(
   Map<String, dynamic> json,
 ) => $checkedCreate('SubscribeBookingFrame', json, ($checkedConvert) {
@@ -230,6 +279,56 @@ SubscribeBooking _$SubscribeBookingFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$SubscribeBookingToJson(SubscribeBooking instance) =>
     <String, dynamic>{'booking_id': instance.bookingId};
 
+UnsubscribeBoardFrame _$UnsubscribeBoardFrameFromJson(
+  Map<String, dynamic> json,
+) => $checkedCreate('UnsubscribeBoardFrame', json, ($checkedConvert) {
+  final val = UnsubscribeBoardFrame(
+    data: $checkedConvert(
+      'data',
+      (v) => UnsubscribeBoard.fromJson(v as Map<String, dynamic>),
+    ),
+    type: $checkedConvert(
+      'type',
+      (v) => $enumDecode(_$UnsubscribeBoardFrameTypeEnumMap, v),
+    ),
+  );
+  return val;
+});
+
+Map<String, dynamic> _$UnsubscribeBoardFrameToJson(
+  UnsubscribeBoardFrame instance,
+) => <String, dynamic>{
+  'data': instance.data,
+  'type': _$UnsubscribeBoardFrameTypeEnumMap[instance.type]!,
+};
+
+const _$UnsubscribeBoardFrameTypeEnumMap = {
+  UnsubscribeBoardFrameType.UNSUBSCRIBE_BOARD: 'unsubscribe_board',
+};
+
+UnsubscribeBoard _$UnsubscribeBoardFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'UnsubscribeBoard',
+      json,
+      ($checkedConvert) {
+        final val = UnsubscribeBoard(
+          fromRegionId: $checkedConvert('from_region_id', (v) => v as String),
+          toRegionId: $checkedConvert('to_region_id', (v) => v as String),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'fromRegionId': 'from_region_id',
+        'toRegionId': 'to_region_id',
+      },
+    );
+
+Map<String, dynamic> _$UnsubscribeBoardToJson(UnsubscribeBoard instance) =>
+    <String, dynamic>{
+      'from_region_id': instance.fromRegionId,
+      'to_region_id': instance.toRegionId,
+    };
+
 UnsubscribeBookingFrame _$UnsubscribeBookingFrameFromJson(
   Map<String, dynamic> json,
 ) => $checkedCreate('UnsubscribeBookingFrame', json, ($checkedConvert) {
@@ -267,6 +366,237 @@ UnsubscribeBooking _$UnsubscribeBookingFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$UnsubscribeBookingToJson(UnsubscribeBooking instance) =>
     <String, dynamic>{'booking_id': instance.bookingId};
+
+BoardLoadAddedFrame _$BoardLoadAddedFrameFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('BoardLoadAddedFrame', json, ($checkedConvert) {
+      final val = BoardLoadAddedFrame(
+        data: $checkedConvert(
+          'data',
+          (v) => BoardLoadAdded.fromJson(v as Map<String, dynamic>),
+        ),
+        ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
+        type: $checkedConvert(
+          'type',
+          (v) => $enumDecode(_$BoardLoadAddedFrameTypeEnumMap, v),
+        ),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$BoardLoadAddedFrameToJson(
+  BoardLoadAddedFrame instance,
+) => <String, dynamic>{
+  'data': instance.data,
+  'ts': instance.ts.toIso8601String(),
+  'type': _$BoardLoadAddedFrameTypeEnumMap[instance.type]!,
+};
+
+const _$BoardLoadAddedFrameTypeEnumMap = {
+  BoardLoadAddedFrameType.BOARD_LOAD_ADDED: 'board_load_added',
+};
+
+BoardLoadAdded _$BoardLoadAddedFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'BoardLoadAdded',
+      json,
+      ($checkedConvert) {
+        final val = BoardLoadAdded(
+          fromRegionId: $checkedConvert('from_region_id', (v) => v as String),
+          loadId: $checkedConvert('load_id', (v) => v as String),
+          plan: $checkedConvert('plan', (v) => v as bool),
+          toRegionId: $checkedConvert('to_region_id', (v) => v as String),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'fromRegionId': 'from_region_id',
+        'loadId': 'load_id',
+        'toRegionId': 'to_region_id',
+      },
+    );
+
+Map<String, dynamic> _$BoardLoadAddedToJson(BoardLoadAdded instance) =>
+    <String, dynamic>{
+      'from_region_id': instance.fromRegionId,
+      'load_id': instance.loadId,
+      'plan': instance.plan,
+      'to_region_id': instance.toRegionId,
+    };
+
+BoardLoadRemovedFrame _$BoardLoadRemovedFrameFromJson(
+  Map<String, dynamic> json,
+) => $checkedCreate('BoardLoadRemovedFrame', json, ($checkedConvert) {
+  final val = BoardLoadRemovedFrame(
+    data: $checkedConvert(
+      'data',
+      (v) => BoardLoadRemoved.fromJson(v as Map<String, dynamic>),
+    ),
+    ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
+    type: $checkedConvert(
+      'type',
+      (v) => $enumDecode(_$BoardLoadRemovedFrameTypeEnumMap, v),
+    ),
+  );
+  return val;
+});
+
+Map<String, dynamic> _$BoardLoadRemovedFrameToJson(
+  BoardLoadRemovedFrame instance,
+) => <String, dynamic>{
+  'data': instance.data,
+  'ts': instance.ts.toIso8601String(),
+  'type': _$BoardLoadRemovedFrameTypeEnumMap[instance.type]!,
+};
+
+const _$BoardLoadRemovedFrameTypeEnumMap = {
+  BoardLoadRemovedFrameType.BOARD_LOAD_REMOVED: 'board_load_removed',
+};
+
+BoardLoadRemoved _$BoardLoadRemovedFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'BoardLoadRemoved',
+      json,
+      ($checkedConvert) {
+        final val = BoardLoadRemoved(
+          fromRegionId: $checkedConvert('from_region_id', (v) => v as String),
+          loadId: $checkedConvert('load_id', (v) => v as String),
+          reason: $checkedConvert(
+            'reason',
+            (v) => $enumDecode(_$BoardRemovalReasonEnumMap, v),
+          ),
+          toRegionId: $checkedConvert('to_region_id', (v) => v as String),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'fromRegionId': 'from_region_id',
+        'loadId': 'load_id',
+        'toRegionId': 'to_region_id',
+      },
+    );
+
+Map<String, dynamic> _$BoardLoadRemovedToJson(BoardLoadRemoved instance) =>
+    <String, dynamic>{
+      'from_region_id': instance.fromRegionId,
+      'load_id': instance.loadId,
+      'reason': _$BoardRemovalReasonEnumMap[instance.reason]!,
+      'to_region_id': instance.toRegionId,
+    };
+
+const _$BoardRemovalReasonEnumMap = {
+  BoardRemovalReason.BOOKED: 'booked',
+  BoardRemovalReason.CANCELLED: 'cancelled',
+  BoardRemovalReason.EXPIRED: 'expired',
+};
+
+BoardLoadUpdatedFrame _$BoardLoadUpdatedFrameFromJson(
+  Map<String, dynamic> json,
+) => $checkedCreate('BoardLoadUpdatedFrame', json, ($checkedConvert) {
+  final val = BoardLoadUpdatedFrame(
+    data: $checkedConvert(
+      'data',
+      (v) => BoardLoadUpdated.fromJson(v as Map<String, dynamic>),
+    ),
+    ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
+    type: $checkedConvert(
+      'type',
+      (v) => $enumDecode(_$BoardLoadUpdatedFrameTypeEnumMap, v),
+    ),
+  );
+  return val;
+});
+
+Map<String, dynamic> _$BoardLoadUpdatedFrameToJson(
+  BoardLoadUpdatedFrame instance,
+) => <String, dynamic>{
+  'data': instance.data,
+  'ts': instance.ts.toIso8601String(),
+  'type': _$BoardLoadUpdatedFrameTypeEnumMap[instance.type]!,
+};
+
+const _$BoardLoadUpdatedFrameTypeEnumMap = {
+  BoardLoadUpdatedFrameType.BOARD_LOAD_UPDATED: 'board_load_updated',
+};
+
+BoardLoadUpdated _$BoardLoadUpdatedFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'BoardLoadUpdated',
+      json,
+      ($checkedConvert) {
+        final val = BoardLoadUpdated(
+          fromRegionId: $checkedConvert('from_region_id', (v) => v as String),
+          loadId: $checkedConvert('load_id', (v) => v as String),
+          plan: $checkedConvert('plan', (v) => v as bool),
+          toRegionId: $checkedConvert('to_region_id', (v) => v as String),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'fromRegionId': 'from_region_id',
+        'loadId': 'load_id',
+        'toRegionId': 'to_region_id',
+      },
+    );
+
+Map<String, dynamic> _$BoardLoadUpdatedToJson(BoardLoadUpdated instance) =>
+    <String, dynamic>{
+      'from_region_id': instance.fromRegionId,
+      'load_id': instance.loadId,
+      'plan': instance.plan,
+      'to_region_id': instance.toRegionId,
+    };
+
+BoardSubscribedFrame _$BoardSubscribedFrameFromJson(
+  Map<String, dynamic> json,
+) => $checkedCreate('BoardSubscribedFrame', json, ($checkedConvert) {
+  final val = BoardSubscribedFrame(
+    data: $checkedConvert(
+      'data',
+      (v) => BoardSubscribed.fromJson(v as Map<String, dynamic>),
+    ),
+    ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
+    type: $checkedConvert(
+      'type',
+      (v) => $enumDecode(_$BoardSubscribedFrameTypeEnumMap, v),
+    ),
+  );
+  return val;
+});
+
+Map<String, dynamic> _$BoardSubscribedFrameToJson(
+  BoardSubscribedFrame instance,
+) => <String, dynamic>{
+  'data': instance.data,
+  'ts': instance.ts.toIso8601String(),
+  'type': _$BoardSubscribedFrameTypeEnumMap[instance.type]!,
+};
+
+const _$BoardSubscribedFrameTypeEnumMap = {
+  BoardSubscribedFrameType.BOARD_SUBSCRIBED: 'board_subscribed',
+};
+
+BoardSubscribed _$BoardSubscribedFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'BoardSubscribed',
+      json,
+      ($checkedConvert) {
+        final val = BoardSubscribed(
+          fromRegionId: $checkedConvert('from_region_id', (v) => v as String),
+          toRegionId: $checkedConvert('to_region_id', (v) => v as String),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'fromRegionId': 'from_region_id',
+        'toRegionId': 'to_region_id',
+      },
+    );
+
+Map<String, dynamic> _$BoardSubscribedToJson(BoardSubscribed instance) =>
+    <String, dynamic>{
+      'from_region_id': instance.fromRegionId,
+      'to_region_id': instance.toRegionId,
+    };
 
 BookingCancelledFrame _$BookingCancelledFrameFromJson(
   Map<String, dynamic> json,
@@ -312,6 +642,8 @@ BookingCancelled _$BookingCancelledFromJson(Map<String, dynamic> json) =>
           driverUserId: $checkedConvert('driver_user_id', (v) => v as String?),
           eventId: $checkedConvert('event_id', (v) => v as String),
           loadId: $checkedConvert('load_id', (v) => v as String),
+          penalized: $checkedConvert('penalized', (v) => v as bool),
+          plan: $checkedConvert('plan', (v) => v as bool),
           reason: $checkedConvert('reason', (v) => v as String),
           shipperOrgId: $checkedConvert('shipper_org_id', (v) => v as String),
         );
@@ -335,6 +667,8 @@ Map<String, dynamic> _$BookingCancelledToJson(BookingCancelled instance) =>
       'driver_user_id': ?instance.driverUserId,
       'event_id': instance.eventId,
       'load_id': instance.loadId,
+      'penalized': instance.penalized,
+      'plan': instance.plan,
       'reason': instance.reason,
       'shipper_org_id': instance.shipperOrgId,
     };
@@ -540,6 +874,7 @@ BookingCreated _$BookingCreatedFromJson(
         'pickup_to',
         (v) => v == null ? null : DateTime.parse(v as String),
       ),
+      plan: $checkedConvert('plan', (v) => v as bool),
       shipperOrgId: $checkedConvert('shipper_org_id', (v) => v as String),
       shipperUserId: $checkedConvert('shipper_user_id', (v) => v as String),
       source: $checkedConvert(
@@ -580,6 +915,7 @@ Map<String, dynamic> _$BookingCreatedToJson(BookingCreated instance) =>
       'load_id': instance.loadId,
       'pickup_from': ?instance.pickupFrom?.toIso8601String(),
       'pickup_to': ?instance.pickupTo?.toIso8601String(),
+      'plan': instance.plan,
       'shipper_org_id': instance.shipperOrgId,
       'shipper_user_id': instance.shipperUserId,
       'source': ?_$BookingSourceEnumMap[instance.source],

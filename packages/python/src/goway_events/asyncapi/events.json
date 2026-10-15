@@ -689,6 +689,32 @@
    "x-consumers": [
     "goway-realtime"
    ]
+  },
+  "bookingPlanDue": {
+   "address": "booking.plan_due",
+   "description": "A booked plan's pickup is near, or came and the driver has not set off.\n\nPublished by `goway-loads`; consumed by `goway-notify`.",
+   "messages": {
+    "bookingPlanDue": {
+     "$ref": "#/components/messages/bookingPlanDue"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-notify"
+   ]
+  },
+  "loadPlanUnclaimed": {
+   "address": "load.plan_unclaimed",
+   "description": "A plan is close to its pickup and no driver booked it yet.\n\nPublished by `goway-loads`; consumed by `goway-notify`.",
+   "messages": {
+    "loadPlanUnclaimed": {
+     "$ref": "#/components/messages/loadPlanUnclaimed"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-notify"
+   ]
   }
  },
  "operations": {
@@ -1099,6 +1125,22 @@
    },
    "description": "Published when a driver saves their offer filter.",
    "title": "goway-auth publishes"
+  },
+  "publishBookingPlanDue": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/bookingPlanDue"
+   },
+   "description": "Published by the loads worker once per stage per booking: reminder, departure and overdue.",
+   "title": "goway-loads publishes"
+  },
+  "publishLoadPlanUnclaimed": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/loadPlanUnclaimed"
+   },
+   "description": "Published by the loads worker once per load.",
+   "title": "goway-loads publishes"
   }
  },
  "components": {
@@ -2993,6 +3035,10 @@
        "type": "integer",
        "minimum": 0,
        "description": "Loaders the shipper ordered with the truck."
+      },
+      "plan": {
+       "type": "boolean",
+       "description": "The pickup is scheduled more than goway-loads' instant horizon ahead: drivers book it from the plan list, and dispatch makes no instant offers for it."
       }
      },
      "required": [
@@ -3026,7 +3072,8 @@
       "duration_min",
       "cargo_category",
       "volume_m3",
-      "loaders_count"
+      "loaders_count",
+      "plan"
      ]
     },
     "examples": [
@@ -3063,7 +3110,8 @@
        "duration_min": 330,
        "cargo_category": "food",
        "volume_m3": 24.0,
-       "loaders_count": 2
+       "loaders_count": 2,
+       "plan": false
       }
      },
      {
@@ -3100,7 +3148,45 @@
        "duration_min": 330,
        "cargo_category": "food",
        "volume_m3": 24.0,
-       "loaders_count": 2
+       "loaders_count": 2,
+       "plan": false
+      }
+     },
+     {
+      "name": "Plan",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "from_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
+       "to_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
+       "truck_class": "tent_20t",
+       "loading_method": "rear",
+       "needs_refrigeration": false,
+       "allow_instant": true,
+       "price_mode": "fixed",
+       "asking_amount": 4500000,
+       "bonus_amount": null,
+       "suggested_amount": 4300000,
+       "currency": "UZS",
+       "weight_kg": 18000,
+       "pickup_from": "2026-10-16T13:00:00+00:00",
+       "pickup_to": "2026-10-16T15:00:00+00:00",
+       "pickup_lat": 41.311081,
+       "pickup_lng": 69.240562,
+       "group_id": null,
+       "is_urgent": false,
+       "payment_method": "cash",
+       "created_by": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+       "pickup_address": "Andijon, Xonabod, Sanoat ko'chasi 14",
+       "dropoff_address": "Toshkent, Yunusobod, Ziyolilar ko'chasi 42",
+       "stops_count": 2,
+       "distance_km": 312.4,
+       "duration_min": 330,
+       "cargo_category": "food",
+       "volume_m3": 24.0,
+       "loaders_count": 2,
+       "plan": true
       }
      }
     ]
@@ -3445,6 +3531,10 @@
        ],
        "format": "date-time",
        "description": "End of that span; null when the haul's duration is unknown, which keeps the driver busy until the booking ends."
+      },
+      "plan": {
+       "type": "boolean",
+       "description": "The driver booked a plan: a load scheduled ahead, taken from the plan list."
       }
      },
      "required": [
@@ -3461,7 +3551,8 @@
       "pickup_to",
       "duration_min",
       "busy_from",
-      "busy_until"
+      "busy_until",
+      "plan"
      ]
     },
     "examples": [
@@ -3482,7 +3573,8 @@
        "pickup_to": "2026-10-15T09:00:00+00:00",
        "duration_min": 330,
        "busy_from": "2026-10-15T02:00:00+00:00",
-       "busy_until": "2026-10-15T15:30:00+00:00"
+       "busy_until": "2026-10-15T15:30:00+00:00",
+       "plan": false
       }
      },
      {
@@ -3501,7 +3593,8 @@
        "pickup_to": "2026-10-15T09:00:00+00:00",
        "duration_min": 330,
        "busy_from": "2026-10-15T02:00:00+00:00",
-       "busy_until": "2026-10-15T15:30:00+00:00"
+       "busy_until": "2026-10-15T15:30:00+00:00",
+       "plan": false
       }
      }
     ]
@@ -3983,6 +4076,14 @@
        ],
        "format": "uuid",
        "description": "Null when no driver was assigned."
+      },
+      "plan": {
+       "type": "boolean",
+       "description": "The cancelled booking was a plan."
+      },
+      "penalized": {
+       "type": "boolean",
+       "description": "The cancellation counts against the driver's acceptance rate: a driver's cancellation of an instant haul, or of a plan later than goway-loads' free-cancel window before pickup. Always false for shipper and operator cancellations."
       }
      },
      "required": [
@@ -3993,7 +4094,9 @@
       "reason",
       "shipper_org_id",
       "carrier_org_id",
-      "driver_user_id"
+      "driver_user_id",
+      "plan",
+      "penalized"
      ]
     },
     "examples": [
@@ -4007,7 +4110,9 @@
        "reason": "truck broke down",
        "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
        "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
-       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06"
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "plan": false,
+       "penalized": true
       }
      },
      {
@@ -4020,7 +4125,9 @@
        "reason": "",
        "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
        "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
-       "driver_user_id": null
+       "driver_user_id": null,
+       "plan": false,
+       "penalized": false
       }
      }
     ]
@@ -5324,15 +5431,20 @@
          "asking_amount",
          "pickup_from",
          "pickup_to",
-         "note"
+         "note",
+         "plan"
         ]
        },
-       "description": "Fields this edit changed. A changed price or pickup window restarts the instant search, so every fitting driver is offered it again."
+       "description": "Fields this edit changed. A changed price or pickup window restarts the instant search, so every fitting driver is offered it again; `plan` changes when the new pickup moves the load across the instant horizon."
       },
       "updated_at": {
        "type": "string",
        "format": "date-time",
        "description": "When the edit was saved; consumers ignore an edit older than the one they hold."
+      },
+      "plan": {
+       "type": "boolean",
+       "description": "The pickup is scheduled more than goway-loads' instant horizon ahead: drivers book it from the plan list, and dispatch makes no instant offers for it."
       }
      },
      "required": [
@@ -5368,7 +5480,8 @@
       "volume_m3",
       "loaders_count",
       "changed",
-      "updated_at"
+      "updated_at",
+      "plan"
      ]
     },
     "examples": [
@@ -5409,7 +5522,8 @@
        "changed": [
         "asking_amount"
        ],
-       "updated_at": "2026-10-15T07:20:00.512000+00:00"
+       "updated_at": "2026-10-15T07:20:00.512000+00:00",
+       "plan": false
       }
      }
     ]
@@ -5648,6 +5762,209 @@
        "max_pickup_km": null,
        "min_amount": null,
        "changed_at": "2026-10-15T07:00:00.000000+00:00"
+      }
+     }
+    ]
+   },
+   "bookingPlanDue": {
+    "name": "booking.plan_due",
+    "title": "Plan due",
+    "payload": {
+     "title": "BookingPlanDue",
+     "description": "A booked plan's pickup is near: time for the reminder, time to set off, or the pickup time came and the driver has not set off. One event per stage per booking.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "booking_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "load_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "driver_user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "carrier_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "shipper_org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "stage": {
+       "title": "PlanStage",
+       "type": "string",
+       "enum": [
+        "reminder",
+        "departure",
+        "overdue"
+       ],
+       "description": "`reminder`: the pickup is `plan_reminder_minutes` away. `departure`: `plan_departure_minutes` away, the app opens navigation. `overdue`: the pickup time came and the haul has not set off; operators are told too."
+      },
+      "pickup_from": {
+       "type": "string",
+       "format": "date-time"
+      },
+      "pickup_address": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "description": "First pickup stop's address; null only when the load has no stops."
+      }
+     },
+     "required": [
+      "event_id",
+      "booking_id",
+      "load_id",
+      "driver_user_id",
+      "carrier_org_id",
+      "shipper_org_id",
+      "stage",
+      "pickup_from",
+      "pickup_address"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Departure",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "pickup_from": "2026-10-16T13:00:00+00:00",
+       "pickup_address": "Andijon, Xonabod, Sanoat ko'chasi 14",
+       "stage": "departure"
+      }
+     },
+     {
+      "name": "Overdue",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "pickup_from": "2026-10-16T13:00:00+00:00",
+       "pickup_address": "Andijon, Xonabod, Sanoat ko'chasi 14",
+       "stage": "overdue"
+      }
+     },
+     {
+      "name": "Reminder",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "pickup_from": "2026-10-16T13:00:00+00:00",
+       "pickup_address": "Andijon, Xonabod, Sanoat ko'chasi 14",
+       "stage": "reminder"
+      }
+     }
+    ]
+   },
+   "loadPlanUnclaimed": {
+    "name": "load.plan_unclaimed",
+    "title": "Plan unclaimed",
+    "payload": {
+     "title": "LoadPlanUnclaimed",
+     "description": "A plan is close to its pickup and no driver has booked it yet; the shipper is told they may raise the price. Once per load.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "load_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The shipper's organization."
+      },
+      "created_by": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The person who posted the load."
+      },
+      "from_region_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "to_region_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "pickup_from": {
+       "type": "string",
+       "format": "date-time"
+      },
+      "amount": {
+       "type": [
+        "integer",
+        "null"
+       ],
+       "minimum": 0,
+       "description": "Current price, whole so'm; null for a load without an asking price."
+      },
+      "currency": {
+       "type": "string",
+       "minLength": 3,
+       "maxLength": 3
+      },
+      "views": {
+       "type": "integer",
+       "minimum": 0,
+       "description": "Drivers who saw the plan so far."
+      }
+     },
+     "required": [
+      "event_id",
+      "load_id",
+      "org_id",
+      "created_by",
+      "from_region_id",
+      "to_region_id",
+      "pickup_from",
+      "amount",
+      "currency",
+      "views"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "created_by": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+       "from_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
+       "to_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
+       "pickup_from": "2026-10-16T13:00:00+00:00",
+       "amount": 720000,
+       "currency": "UZS",
+       "views": 9
       }
      }
     ]

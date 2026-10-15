@@ -7,8 +7,14 @@
 //     final locationFrame = locationFrameFromJson(jsonString);
 //     final offerResponseFrame = offerResponseFrameFromJson(jsonString);
 //     final pingFrame = pingFrameFromJson(jsonString);
+//     final subscribeBoardFrame = subscribeBoardFrameFromJson(jsonString);
 //     final subscribeBookingFrame = subscribeBookingFrameFromJson(jsonString);
+//     final unsubscribeBoardFrame = unsubscribeBoardFrameFromJson(jsonString);
 //     final unsubscribeBookingFrame = unsubscribeBookingFrameFromJson(jsonString);
+//     final boardLoadAddedFrame = boardLoadAddedFrameFromJson(jsonString);
+//     final boardLoadRemovedFrame = boardLoadRemovedFrameFromJson(jsonString);
+//     final boardLoadUpdatedFrame = boardLoadUpdatedFrameFromJson(jsonString);
+//     final boardSubscribedFrame = boardSubscribedFrameFromJson(jsonString);
 //     final bookingCancelledFrame = bookingCancelledFrameFromJson(jsonString);
 //     final bookingCompletedFrame = bookingCompletedFrameFromJson(jsonString);
 //     final bookingCreatedFrame = bookingCreatedFrameFromJson(jsonString);
@@ -61,13 +67,37 @@ PingFrame pingFrameFromJson(String str) => PingFrame.fromJson(json.decode(str));
 
 String pingFrameToJson(PingFrame data) => json.encode(data.toJson());
 
+SubscribeBoardFrame subscribeBoardFrameFromJson(String str) => SubscribeBoardFrame.fromJson(json.decode(str));
+
+String subscribeBoardFrameToJson(SubscribeBoardFrame data) => json.encode(data.toJson());
+
 SubscribeBookingFrame subscribeBookingFrameFromJson(String str) => SubscribeBookingFrame.fromJson(json.decode(str));
 
 String subscribeBookingFrameToJson(SubscribeBookingFrame data) => json.encode(data.toJson());
 
+UnsubscribeBoardFrame unsubscribeBoardFrameFromJson(String str) => UnsubscribeBoardFrame.fromJson(json.decode(str));
+
+String unsubscribeBoardFrameToJson(UnsubscribeBoardFrame data) => json.encode(data.toJson());
+
 UnsubscribeBookingFrame unsubscribeBookingFrameFromJson(String str) => UnsubscribeBookingFrame.fromJson(json.decode(str));
 
 String unsubscribeBookingFrameToJson(UnsubscribeBookingFrame data) => json.encode(data.toJson());
+
+BoardLoadAddedFrame boardLoadAddedFrameFromJson(String str) => BoardLoadAddedFrame.fromJson(json.decode(str));
+
+String boardLoadAddedFrameToJson(BoardLoadAddedFrame data) => json.encode(data.toJson());
+
+BoardLoadRemovedFrame boardLoadRemovedFrameFromJson(String str) => BoardLoadRemovedFrame.fromJson(json.decode(str));
+
+String boardLoadRemovedFrameToJson(BoardLoadRemovedFrame data) => json.encode(data.toJson());
+
+BoardLoadUpdatedFrame boardLoadUpdatedFrameFromJson(String str) => BoardLoadUpdatedFrame.fromJson(json.decode(str));
+
+String boardLoadUpdatedFrameToJson(BoardLoadUpdatedFrame data) => json.encode(data.toJson());
+
+BoardSubscribedFrame boardSubscribedFrameFromJson(String str) => BoardSubscribedFrame.fromJson(json.decode(str));
+
+String boardSubscribedFrameToJson(BoardSubscribedFrame data) => json.encode(data.toJson());
 
 BookingCancelledFrame bookingCancelledFrameFromJson(String str) => BookingCancelledFrame.fromJson(json.decode(str));
 
@@ -411,6 +441,54 @@ final pingFrameTypeValues = EnumValues({
 });
 
 
+///Frame `subscribe_board` an app sends to goway-realtime.
+@JsonSerializable()
+class SubscribeBoardFrame {
+    @JsonKey(name: "data")
+    final SubscribeBoard data;
+    @JsonKey(name: "type")
+    final SubscribeBoardFrameType type;
+
+    SubscribeBoardFrame({
+        required this.data,
+        required this.type,
+    });
+
+    factory SubscribeBoardFrame.fromJson(Map<String, dynamic> json) => _$SubscribeBoardFrameFromJson(json);
+
+    Map<String, dynamic> toJson() => _$SubscribeBoardFrameToJson(this);
+}
+
+
+///Hear when loads on a lane appear, change or leave the board, for a live plan list. One
+///direction per frame; a driver with a way back subscribes to both.
+@JsonSerializable()
+class SubscribeBoard {
+    @JsonKey(name: "from_region_id")
+    final String fromRegionId;
+    @JsonKey(name: "to_region_id")
+    final String toRegionId;
+
+    SubscribeBoard({
+        required this.fromRegionId,
+        required this.toRegionId,
+    });
+
+    factory SubscribeBoard.fromJson(Map<String, dynamic> json) => _$SubscribeBoardFromJson(json);
+
+    Map<String, dynamic> toJson() => _$SubscribeBoardToJson(this);
+}
+
+enum SubscribeBoardFrameType {
+    @JsonValue("subscribe_board")
+    SUBSCRIBE_BOARD
+}
+
+final subscribeBoardFrameTypeValues = EnumValues({
+    "subscribe_board": SubscribeBoardFrameType.SUBSCRIBE_BOARD
+});
+
+
 ///Frame `subscribe_booking` an app sends to goway-realtime.
 @JsonSerializable()
 class SubscribeBookingFrame {
@@ -456,6 +534,53 @@ final subscribeBookingFrameTypeValues = EnumValues({
 });
 
 
+///Frame `unsubscribe_board` an app sends to goway-realtime.
+@JsonSerializable()
+class UnsubscribeBoardFrame {
+    @JsonKey(name: "data")
+    final UnsubscribeBoard data;
+    @JsonKey(name: "type")
+    final UnsubscribeBoardFrameType type;
+
+    UnsubscribeBoardFrame({
+        required this.data,
+        required this.type,
+    });
+
+    factory UnsubscribeBoardFrame.fromJson(Map<String, dynamic> json) => _$UnsubscribeBoardFrameFromJson(json);
+
+    Map<String, dynamic> toJson() => _$UnsubscribeBoardFrameToJson(this);
+}
+
+
+///Stop hearing about a lane.
+@JsonSerializable()
+class UnsubscribeBoard {
+    @JsonKey(name: "from_region_id")
+    final String fromRegionId;
+    @JsonKey(name: "to_region_id")
+    final String toRegionId;
+
+    UnsubscribeBoard({
+        required this.fromRegionId,
+        required this.toRegionId,
+    });
+
+    factory UnsubscribeBoard.fromJson(Map<String, dynamic> json) => _$UnsubscribeBoardFromJson(json);
+
+    Map<String, dynamic> toJson() => _$UnsubscribeBoardToJson(this);
+}
+
+enum UnsubscribeBoardFrameType {
+    @JsonValue("unsubscribe_board")
+    UNSUBSCRIBE_BOARD
+}
+
+final unsubscribeBoardFrameTypeValues = EnumValues({
+    "unsubscribe_board": UnsubscribeBoardFrameType.UNSUBSCRIBE_BOARD
+});
+
+
 ///Frame `unsubscribe_booking` an app sends to goway-realtime.
 @JsonSerializable()
 class UnsubscribeBookingFrame {
@@ -497,6 +622,249 @@ enum UnsubscribeBookingFrameType {
 
 final unsubscribeBookingFrameTypeValues = EnumValues({
     "unsubscribe_booking": UnsubscribeBookingFrameType.UNSUBSCRIBE_BOOKING
+});
+
+
+///Frame `board_load_added` goway-realtime sends to an app.
+@JsonSerializable()
+class BoardLoadAddedFrame {
+    @JsonKey(name: "data")
+    final BoardLoadAdded data;
+    
+    ///When the server sent the frame, RFC 3339 UTC.
+    @JsonKey(name: "ts")
+    final DateTime ts;
+    @JsonKey(name: "type")
+    final BoardLoadAddedFrameType type;
+
+    BoardLoadAddedFrame({
+        required this.data,
+        required this.ts,
+        required this.type,
+    });
+
+    factory BoardLoadAddedFrame.fromJson(Map<String, dynamic> json) => _$BoardLoadAddedFrameFromJson(json);
+
+    Map<String, dynamic> toJson() => _$BoardLoadAddedFrameToJson(this);
+}
+
+
+///A load appeared on a subscribed lane: newly posted or back after a cancelled booking. A
+///signal; the app reads the list again over REST.
+@JsonSerializable()
+class BoardLoadAdded {
+    @JsonKey(name: "from_region_id")
+    final String fromRegionId;
+    @JsonKey(name: "load_id")
+    final String loadId;
+    @JsonKey(name: "plan")
+    final bool plan;
+    @JsonKey(name: "to_region_id")
+    final String toRegionId;
+
+    BoardLoadAdded({
+        required this.fromRegionId,
+        required this.loadId,
+        required this.plan,
+        required this.toRegionId,
+    });
+
+    factory BoardLoadAdded.fromJson(Map<String, dynamic> json) => _$BoardLoadAddedFromJson(json);
+
+    Map<String, dynamic> toJson() => _$BoardLoadAddedToJson(this);
+}
+
+enum BoardLoadAddedFrameType {
+    @JsonValue("board_load_added")
+    BOARD_LOAD_ADDED
+}
+
+final boardLoadAddedFrameTypeValues = EnumValues({
+    "board_load_added": BoardLoadAddedFrameType.BOARD_LOAD_ADDED
+});
+
+
+///Frame `board_load_removed` goway-realtime sends to an app.
+@JsonSerializable()
+class BoardLoadRemovedFrame {
+    @JsonKey(name: "data")
+    final BoardLoadRemoved data;
+    
+    ///When the server sent the frame, RFC 3339 UTC.
+    @JsonKey(name: "ts")
+    final DateTime ts;
+    @JsonKey(name: "type")
+    final BoardLoadRemovedFrameType type;
+
+    BoardLoadRemovedFrame({
+        required this.data,
+        required this.ts,
+        required this.type,
+    });
+
+    factory BoardLoadRemovedFrame.fromJson(Map<String, dynamic> json) => _$BoardLoadRemovedFrameFromJson(json);
+
+    Map<String, dynamic> toJson() => _$BoardLoadRemovedFrameToJson(this);
+}
+
+
+///A load left a subscribed lane's board. A signal; the app drops it from the list.
+@JsonSerializable()
+class BoardLoadRemoved {
+    @JsonKey(name: "from_region_id")
+    final String fromRegionId;
+    @JsonKey(name: "load_id")
+    final String loadId;
+    @JsonKey(name: "reason")
+    final BoardRemovalReason reason;
+    @JsonKey(name: "to_region_id")
+    final String toRegionId;
+
+    BoardLoadRemoved({
+        required this.fromRegionId,
+        required this.loadId,
+        required this.reason,
+        required this.toRegionId,
+    });
+
+    factory BoardLoadRemoved.fromJson(Map<String, dynamic> json) => _$BoardLoadRemovedFromJson(json);
+
+    Map<String, dynamic> toJson() => _$BoardLoadRemovedToJson(this);
+}
+
+enum BoardRemovalReason {
+    @JsonValue("booked")
+    BOOKED,
+    @JsonValue("cancelled")
+    CANCELLED,
+    @JsonValue("expired")
+    EXPIRED
+}
+
+final boardRemovalReasonValues = EnumValues({
+    "booked": BoardRemovalReason.BOOKED,
+    "cancelled": BoardRemovalReason.CANCELLED,
+    "expired": BoardRemovalReason.EXPIRED
+});
+
+enum BoardLoadRemovedFrameType {
+    @JsonValue("board_load_removed")
+    BOARD_LOAD_REMOVED
+}
+
+final boardLoadRemovedFrameTypeValues = EnumValues({
+    "board_load_removed": BoardLoadRemovedFrameType.BOARD_LOAD_REMOVED
+});
+
+
+///Frame `board_load_updated` goway-realtime sends to an app.
+@JsonSerializable()
+class BoardLoadUpdatedFrame {
+    @JsonKey(name: "data")
+    final BoardLoadUpdated data;
+    
+    ///When the server sent the frame, RFC 3339 UTC.
+    @JsonKey(name: "ts")
+    final DateTime ts;
+    @JsonKey(name: "type")
+    final BoardLoadUpdatedFrameType type;
+
+    BoardLoadUpdatedFrame({
+        required this.data,
+        required this.ts,
+        required this.type,
+    });
+
+    factory BoardLoadUpdatedFrame.fromJson(Map<String, dynamic> json) => _$BoardLoadUpdatedFrameFromJson(json);
+
+    Map<String, dynamic> toJson() => _$BoardLoadUpdatedFrameToJson(this);
+}
+
+
+///A load on a subscribed lane was edited: price, pickup window or note. A signal; the app
+///reads it again over REST.
+@JsonSerializable()
+class BoardLoadUpdated {
+    @JsonKey(name: "from_region_id")
+    final String fromRegionId;
+    @JsonKey(name: "load_id")
+    final String loadId;
+    @JsonKey(name: "plan")
+    final bool plan;
+    @JsonKey(name: "to_region_id")
+    final String toRegionId;
+
+    BoardLoadUpdated({
+        required this.fromRegionId,
+        required this.loadId,
+        required this.plan,
+        required this.toRegionId,
+    });
+
+    factory BoardLoadUpdated.fromJson(Map<String, dynamic> json) => _$BoardLoadUpdatedFromJson(json);
+
+    Map<String, dynamic> toJson() => _$BoardLoadUpdatedToJson(this);
+}
+
+enum BoardLoadUpdatedFrameType {
+    @JsonValue("board_load_updated")
+    BOARD_LOAD_UPDATED
+}
+
+final boardLoadUpdatedFrameTypeValues = EnumValues({
+    "board_load_updated": BoardLoadUpdatedFrameType.BOARD_LOAD_UPDATED
+});
+
+
+///Frame `board_subscribed` goway-realtime sends to an app.
+@JsonSerializable()
+class BoardSubscribedFrame {
+    @JsonKey(name: "data")
+    final BoardSubscribed data;
+    
+    ///When the server sent the frame, RFC 3339 UTC.
+    @JsonKey(name: "ts")
+    final DateTime ts;
+    @JsonKey(name: "type")
+    final BoardSubscribedFrameType type;
+
+    BoardSubscribedFrame({
+        required this.data,
+        required this.ts,
+        required this.type,
+    });
+
+    factory BoardSubscribedFrame.fromJson(Map<String, dynamic> json) => _$BoardSubscribedFrameFromJson(json);
+
+    Map<String, dynamic> toJson() => _$BoardSubscribedFrameToJson(this);
+}
+
+
+///`subscribe_board` was accepted.
+@JsonSerializable()
+class BoardSubscribed {
+    @JsonKey(name: "from_region_id")
+    final String fromRegionId;
+    @JsonKey(name: "to_region_id")
+    final String toRegionId;
+
+    BoardSubscribed({
+        required this.fromRegionId,
+        required this.toRegionId,
+    });
+
+    factory BoardSubscribed.fromJson(Map<String, dynamic> json) => _$BoardSubscribedFromJson(json);
+
+    Map<String, dynamic> toJson() => _$BoardSubscribedToJson(this);
+}
+
+enum BoardSubscribedFrameType {
+    @JsonValue("board_subscribed")
+    BOARD_SUBSCRIBED
+}
+
+final boardSubscribedFrameTypeValues = EnumValues({
+    "board_subscribed": BoardSubscribedFrameType.BOARD_SUBSCRIBED
 });
 
 
@@ -548,6 +916,16 @@ class BookingCancelled {
     @JsonKey(name: "load_id")
     final String loadId;
     
+    ///The cancellation counts against the driver's acceptance rate: a driver's cancellation of
+    ///an instant haul, or of a plan later than goway-loads' free-cancel window before pickup.
+    ///Always false for shipper and operator cancellations.
+    @JsonKey(name: "penalized")
+    final bool penalized;
+    
+    ///The cancelled booking was a plan.
+    @JsonKey(name: "plan")
+    final bool plan;
+    
     ///What the canceller wrote; empty when nothing was written.
     @JsonKey(name: "reason")
     final String reason;
@@ -561,6 +939,8 @@ class BookingCancelled {
         required this.driverUserId,
         required this.eventId,
         required this.loadId,
+        required this.penalized,
+        required this.plan,
         required this.reason,
         required this.shipperOrgId,
     });
@@ -835,6 +1215,10 @@ class BookingCreated {
     ///Latest pickup; null when not given.
     @JsonKey(name: "pickup_to")
     final DateTime? pickupTo;
+    
+    ///The driver booked a plan: a load scheduled ahead, taken from the plan list.
+    @JsonKey(name: "plan")
+    final bool plan;
     @JsonKey(name: "shipper_org_id")
     final String shipperOrgId;
     
@@ -857,6 +1241,7 @@ class BookingCreated {
         required this.loadId,
         required this.pickupFrom,
         required this.pickupTo,
+        required this.plan,
         required this.shipperOrgId,
         required this.shipperUserId,
         this.source,

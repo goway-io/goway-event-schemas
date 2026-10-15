@@ -69,6 +69,18 @@
     },
     {
       "$ref": "./server/search_exhausted.json"
+    },
+    {
+      "$ref": "./server/board_subscribed.json"
+    },
+    {
+      "$ref": "./server/board_load_added.json"
+    },
+    {
+      "$ref": "./server/board_load_updated.json"
+    },
+    {
+      "$ref": "./server/board_load_removed.json"
     }
   ]
 }

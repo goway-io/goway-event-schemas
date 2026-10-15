@@ -1,0 +1,11 @@
+{
+  "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+  "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+  "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+  "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+  "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+  "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+  "pickup_from": "2026-10-16T13:00:00+00:00",
+  "pickup_address": "Andijon, Xonabod, Sanoat ko'chasi 14",
+  "stage": "overdue"
+}

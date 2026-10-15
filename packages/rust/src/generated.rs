@@ -57,6 +57,114 @@ pub struct AuthFrame {
     #[serde(rename = "type")]
     pub type_: ::std::string::String,
 }
+#[doc = "A load appeared on a subscribed lane: newly posted or back after a cancelled booking. A signal; the app reads the list again over REST."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BoardLoadAdded {
+    pub from_region_id: ::uuid::Uuid,
+    pub load_id: ::uuid::Uuid,
+    pub plan: bool,
+    pub to_region_id: ::uuid::Uuid,
+}
+#[doc = "Frame `board_load_added` goway-realtime sends to an app."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BoardLoadAddedFrame {
+    pub data: BoardLoadAdded,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "A load left a subscribed lane's board. A signal; the app drops it from the list."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BoardLoadRemoved {
+    pub from_region_id: ::uuid::Uuid,
+    pub load_id: ::uuid::Uuid,
+    pub reason: BoardRemovalReason,
+    pub to_region_id: ::uuid::Uuid,
+}
+#[doc = "Frame `board_load_removed` goway-realtime sends to an app."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BoardLoadRemovedFrame {
+    pub data: BoardLoadRemoved,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "A load on a subscribed lane was edited: price, pickup window or note. A signal; the app reads it again over REST."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BoardLoadUpdated {
+    pub from_region_id: ::uuid::Uuid,
+    pub load_id: ::uuid::Uuid,
+    pub plan: bool,
+    pub to_region_id: ::uuid::Uuid,
+}
+#[doc = "Frame `board_load_updated` goway-realtime sends to an app."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BoardLoadUpdatedFrame {
+    pub data: BoardLoadUpdated,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "`BoardRemovalReason`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum BoardRemovalReason {
+    #[serde(rename = "booked")]
+    Booked,
+    #[serde(rename = "cancelled")]
+    Cancelled,
+    #[serde(rename = "expired")]
+    Expired,
+}
+impl ::std::fmt::Display for BoardRemovalReason {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Booked => f.write_str("booked"),
+            Self::Cancelled => f.write_str("cancelled"),
+            Self::Expired => f.write_str("expired"),
+        }
+    }
+}
+impl ::std::str::FromStr for BoardRemovalReason {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "booked" => Ok(Self::Booked),
+            "cancelled" => Ok(Self::Cancelled),
+            "expired" => Ok(Self::Expired),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for BoardRemovalReason {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for BoardRemovalReason {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "`subscribe_board` was accepted."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BoardSubscribed {
+    pub from_region_id: ::uuid::Uuid,
+    pub to_region_id: ::uuid::Uuid,
+}
+#[doc = "Frame `board_subscribed` goway-realtime sends to an app."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BoardSubscribedFrame {
+    pub data: BoardSubscribed,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
 #[doc = "One side of a delivered haul says it settled at another sum; nothing changes until an operator decides."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct BookingAmountClaimed {
@@ -202,6 +310,10 @@ pub struct BookingCancelled {
     #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
     pub event_id: ::uuid::Uuid,
     pub load_id: ::uuid::Uuid,
+    #[doc = "The cancellation counts against the driver's acceptance rate: a driver's cancellation of an instant haul, or of a plan later than goway-loads' free-cancel window before pickup. Always false for shipper and operator cancellations."]
+    pub penalized: bool,
+    #[doc = "The cancelled booking was a plan."]
+    pub plan: bool,
     #[doc = "What the canceller wrote; empty when nothing was written."]
     pub reason: ::std::string::String,
     pub shipper_org_id: ::uuid::Uuid,
@@ -334,6 +446,8 @@ pub struct BookingCreated {
     #[doc = "Latest pickup; null when not given."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub pickup_to: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
+    #[doc = "The driver booked a plan: a load scheduled ahead, taken from the plan list."]
+    pub plan: bool,
     pub shipper_org_id: ::uuid::Uuid,
     #[doc = "The person who posted the load; they hear `booking_created` on the socket too."]
     pub shipper_user_id: ::uuid::Uuid,
@@ -435,6 +549,22 @@ pub struct BookingEtaUpdated {
     pub status: BookingStatus,
     #[doc = "The booked vehicle's truck class code."]
     pub truck_class: ::std::string::String,
+}
+#[doc = "A booked plan's pickup is near: time for the reminder, time to set off, or the pickup time came and the driver has not set off. One event per stage per booking."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct BookingPlanDue {
+    pub booking_id: ::uuid::Uuid,
+    pub carrier_org_id: ::uuid::Uuid,
+    pub driver_user_id: ::uuid::Uuid,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub load_id: ::uuid::Uuid,
+    #[doc = "First pickup stop's address; null only when the load has no stops."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub pickup_address: ::std::option::Option<::std::string::String>,
+    pub pickup_from: ::chrono::DateTime<::chrono::offset::Utc>,
+    pub shipper_org_id: ::uuid::Uuid,
+    pub stage: PlanStage,
 }
 #[doc = "Hours before a truck is empty: loads are waiting in the region where it unloads. Sent once per haul."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
@@ -764,6 +894,12 @@ pub enum ClientFrame {
     #[doc = "Frame `unsubscribe_booking` an app sends to goway-realtime."]
     #[serde(rename = "unsubscribe_booking")]
     UnsubscribeBooking { data: UnsubscribeBooking },
+    #[doc = "Frame `subscribe_board` an app sends to goway-realtime."]
+    #[serde(rename = "subscribe_board")]
+    SubscribeBoard { data: SubscribeBoard },
+    #[doc = "Frame `unsubscribe_board` an app sends to goway-realtime."]
+    #[serde(rename = "unsubscribe_board")]
+    UnsubscribeBoard { data: UnsubscribeBoard },
 }
 #[doc = "Who closed the haul; `system` is the auto-complete sweep."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -1432,6 +1568,8 @@ pub enum LoadChangedField {
     PickupTo,
     #[serde(rename = "note")]
     Note,
+    #[serde(rename = "plan")]
+    Plan,
 }
 impl ::std::fmt::Display for LoadChangedField {
     fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
@@ -1440,6 +1578,7 @@ impl ::std::fmt::Display for LoadChangedField {
             Self::PickupFrom => f.write_str("pickup_from"),
             Self::PickupTo => f.write_str("pickup_to"),
             Self::Note => f.write_str("note"),
+            Self::Plan => f.write_str("plan"),
         }
     }
 }
@@ -1451,6 +1590,7 @@ impl ::std::str::FromStr for LoadChangedField {
             "pickup_from" => Ok(Self::PickupFrom),
             "pickup_to" => Ok(Self::PickupTo),
             "note" => Ok(Self::Note),
+            "plan" => Ok(Self::Plan),
             _ => Err("invalid value".into()),
         }
     }
@@ -1475,6 +1615,75 @@ pub struct LoadExpired {
     pub load_id: ::uuid::Uuid,
     #[doc = "The shipper organization."]
     pub org_id: ::uuid::Uuid,
+}
+#[doc = "A plan is close to its pickup and no driver has booked it yet; the shipper is told they may raise the price. Once per load."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct LoadPlanUnclaimed {
+    #[doc = "Current price, whole so'm; null for a load without an asking price."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub amount: ::std::option::Option<u64>,
+    #[doc = "The person who posted the load."]
+    pub created_by: ::uuid::Uuid,
+    pub currency: LoadPlanUnclaimedCurrency,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub from_region_id: ::uuid::Uuid,
+    pub load_id: ::uuid::Uuid,
+    #[doc = "The shipper's organization."]
+    pub org_id: ::uuid::Uuid,
+    pub pickup_from: ::chrono::DateTime<::chrono::offset::Utc>,
+    pub to_region_id: ::uuid::Uuid,
+    #[doc = "Drivers who saw the plan so far."]
+    pub views: u64,
+}
+#[doc = "`LoadPlanUnclaimedCurrency`"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct LoadPlanUnclaimedCurrency(::std::string::String);
+impl ::std::ops::Deref for LoadPlanUnclaimedCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<LoadPlanUnclaimedCurrency> for ::std::string::String {
+    fn from(value: LoadPlanUnclaimedCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for LoadPlanUnclaimedCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 3usize {
+            return Err("longer than 3 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for LoadPlanUnclaimedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for LoadPlanUnclaimedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for LoadPlanUnclaimedCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
 }
 #[doc = "A load is open on the board: just posted (one event per truck of a multi-truck post), or back on the board after its booking was cancelled, which adds `reposted: true`."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
@@ -1534,6 +1743,8 @@ pub struct LoadPosted {
     #[doc = "Latest pickup, also the posting's expiry; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub pickup_to: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
+    #[doc = "The pickup is scheduled more than goway-loads' instant horizon ahead: drivers book it from the plan list, and dispatch makes no instant offers for it."]
+    pub plan: bool,
     pub price_mode: PriceMode,
     #[doc = "Present, and true, only when a cancelled booking put the load back."]
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
@@ -1614,7 +1825,7 @@ pub struct LoadUpdated {
     pub bonus_amount: ::std::option::Option<u64>,
     #[doc = "Cargo type code from the reference catalogue."]
     pub cargo_category: ::std::string::String,
-    #[doc = "Fields this edit changed. A changed price or pickup window restarts the instant search, so every fitting driver is offered it again."]
+    #[doc = "Fields this edit changed. A changed price or pickup window restarts the instant search, so every fitting driver is offered it again; `plan` changes when the new pickup moves the load across the instant horizon."]
     pub changed: ::std::vec::Vec<LoadChangedField>,
     #[doc = "The person who posted the load; dispatch tells them how the search goes."]
     pub created_by: ::uuid::Uuid,
@@ -1661,6 +1872,8 @@ pub struct LoadUpdated {
     #[doc = "Latest pickup, also the posting's expiry; null when not given. ISO 8601 with offset, as Python's `isoformat()` writes it."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub pickup_to: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
+    #[doc = "The pickup is scheduled more than goway-loads' instant horizon ahead: drivers book it from the plan list, and dispatch makes no instant offers for it."]
+    pub plan: bool,
     pub price_mode: PriceMode,
     #[doc = "Pickup and drop-off stops together."]
     pub stops_count: u64,
@@ -2520,6 +2733,48 @@ pub struct PingFrame {
     #[serde(rename = "type")]
     pub type_: ::std::string::String,
 }
+#[doc = "`reminder`: the pickup is `plan_reminder_minutes` away. `departure`: `plan_departure_minutes` away, the app opens navigation. `overdue`: the pickup time came and the haul has not set off; operators are told too."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum PlanStage {
+    #[serde(rename = "reminder")]
+    Reminder,
+    #[serde(rename = "departure")]
+    Departure,
+    #[serde(rename = "overdue")]
+    Overdue,
+}
+impl ::std::fmt::Display for PlanStage {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Reminder => f.write_str("reminder"),
+            Self::Departure => f.write_str("departure"),
+            Self::Overdue => f.write_str("overdue"),
+        }
+    }
+}
+impl ::std::str::FromStr for PlanStage {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "reminder" => Ok(Self::Reminder),
+            "departure" => Ok(Self::Departure),
+            "overdue" => Ok(Self::Overdue),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for PlanStage {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for PlanStage {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
 #[doc = "The answer to `ping`; nothing in it."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 #[serde(transparent)]
@@ -2928,6 +3183,34 @@ pub enum ServerFrame {
         #[doc = "When the server sent the frame, RFC 3339 UTC."]
         ts: ::chrono::DateTime<::chrono::offset::Utc>,
     },
+    #[doc = "Frame `board_subscribed` goway-realtime sends to an app."]
+    #[serde(rename = "board_subscribed")]
+    BoardSubscribed {
+        data: BoardSubscribed,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `board_load_added` goway-realtime sends to an app."]
+    #[serde(rename = "board_load_added")]
+    BoardLoadAdded {
+        data: BoardLoadAdded,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `board_load_updated` goway-realtime sends to an app."]
+    #[serde(rename = "board_load_updated")]
+    BoardLoadUpdated {
+        data: BoardLoadUpdated,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `board_load_removed` goway-realtime sends to an app."]
+    #[serde(rename = "board_load_removed")]
+    BoardLoadRemoved {
+        data: BoardLoadRemoved,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
 }
 #[doc = "Why every session of the user was closed. An operator's own note on a block stays with staff."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -3086,6 +3369,19 @@ impl ::std::convert::TryFrom<::std::string::String> for SubmittedDocumentStatus 
     fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
     }
+}
+#[doc = "Hear when loads on a lane appear, change or leave the board, for a live plan list. One direction per frame; a driver with a way back subscribes to both."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct SubscribeBoard {
+    pub from_region_id: ::uuid::Uuid,
+    pub to_region_id: ::uuid::Uuid,
+}
+#[doc = "Frame `subscribe_board` an app sends to goway-realtime."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct SubscribeBoardFrame {
+    pub data: SubscribeBoard,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
 }
 #[doc = "Watch a booking of the caller's organization: status, arrival window and the driver's position."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
@@ -3284,6 +3580,19 @@ impl ::std::convert::TryFrom<::std::string::String> for TicketReplyStatus {
     fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
     }
+}
+#[doc = "Stop hearing about a lane."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct UnsubscribeBoard {
+    pub from_region_id: ::uuid::Uuid,
+    pub to_region_id: ::uuid::Uuid,
+}
+#[doc = "Frame `unsubscribe_board` an app sends to goway-realtime."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct UnsubscribeBoardFrame {
+    pub data: UnsubscribeBoard,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
 }
 #[doc = "Stop watching a booking."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]

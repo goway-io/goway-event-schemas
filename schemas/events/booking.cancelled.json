@@ -47,6 +47,14 @@
       ],
       "format": "uuid",
       "description": "Null when no driver was assigned."
+    },
+    "plan": {
+      "type": "boolean",
+      "description": "The cancelled booking was a plan."
+    },
+    "penalized": {
+      "type": "boolean",
+      "description": "The cancellation counts against the driver's acceptance rate: a driver's cancellation of an instant haul, or of a plan later than goway-loads' free-cancel window before pickup. Always false for shipper and operator cancellations."
     }
   },
   "required": [
@@ -57,6 +65,8 @@
     "reason",
     "shipper_org_id",
     "carrier_org_id",
-    "driver_user_id"
+    "driver_user_id",
+    "plan",
+    "penalized"
   ]
 }

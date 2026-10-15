@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UnsubscribeBoardFrame",
+  "description": "Frame `unsubscribe_board` an app sends to goway-realtime.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "unsubscribe_board"
+    },
+    "data": {
+      "title": "UnsubscribeBoard",
+      "description": "Stop hearing about a lane.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "from_region_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "to_region_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "from_region_id",
+        "to_region_id"
+      ]
+    }
+  },
+  "required": [
+    "type",
+    "data"
+  ]
+}

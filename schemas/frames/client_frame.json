@@ -27,6 +27,12 @@
     },
     {
       "$ref": "./client/unsubscribe_booking.json"
+    },
+    {
+      "$ref": "./client/subscribe_board.json"
+    },
+    {
+      "$ref": "./client/unsubscribe_board.json"
     }
   ]
 }

@@ -29,5 +29,6 @@
   "duration_min": 330,
   "cargo_category": "food",
   "volume_m3": 24.0,
-  "loaders_count": 2
+  "loaders_count": 2,
+  "plan": false
 }

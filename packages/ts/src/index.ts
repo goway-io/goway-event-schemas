@@ -6,6 +6,11 @@
  */
 export type AccountType = "individual" | "business";
 /**
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BoardRemovalReason".
+ */
+export type BoardRemovalReason = "booked" | "cancelled" | "expired";
+/**
  * Which side claims.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -44,6 +49,13 @@ export type BookingSource = "instant";
  * via the `definition` "EtaStop".
  */
 export type EtaStop = "pickup" | "dropoff";
+/**
+ * `reminder`: the pickup is `plan_reminder_minutes` away. `departure`: `plan_departure_minutes` away, the app opens navigation. `overdue`: the pickup time came and the haul has not set off; operators are told too.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "PlanStage".
+ */
+export type PlanStage = "reminder" | "departure" | "overdue";
 /**
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "DocumentKind".
@@ -84,7 +96,9 @@ export type ClientFrame =
   | LocationFrame
   | OfferResponseFrame
   | SubscribeBookingFrame
-  | UnsubscribeBookingFrame;
+  | UnsubscribeBookingFrame
+  | SubscribeBoardFrame
+  | UnsubscribeBoardFrame;
 /**
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "OfferAction".
@@ -111,7 +125,7 @@ export type IneligibleReason = "debt" | "subscription";
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "LoadChangedField".
  */
-export type LoadChangedField = "asking_amount" | "pickup_from" | "pickup_to" | "note";
+export type LoadChangedField = "asking_amount" | "pickup_from" | "pickup_to" | "note" | "plan";
 /**
  * How the cargo goes in.
  *
@@ -195,7 +209,11 @@ export type ServerFrame =
   | ErrorFrame
   | VerificationChangedFrame
   | SearchProgressFrame
-  | SearchExhaustedFrame;
+  | SearchExhaustedFrame
+  | BoardSubscribedFrame
+  | BoardLoadAddedFrame
+  | BoardLoadUpdatedFrame
+  | BoardLoadRemovedFrame;
 /**
  * Why every session of the user was closed. An operator's own note on a block stays with staff.
  *
@@ -294,6 +312,108 @@ export interface AuthFrame {
   data: Auth;
 }
 /**
+ * A load appeared on a subscribed lane: newly posted or back after a cancelled booking. A signal; the app reads the list again over REST.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BoardLoadAdded".
+ */
+export interface BoardLoadAdded {
+  load_id: string;
+  from_region_id: string;
+  to_region_id: string;
+  plan: boolean;
+}
+/**
+ * Frame `board_load_added` goway-realtime sends to an app.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BoardLoadAddedFrame".
+ */
+export interface BoardLoadAddedFrame {
+  type: "board_load_added";
+  data: BoardLoadAdded;
+  /**
+   * When the server sent the frame, RFC 3339 UTC.
+   */
+  ts: string;
+}
+/**
+ * A load left a subscribed lane's board. A signal; the app drops it from the list.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BoardLoadRemoved".
+ */
+export interface BoardLoadRemoved {
+  load_id: string;
+  from_region_id: string;
+  to_region_id: string;
+  reason: BoardRemovalReason;
+}
+/**
+ * Frame `board_load_removed` goway-realtime sends to an app.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BoardLoadRemovedFrame".
+ */
+export interface BoardLoadRemovedFrame {
+  type: "board_load_removed";
+  data: BoardLoadRemoved;
+  /**
+   * When the server sent the frame, RFC 3339 UTC.
+   */
+  ts: string;
+}
+/**
+ * A load on a subscribed lane was edited: price, pickup window or note. A signal; the app reads it again over REST.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BoardLoadUpdated".
+ */
+export interface BoardLoadUpdated {
+  load_id: string;
+  from_region_id: string;
+  to_region_id: string;
+  plan: boolean;
+}
+/**
+ * Frame `board_load_updated` goway-realtime sends to an app.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BoardLoadUpdatedFrame".
+ */
+export interface BoardLoadUpdatedFrame {
+  type: "board_load_updated";
+  data: BoardLoadUpdated;
+  /**
+   * When the server sent the frame, RFC 3339 UTC.
+   */
+  ts: string;
+}
+/**
+ * `subscribe_board` was accepted.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BoardSubscribed".
+ */
+export interface BoardSubscribed {
+  from_region_id: string;
+  to_region_id: string;
+}
+/**
+ * Frame `board_subscribed` goway-realtime sends to an app.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BoardSubscribedFrame".
+ */
+export interface BoardSubscribedFrame {
+  type: "board_subscribed";
+  data: BoardSubscribed;
+  /**
+   * When the server sent the frame, RFC 3339 UTC.
+   */
+  ts: string;
+}
+/**
  * One side of a delivered haul says it settled at another sum; nothing changes until an operator decides.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -377,6 +497,14 @@ export interface BookingCancelled {
    * Null when no driver was assigned.
    */
   driver_user_id: string | null;
+  /**
+   * The cancelled booking was a plan.
+   */
+  plan: boolean;
+  /**
+   * The cancellation counts against the driver's acceptance rate: a driver's cancellation of an instant haul, or of a plan later than goway-loads' free-cancel window before pickup. Always false for shipper and operator cancellations.
+   */
+  penalized: boolean;
 }
 /**
  * Frame `booking_cancelled` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.cancelled` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
@@ -529,6 +657,10 @@ export interface BookingCreated {
    * End of that span; null when the haul's duration is unknown, which keeps the driver busy until the booking ends.
    */
   busy_until: string | null;
+  /**
+   * The driver booked a plan: a load scheduled ahead, taken from the plan list.
+   */
+  plan: boolean;
 }
 /**
  * Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
@@ -599,6 +731,29 @@ export interface BookingEtaUpdated {
    * The booked vehicle's truck class code.
    */
   truck_class: string;
+}
+/**
+ * A booked plan's pickup is near: time for the reminder, time to set off, or the pickup time came and the driver has not set off. One event per stage per booking.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BookingPlanDue".
+ */
+export interface BookingPlanDue {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  booking_id: string;
+  load_id: string;
+  driver_user_id: string;
+  carrier_org_id: string;
+  shipper_org_id: string;
+  stage: PlanStage;
+  pickup_from: string;
+  /**
+   * First pickup stop's address; null only when the load has no stops.
+   */
+  pickup_address: string | null;
 }
 /**
  * Hours before a truck is empty: loads are waiting in the region where it unloads. Sent once per haul.
@@ -921,6 +1076,46 @@ export interface UnsubscribeBookingFrame {
  */
 export interface UnsubscribeBooking {
   booking_id: string;
+}
+/**
+ * Frame `subscribe_board` an app sends to goway-realtime.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "SubscribeBoardFrame".
+ */
+export interface SubscribeBoardFrame {
+  type: "subscribe_board";
+  data: SubscribeBoard;
+}
+/**
+ * Hear when loads on a lane appear, change or leave the board, for a live plan list. One direction per frame; a driver with a way back subscribes to both.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "SubscribeBoard".
+ */
+export interface SubscribeBoard {
+  from_region_id: string;
+  to_region_id: string;
+}
+/**
+ * Frame `unsubscribe_board` an app sends to goway-realtime.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "UnsubscribeBoardFrame".
+ */
+export interface UnsubscribeBoardFrame {
+  type: "unsubscribe_board";
+  data: UnsubscribeBoard;
+}
+/**
+ * Stop hearing about a lane.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "UnsubscribeBoard".
+ */
+export interface UnsubscribeBoard {
+  from_region_id: string;
+  to_region_id: string;
 }
 /**
  * The `auth` frame was accepted; the socket is live.
@@ -1322,6 +1517,39 @@ export interface LoadExpired {
   org_id: string;
 }
 /**
+ * A plan is close to its pickup and no driver has booked it yet; the shipper is told they may raise the price. Once per load.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "LoadPlanUnclaimed".
+ */
+export interface LoadPlanUnclaimed {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  load_id: string;
+  /**
+   * The shipper's organization.
+   */
+  org_id: string;
+  /**
+   * The person who posted the load.
+   */
+  created_by: string;
+  from_region_id: string;
+  to_region_id: string;
+  pickup_from: string;
+  /**
+   * Current price, whole so'm; null for a load without an asking price.
+   */
+  amount: number | null;
+  currency: string;
+  /**
+   * Drivers who saw the plan so far.
+   */
+  views: number;
+}
+/**
  * A load is open on the board: just posted (one event per truck of a multi-truck post), or back on the board after its booking was cancelled, which adds `reposted: true`.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -1432,6 +1660,10 @@ export interface LoadPosted {
    * Loaders the shipper ordered with the truck.
    */
   loaders_count: number;
+  /**
+   * The pickup is scheduled more than goway-loads' instant horizon ahead: drivers book it from the plan list, and dispatch makes no instant offers for it.
+   */
+  plan: boolean;
 }
 /**
  * A load still open on the board was edited by its shipper or an operator: the price, the pickup window or the note. Carries the whole load as `load.posted` does, plus what changed.
@@ -1541,7 +1773,7 @@ export interface LoadUpdated {
    */
   loaders_count: number;
   /**
-   * Fields this edit changed. A changed price or pickup window restarts the instant search, so every fitting driver is offered it again.
+   * Fields this edit changed. A changed price or pickup window restarts the instant search, so every fitting driver is offered it again; `plan` changes when the new pickup moves the load across the instant horizon.
    *
    * @minItems 1
    */
@@ -1550,6 +1782,10 @@ export interface LoadUpdated {
    * When the edit was saved; consumers ignore an edit older than the one they hold.
    */
   updated_at: string;
+  /**
+   * The pickup is scheduled more than goway-loads' instant horizon ahead: drivers book it from the plan list, and dispatch makes no instant offers for it.
+   */
+  plan: boolean;
 }
 /**
  * A driver's GPS position during an active booking, sampled every `location_sample_seconds` as evidence of the haul.

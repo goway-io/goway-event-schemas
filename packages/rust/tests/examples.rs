@@ -73,6 +73,8 @@ fn through(title: &str, value: &Value) -> Result<Value, serde_json::Error> {
         "BookingAmountClaimed" => round_trip::<goway_events::BookingAmountClaimed>(value),
         "BookingAmountSettled" => round_trip::<goway_events::BookingAmountSettled>(value),
         "BookingReturnLoads" => round_trip::<goway_events::BookingReturnLoads>(value),
+        "BookingPlanDue" => round_trip::<goway_events::BookingPlanDue>(value),
+        "LoadPlanUnclaimed" => round_trip::<goway_events::LoadPlanUnclaimed>(value),
         "RatingCreated" => round_trip::<goway_events::RatingCreated>(value),
         "WalletEntryPosted" => round_trip::<goway_events::WalletEntryPosted>(value),
         "WalletEligibilityChanged" => round_trip::<goway_events::WalletEligibilityChanged>(value),

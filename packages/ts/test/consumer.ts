@@ -34,6 +34,13 @@ export function describe(frame: ServerFrame): string {
       return frame.data.reason;
     case "search_progress":
       return `${frame.data.seen} saw it since ${frame.data.started_at}`;
+    case "board_subscribed":
+      return `${frame.data.from_region_id}→${frame.data.to_region_id}`;
+    case "board_load_added":
+    case "board_load_updated":
+      return `${frame.data.load_id} plan: ${frame.data.plan}`;
+    case "board_load_removed":
+      return `${frame.data.load_id} ${frame.data.reason}`;
     case "search_exhausted":
       return `nobody took it at ${frame.data.amount}; try ${frame.data.suggested_amount} ${frame.data.currency}`;
     case "notification":

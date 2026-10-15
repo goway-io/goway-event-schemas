@@ -44,6 +44,24 @@
     "unsubscribeBooking": {
      "$ref": "#/components/messages/unsubscribeBooking"
     },
+    "subscribeBoard": {
+     "$ref": "#/components/messages/subscribeBoard"
+    },
+    "unsubscribeBoard": {
+     "$ref": "#/components/messages/unsubscribeBoard"
+    },
+    "boardSubscribed": {
+     "$ref": "#/components/messages/boardSubscribed"
+    },
+    "boardLoadAdded": {
+     "$ref": "#/components/messages/boardLoadAdded"
+    },
+    "boardLoadUpdated": {
+     "$ref": "#/components/messages/boardLoadUpdated"
+    },
+    "boardLoadRemoved": {
+     "$ref": "#/components/messages/boardLoadRemoved"
+    },
     "connected": {
      "$ref": "#/components/messages/connected"
     },
@@ -151,6 +169,12 @@
     },
     {
      "$ref": "#/channels/socket/messages/unsubscribeBooking"
+    },
+    {
+     "$ref": "#/channels/socket/messages/subscribeBoard"
+    },
+    {
+     "$ref": "#/channels/socket/messages/unsubscribeBoard"
     }
    ]
   },
@@ -215,6 +239,18 @@
     },
     {
      "$ref": "#/channels/socket/messages/searchExhausted"
+    },
+    {
+     "$ref": "#/channels/socket/messages/boardSubscribed"
+    },
+    {
+     "$ref": "#/channels/socket/messages/boardLoadAdded"
+    },
+    {
+     "$ref": "#/channels/socket/messages/boardLoadUpdated"
+    },
+    {
+     "$ref": "#/channels/socket/messages/boardLoadRemoved"
     },
     {
      "$ref": "#/channels/socket/messages/notification"
@@ -1445,6 +1481,10 @@
          ],
          "format": "date-time",
          "description": "End of that span; null when the haul's duration is unknown, which keeps the driver busy until the booking ends."
+        },
+        "plan": {
+         "type": "boolean",
+         "description": "The driver booked a plan: a load scheduled ahead, taken from the plan list."
         }
        },
        "required": [
@@ -1461,7 +1501,8 @@
         "pickup_to",
         "duration_min",
         "busy_from",
-        "busy_until"
+        "busy_until",
+        "plan"
        ]
       },
       "ts": {
@@ -1496,7 +1537,8 @@
         "pickup_to": "2026-10-15T09:00:00.000Z",
         "duration_min": 330,
         "busy_from": "2026-10-15T02:00:00.000Z",
-        "busy_until": "2026-10-15T15:30:00.000Z"
+        "busy_until": "2026-10-15T15:30:00.000Z",
+        "plan": false
        },
        "ts": "2026-10-14T09:30:00.123Z"
       }
@@ -2023,6 +2065,14 @@
          ],
          "format": "uuid",
          "description": "Null when no driver was assigned."
+        },
+        "plan": {
+         "type": "boolean",
+         "description": "The cancelled booking was a plan."
+        },
+        "penalized": {
+         "type": "boolean",
+         "description": "The cancellation counts against the driver's acceptance rate: a driver's cancellation of an instant haul, or of a plan later than goway-loads' free-cancel window before pickup. Always false for shipper and operator cancellations."
         }
        },
        "required": [
@@ -2033,7 +2083,9 @@
         "reason",
         "shipper_org_id",
         "carrier_org_id",
-        "driver_user_id"
+        "driver_user_id",
+        "plan",
+        "penalized"
        ]
       },
       "ts": {
@@ -2061,7 +2113,9 @@
         "reason": "Yuk tayyor emas",
         "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
         "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
-        "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06"
+        "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+        "plan": false,
+        "penalized": false
        },
        "ts": "2026-10-14T09:30:00.123Z"
       }
@@ -2830,6 +2884,385 @@
         "currency": "UZS"
        },
        "ts": "2026-10-15T07:17:00.104Z"
+      }
+     }
+    ]
+   },
+   "subscribeBoard": {
+    "name": "subscribe_board",
+    "title": "Watch a lane's board",
+    "payload": {
+     "title": "SubscribeBoardFrame",
+     "description": "Frame `subscribe_board` an app sends to goway-realtime.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "subscribe_board"
+      },
+      "data": {
+       "title": "SubscribeBoard",
+       "description": "Hear when loads on a lane appear, change or leave the board, for a live plan list. One direction per frame; a driver with a way back subscribes to both.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "from_region_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "to_region_id": {
+         "type": "string",
+         "format": "uuid"
+        }
+       },
+       "required": [
+        "from_region_id",
+        "to_region_id"
+       ]
+      }
+     },
+     "required": [
+      "type",
+      "data"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Watch a lane's board",
+      "payload": {
+       "type": "subscribe_board",
+       "data": {
+        "from_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
+        "to_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08"
+       }
+      }
+     }
+    ]
+   },
+   "unsubscribeBoard": {
+    "name": "unsubscribe_board",
+    "title": "Stop watching a lane's board",
+    "payload": {
+     "title": "UnsubscribeBoardFrame",
+     "description": "Frame `unsubscribe_board` an app sends to goway-realtime.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "unsubscribe_board"
+      },
+      "data": {
+       "title": "UnsubscribeBoard",
+       "description": "Stop hearing about a lane.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "from_region_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "to_region_id": {
+         "type": "string",
+         "format": "uuid"
+        }
+       },
+       "required": [
+        "from_region_id",
+        "to_region_id"
+       ]
+      }
+     },
+     "required": [
+      "type",
+      "data"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Stop watching a lane's board",
+      "payload": {
+       "type": "unsubscribe_board",
+       "data": {
+        "from_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
+        "to_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08"
+       }
+      }
+     }
+    ]
+   },
+   "boardSubscribed": {
+    "name": "board_subscribed",
+    "title": "Board subscribed",
+    "payload": {
+     "title": "BoardSubscribedFrame",
+     "description": "Frame `board_subscribed` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "board_subscribed"
+      },
+      "data": {
+       "title": "BoardSubscribed",
+       "description": "`subscribe_board` was accepted.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "from_region_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "to_region_id": {
+         "type": "string",
+         "format": "uuid"
+        }
+       },
+       "required": [
+        "from_region_id",
+        "to_region_id"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Board subscribed",
+      "payload": {
+       "type": "board_subscribed",
+       "data": {
+        "from_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
+        "to_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08"
+       },
+       "ts": "2026-10-15T07:12:40.512Z"
+      }
+     }
+    ]
+   },
+   "boardLoadAdded": {
+    "name": "board_load_added",
+    "title": "Load added to the board",
+    "payload": {
+     "title": "BoardLoadAddedFrame",
+     "description": "Frame `board_load_added` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "board_load_added"
+      },
+      "data": {
+       "title": "BoardLoadAdded",
+       "description": "A load appeared on a subscribed lane: newly posted or back after a cancelled booking. A signal; the app reads the list again over REST.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "load_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "from_region_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "to_region_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "plan": {
+         "type": "boolean"
+        }
+       },
+       "required": [
+        "load_id",
+        "from_region_id",
+        "to_region_id",
+        "plan"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Load added to the board",
+      "payload": {
+       "type": "board_load_added",
+       "data": {
+        "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+        "from_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
+        "to_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
+        "plan": true
+       },
+       "ts": "2026-10-15T07:12:40.512Z"
+      }
+     }
+    ]
+   },
+   "boardLoadUpdated": {
+    "name": "board_load_updated",
+    "title": "Load on the board changed",
+    "payload": {
+     "title": "BoardLoadUpdatedFrame",
+     "description": "Frame `board_load_updated` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "board_load_updated"
+      },
+      "data": {
+       "title": "BoardLoadUpdated",
+       "description": "A load on a subscribed lane was edited: price, pickup window or note. A signal; the app reads it again over REST.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "load_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "from_region_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "to_region_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "plan": {
+         "type": "boolean"
+        }
+       },
+       "required": [
+        "load_id",
+        "from_region_id",
+        "to_region_id",
+        "plan"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Load on the board changed",
+      "payload": {
+       "type": "board_load_updated",
+       "data": {
+        "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+        "from_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
+        "to_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
+        "plan": true
+       },
+       "ts": "2026-10-15T07:12:40.512Z"
+      }
+     }
+    ]
+   },
+   "boardLoadRemoved": {
+    "name": "board_load_removed",
+    "title": "Load left the board",
+    "payload": {
+     "title": "BoardLoadRemovedFrame",
+     "description": "Frame `board_load_removed` goway-realtime sends to an app.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "type": {
+       "type": "string",
+       "const": "board_load_removed"
+      },
+      "data": {
+       "title": "BoardLoadRemoved",
+       "description": "A load left a subscribed lane's board. A signal; the app drops it from the list.",
+       "type": "object",
+       "additionalProperties": false,
+       "properties": {
+        "load_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "from_region_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "to_region_id": {
+         "type": "string",
+         "format": "uuid"
+        },
+        "reason": {
+         "title": "BoardRemovalReason",
+         "type": "string",
+         "enum": [
+          "booked",
+          "cancelled",
+          "expired"
+         ]
+        }
+       },
+       "required": [
+        "load_id",
+        "from_region_id",
+        "to_region_id",
+        "reason"
+       ]
+      },
+      "ts": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the server sent the frame, RFC 3339 UTC."
+      }
+     },
+     "required": [
+      "type",
+      "data",
+      "ts"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Load left the board",
+      "payload": {
+       "type": "board_load_removed",
+       "data": {
+        "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+        "from_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
+        "to_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
+        "reason": "booked"
+       },
+       "ts": "2026-10-15T07:12:40.512Z"
       }
      }
     ]

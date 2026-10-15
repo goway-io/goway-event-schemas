@@ -33,5 +33,6 @@
   "changed": [
     "asking_amount"
   ],
-  "updated_at": "2026-10-15T07:20:00.512000+00:00"
+  "updated_at": "2026-10-15T07:20:00.512000+00:00",
+  "plan": false
 }

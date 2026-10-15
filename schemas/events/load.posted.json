@@ -207,6 +207,10 @@
       "type": "integer",
       "minimum": 0,
       "description": "Loaders the shipper ordered with the truck."
+    },
+    "plan": {
+      "type": "boolean",
+      "description": "The pickup is scheduled more than goway-loads' instant horizon ahead: drivers book it from the plan list, and dispatch makes no instant offers for it."
     }
   },
   "required": [
@@ -240,6 +244,7 @@
     "duration_min",
     "cargo_category",
     "volume_m3",
-    "loaders_count"
+    "loaders_count",
+    "plan"
   ]
 }

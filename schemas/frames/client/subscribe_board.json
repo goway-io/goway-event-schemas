@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SubscribeBoardFrame",
+  "description": "Frame `subscribe_board` an app sends to goway-realtime.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "subscribe_board"
+    },
+    "data": {
+      "title": "SubscribeBoard",
+      "description": "Hear when loads on a lane appear, change or leave the board, for a live plan list. One direction per frame; a driver with a way back subscribes to both.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "from_region_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "to_region_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "from_region_id",
+        "to_region_id"
+      ]
+    }
+  },
+  "required": [
+    "type",
+    "data"
+  ]
+}

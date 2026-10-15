@@ -215,15 +215,20 @@
           "asking_amount",
           "pickup_from",
           "pickup_to",
-          "note"
+          "note",
+          "plan"
         ]
       },
-      "description": "Fields this edit changed. A changed price or pickup window restarts the instant search, so every fitting driver is offered it again."
+      "description": "Fields this edit changed. A changed price or pickup window restarts the instant search, so every fitting driver is offered it again; `plan` changes when the new pickup moves the load across the instant horizon."
     },
     "updated_at": {
       "type": "string",
       "format": "date-time",
       "description": "When the edit was saved; consumers ignore an edit older than the one they hold."
+    },
+    "plan": {
+      "type": "boolean",
+      "description": "The pickup is scheduled more than goway-loads' instant horizon ahead: drivers book it from the plan list, and dispatch makes no instant offers for it."
     }
   },
   "required": [
@@ -259,6 +264,7 @@
     "volume_m3",
     "loaders_count",
     "changed",
-    "updated_at"
+    "updated_at",
+    "plan"
   ]
 }
