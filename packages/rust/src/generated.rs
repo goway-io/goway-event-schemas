@@ -310,7 +310,7 @@ pub struct BookingCancelled {
     #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
     pub event_id: ::uuid::Uuid,
     pub load_id: ::uuid::Uuid,
-    #[doc = "The cancellation counts against the driver's acceptance rate: a driver's cancellation of an instant haul, or of a plan later than goway-loads' free-cancel window before pickup. Always false for shipper and operator cancellations."]
+    #[doc = "The cancellation counts against the driver's acceptance rate: the driver's own cancellation of an instant haul, or of a plan later than goway-loads' free-cancel window before pickup, or an operator's cancellation of a booking whose driver never showed up. False for every other shipper and operator cancellation."]
     pub penalized: bool,
     #[doc = "The cancelled booking was a plan."]
     pub plan: bool,

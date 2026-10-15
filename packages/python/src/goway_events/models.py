@@ -2240,7 +2240,7 @@ class BookingCancelled(BaseModel):
     """
     penalized: bool
     """
-    The cancellation counts against the driver's acceptance rate: a driver's cancellation of an instant haul, or of a plan later than goway-loads' free-cancel window before pickup. Always false for shipper and operator cancellations.
+    The cancellation counts against the driver's acceptance rate: the driver's own cancellation of an instant haul, or of a plan later than goway-loads' free-cancel window before pickup, or an operator's cancellation of a booking whose driver never showed up. False for every other shipper and operator cancellation.
     """
 
 
