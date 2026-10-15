@@ -1717,9 +1717,11 @@ Notification _$NotificationFromJson(Map<String, dynamic> json) =>
     $checkedCreate('Notification', json, ($checkedConvert) {
       final val = Notification(
         body: $checkedConvert('body', (v) => v as String?),
+        data: $checkedConvert('data', (v) => v as Map<String, dynamic>?),
         kind: $checkedConvert('kind', (v) => v as String?),
         notificationId: $checkedConvert('notification_id', (v) => v as String?),
         title: $checkedConvert('title', (v) => v as String?),
+        unread: $checkedConvert('unread', (v) => (v as num?)?.toInt()),
       );
       return val;
     }, fieldKeyMap: const {'notificationId': 'notification_id'});
@@ -1727,9 +1729,11 @@ Notification _$NotificationFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$NotificationToJson(Notification instance) =>
     <String, dynamic>{
       'body': ?instance.body,
+      'data': ?instance.data,
       'kind': ?instance.kind,
       'notification_id': ?instance.notificationId,
       'title': ?instance.title,
+      'unread': ?instance.unread,
     };
 
 OfferProposedFrame _$OfferProposedFrameFromJson(Map<String, dynamic> json) =>

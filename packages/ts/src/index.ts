@@ -2215,7 +2215,7 @@ export interface LocationSampled {
   recorded_at: string;
 }
 /**
- * Something landed in the user's notification feed; refresh the badge. Copied from `notification.created`; a field that event lacked or sent empty arrives as null.
+ * Something landed in the user's notification feed. `data` opens the right screen on tap and `unread` is the new badge. Copied from `notification.created`; a field that event lacked or sent empty arrives as null.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "Notification".
@@ -2234,6 +2234,16 @@ export interface Notification {
    * Text in the user's language.
    */
   body: string | null;
+  /**
+   * The keys that open the screen, as the push carries them (`booking_id`, `load_id`, `ticket_id`...).
+   */
+  data: {
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Unread feed items, this one included.
+   */
+  unread: number | null;
 }
 /**
  * A message landed in a user's notification feed: from an event, or from an admin announcement (`kind: announcement`).
@@ -2260,6 +2270,16 @@ export interface NotificationCreated {
    * Text in the user's language.
    */
   body: string;
+  /**
+   * What the app needs to open the right screen when the item is tapped: the same keys the push carries, such as `booking_id`, `load_id` or `ticket_id`. Empty for an announcement.
+   */
+  data?: {
+    [k: string]: unknown;
+  };
+  /**
+   * The user's unread feed items, this one included, for the badge.
+   */
+  unread?: number;
 }
 /**
  * Frame `notification` goway-realtime sends to an app.

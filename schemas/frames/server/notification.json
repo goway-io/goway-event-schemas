@@ -11,7 +11,7 @@
     },
     "data": {
       "title": "Notification",
-      "description": "Something landed in the user's notification feed; refresh the badge. Copied from `notification.created`; a field that event lacked or sent empty arrives as null.",
+      "description": "Something landed in the user's notification feed. `data` opens the right screen on tap and `unread` is the new badge. Copied from `notification.created`; a field that event lacked or sent empty arrives as null.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -42,13 +42,31 @@
             "null"
           ],
           "description": "Text in the user's language."
+        },
+        "data": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true,
+          "description": "The keys that open the screen, as the push carries them (`booking_id`, `load_id`, `ticket_id`...)."
+        },
+        "unread": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Unread feed items, this one included."
         }
       },
       "required": [
         "notification_id",
         "kind",
         "title",
-        "body"
+        "body",
+        "data",
+        "unread"
       ]
     },
     "ts": {

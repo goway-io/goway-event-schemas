@@ -2733,12 +2733,15 @@ pub struct LocationSampled {
     #[doc = "When the position was sampled, RFC 3339 UTC with milliseconds."]
     pub recorded_at: ::chrono::DateTime<::chrono::offset::Utc>,
 }
-#[doc = "Something landed in the user's notification feed; refresh the badge. Copied from `notification.created`; a field that event lacked or sent empty arrives as null."]
+#[doc = "Something landed in the user's notification feed. `data` opens the right screen on tap and `unread` is the new badge. Copied from `notification.created`; a field that event lacked or sent empty arrives as null."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct Notification {
     #[doc = "Text in the user's language."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub body: ::std::option::Option<::std::string::String>,
+    #[doc = "The keys that open the screen, as the push carries them (`booking_id`, `load_id`, `ticket_id`...)."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub data: ::std::option::Option<::serde_json::Map<::std::string::String, ::serde_json::Value>>,
     #[doc = "Template kind, for example `driver_found` or `announcement`."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub kind: ::std::option::Option<::std::string::String>,
@@ -2747,12 +2750,18 @@ pub struct Notification {
     #[doc = "Title in the user's language."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub title: ::std::option::Option<::std::string::String>,
+    #[doc = "Unread feed items, this one included."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub unread: ::std::option::Option<u64>,
 }
 #[doc = "A message landed in a user's notification feed: from an event, or from an admin announcement (`kind: announcement`)."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct NotificationCreated {
     #[doc = "Text in the user's language."]
     pub body: ::std::string::String,
+    #[doc = "What the app needs to open the right screen when the item is tapped: the same keys the push carries, such as `booking_id`, `load_id` or `ticket_id`. Empty for an announcement."]
+    #[serde(default, skip_serializing_if = "::serde_json::Map::is_empty")]
+    pub data: ::serde_json::Map<::std::string::String, ::serde_json::Value>,
     #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
     pub event_id: ::uuid::Uuid,
     #[doc = "Template kind, for example `driver_found`, `booking_status` or `announcement`."]
@@ -2760,6 +2769,9 @@ pub struct NotificationCreated {
     pub notification_id: ::uuid::Uuid,
     #[doc = "Title in the user's language."]
     pub title: ::std::string::String,
+    #[doc = "The user's unread feed items, this one included, for the badge."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub unread: ::std::option::Option<u64>,
     pub user_id: ::uuid::Uuid,
 }
 #[doc = "Frame `notification` goway-realtime sends to an app."]

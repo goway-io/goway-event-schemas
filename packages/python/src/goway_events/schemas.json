@@ -3765,7 +3765,7 @@
     },
     "Notification": {
       "title": "Notification",
-      "description": "Something landed in the user's notification feed; refresh the badge. Copied from `notification.created`; a field that event lacked or sent empty arrives as null.",
+      "description": "Something landed in the user's notification feed. `data` opens the right screen on tap and `unread` is the new badge. Copied from `notification.created`; a field that event lacked or sent empty arrives as null.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -3796,13 +3796,31 @@
             "null"
           ],
           "description": "Text in the user's language."
+        },
+        "data": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true,
+          "description": "The keys that open the screen, as the push carries them (`booking_id`, `load_id`, `ticket_id`...)."
+        },
+        "unread": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Unread feed items, this one included."
         }
       },
       "required": [
         "notification_id",
         "kind",
         "title",
-        "body"
+        "body",
+        "data",
+        "unread"
       ]
     },
     "NotificationCreated": {
@@ -3835,6 +3853,16 @@
         "body": {
           "type": "string",
           "description": "Text in the user's language."
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "What the app needs to open the right screen when the item is tapped: the same keys the push carries, such as `booking_id`, `load_id` or `ticket_id`. Empty for an announcement."
+        },
+        "unread": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The user's unread feed items, this one included, for the badge."
         }
       },
       "required": [

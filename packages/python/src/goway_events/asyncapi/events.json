@@ -5247,6 +5247,16 @@
       "body": {
        "type": "string",
        "description": "Text in the user's language."
+      },
+      "data": {
+       "type": "object",
+       "additionalProperties": true,
+       "description": "What the app needs to open the right screen when the item is tapped: the same keys the push carries, such as `booking_id`, `load_id` or `ticket_id`. Empty for an announcement."
+      },
+      "unread": {
+       "type": "integer",
+       "minimum": 0,
+       "description": "The user's unread feed items, this one included, for the badge."
       }
      },
      "required": [
@@ -5267,7 +5277,12 @@
        "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0c",
        "kind": "driver_found",
        "title": "Haydovchi topildi",
-       "body": "Yukingiz 4 350 000 so'mga band qilindi"
+       "body": "Yukingiz 4 350 000 so'mga band qilindi",
+       "data": {
+        "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e10",
+        "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e11"
+       },
+       "unread": 3
       }
      }
     ]

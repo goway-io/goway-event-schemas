@@ -2283,14 +2283,20 @@ class NotificationFrame {
 }
 
 
-///Something landed in the user's notification feed; refresh the badge. Copied from
-///`notification.created`; a field that event lacked or sent empty arrives as null.
+///Something landed in the user's notification feed. `data` opens the right screen on tap
+///and `unread` is the new badge. Copied from `notification.created`; a field that event
+///lacked or sent empty arrives as null.
 @JsonSerializable()
 class Notification {
     
     ///Text in the user's language.
     @JsonKey(name: "body")
     final String? body;
+    
+    ///The keys that open the screen, as the push carries them (`booking_id`, `load_id`,
+    ///`ticket_id`...).
+    @JsonKey(name: "data")
+    final Map<String, dynamic>? data;
     
     ///Template kind, for example `driver_found` or `announcement`.
     @JsonKey(name: "kind")
@@ -2301,12 +2307,18 @@ class Notification {
     ///Title in the user's language.
     @JsonKey(name: "title")
     final String? title;
+    
+    ///Unread feed items, this one included.
+    @JsonKey(name: "unread")
+    final int? unread;
 
     Notification({
         required this.body,
+        required this.data,
         required this.kind,
         required this.notificationId,
         required this.title,
+        required this.unread,
     });
 
     factory Notification.fromJson(Map<String, dynamic> json) => _$NotificationFromJson(json);
