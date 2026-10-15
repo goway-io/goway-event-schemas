@@ -107,6 +107,18 @@ export type SubmittedDocumentStatus = "pending";
  */
 export type VerificationStatus = "pending" | "approved" | "rejected" | "expired";
 /**
+ * The side of the haul the person writes for.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "ChatSide".
+ */
+export type ChatSide = "carrier" | "shipper";
+/**
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "ChatMessageKind".
+ */
+export type ChatMessageKind = "text" | "quick_reply" | "photo" | "location";
+/**
  * Any frame an app may send; `type` tells which.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -122,7 +134,8 @@ export type ClientFrame =
   | SubscribeBookingFrame
   | UnsubscribeBookingFrame
   | SubscribeBoardFrame
-  | UnsubscribeBoardFrame;
+  | UnsubscribeBoardFrame
+  | TypingFrame;
 /**
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "OfferAction".
@@ -238,7 +251,16 @@ export type ServerFrame =
   | BoardLoadAddedFrame
   | BoardLoadUpdatedFrame
   | BoardLoadRemovedFrame
-  | BookingUpdatedFrame;
+  | BookingUpdatedFrame
+  | ChatMessageFrame
+  | ChatReadFrame
+  | ChatTypingFrame
+  | SupportMessageFrame;
+/**
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "SupportAuthor".
+ */
+export type SupportAuthor = "user" | "operator";
 /**
  * Why every session of the user was closed. An operator's own note on a block stays with staff.
  *
@@ -698,7 +720,7 @@ export interface BookingCreated {
   plan: boolean;
 }
 /**
- * Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+ * Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver and to the shipper who posted the load. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "BookingCreatedFrame".
@@ -1172,6 +1194,120 @@ export interface CarrierVerificationChanged {
   user_ids?: string[];
 }
 /**
+ * A message was written in a haul's chat between the driver and the shipper. Realtime shows it at once; notify pushes it to whoever is not looking.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "ChatMessageCreated".
+ */
+export interface ChatMessageCreated {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  message_id: string;
+  /**
+   * The sending app's id for the message, so a resend after a lost reply shows once.
+   */
+  client_message_id: string | null;
+  booking_id: string;
+  load_id: string;
+  sender_user_id: string;
+  sender_side: ChatSide;
+  /**
+   * People on the other side who should hear it: today the driver or the person who posted the load.
+   */
+  recipient_user_ids: string[];
+  kind: ChatMessageKind;
+  /**
+   * The words; for a quick reply, its text in the sender's language. Null for a bare photo or location.
+   */
+  text: string | null;
+  /**
+   * Code from the quick replies catalogue when `kind` is `quick_reply`.
+   */
+  quick_reply_code: string | null;
+  /**
+   * The `chat_photo` file; the app reads its link over REST.
+   */
+  photo_file_id: string | null;
+  lat: number | null;
+  lng: number | null;
+  created_at: string;
+}
+/**
+ * Frame `chat_message` goway-realtime sends to an app. Sent to the sender and the recipients. It forwards the internal `chat.message_created` event as-is, so `data` is that event's payload.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "ChatMessageFrame".
+ */
+export interface ChatMessageFrame {
+  type: "chat_message";
+  data: ChatMessageCreated;
+  /**
+   * When the server sent the frame, RFC 3339 UTC.
+   */
+  ts: string;
+}
+/**
+ * Someone read a haul's chat up to a message; the other side sees «o'qildi».
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "ChatRead".
+ */
+export interface ChatRead {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  booking_id: string;
+  reader_user_id: string;
+  reader_side: ChatSide;
+  last_read_message_id: string;
+  /**
+   * People on the other side who should hear it: today the driver or the person who posted the load.
+   */
+  recipient_user_ids: string[];
+  read_at: string;
+}
+/**
+ * Frame `chat_read` goway-realtime sends to an app. Sent to the recipients. It forwards the internal `chat.read` event as-is.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "ChatReadFrame".
+ */
+export interface ChatReadFrame {
+  type: "chat_read";
+  data: ChatRead;
+  /**
+   * When the server sent the frame, RFC 3339 UTC.
+   */
+  ts: string;
+}
+/**
+ * The other side is typing in a haul's chat. Not stored; show it for a few seconds.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "ChatTyping".
+ */
+export interface ChatTyping {
+  booking_id: string;
+  user_id: string;
+}
+/**
+ * Frame `chat_typing` goway-realtime sends to an app.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "ChatTypingFrame".
+ */
+export interface ChatTypingFrame {
+  type: "chat_typing";
+  data: ChatTyping;
+  /**
+   * When the server sent the frame, RFC 3339 UTC.
+   */
+  ts: string;
+}
+/**
  * Frame `ping` an app sends to goway-realtime.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -1347,6 +1483,25 @@ export interface UnsubscribeBoardFrame {
 export interface UnsubscribeBoard {
   from_region_id: string;
   to_region_id: string;
+}
+/**
+ * Frame `typing` an app sends to goway-realtime.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "TypingFrame".
+ */
+export interface TypingFrame {
+  type: "typing";
+  data: Typing;
+}
+/**
+ * The caller is typing in a haul's chat; sent at most every few seconds while typing.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "Typing".
+ */
+export interface Typing {
+  booking_id: string;
 }
 /**
  * The `auth` frame was accepted; the socket is live.
@@ -2122,6 +2277,10 @@ export interface NotificationPrefs {
    * SMS fallback for critical events.
    */
   sms: boolean;
+  /**
+   * Push for chat messages about a haul and from support.
+   */
+  chat: boolean;
 }
 /**
  * An offer was accepted and became a booking; published together with `booking.created`.
@@ -2666,6 +2825,45 @@ export interface VerificationChangedFrame {
  */
 export interface VerificationChanged {
   status: VerificationStatus;
+}
+/**
+ * Frame `support_message` goway-realtime sends to an app. Sent to the person the conversation belongs to when an operator writes. It forwards the internal `support.message_created` event as-is.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "SupportMessageFrame".
+ */
+export interface SupportMessageFrame {
+  type: "support_message";
+  data: SupportMessageCreated;
+  /**
+   * When the server sent the frame, RFC 3339 UTC.
+   */
+  ts: string;
+}
+/**
+ * A message was added to a support conversation, by the person who opened it or by an operator.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "SupportMessageCreated".
+ */
+export interface SupportMessageCreated {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  ticket_id: string;
+  /**
+   * The ticket's short number.
+   */
+  number: string;
+  message_id: string;
+  author: SupportAuthor;
+  /**
+   * The person the conversation belongs to.
+   */
+  user_id: string;
+  text: string;
+  created_at: string;
 }
 /**
  * An admin changed or reset runtime settings of one service. Published by goway-lib for goway-auth, goway-loads, goway-billing and goway-notify, and by goway-realtime itself, with the same fields.

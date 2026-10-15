@@ -1,0 +1,15 @@
+{
+  "type": "chat_read",
+  "data": {
+    "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+    "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+    "reader_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+    "reader_side": "shipper",
+    "last_read_message_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0d",
+    "recipient_user_ids": [
+      "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06"
+    ],
+    "read_at": "2026-10-16T09:25:00.000Z"
+  },
+  "ts": "2026-10-16T09:25:00.512Z"
+}

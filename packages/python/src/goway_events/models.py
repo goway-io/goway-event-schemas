@@ -367,6 +367,50 @@ class ChargeLine(BaseModel):
     qty: Annotated[int, Field(ge=1)]
 
 
+class ChatMessageKind(StrEnum):
+    TEXT = "text"
+    QUICK_REPLY = "quick_reply"
+    PHOTO = "photo"
+    LOCATION = "location"
+
+
+class ChatSide(StrEnum):
+    """
+    The side of the haul the person writes for.
+    """
+
+    CARRIER = "carrier"
+    SHIPPER = "shipper"
+
+
+class ChatTyping(BaseModel):
+    """
+    The other side is typing in a haul's chat. Not stored; show it for a few seconds.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    booking_id: UUID
+    user_id: UUID
+
+
+class ChatTypingFrame(BaseModel):
+    """
+    Frame `chat_typing` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["chat_typing"]
+    data: ChatTyping
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
 class CompletedBy(StrEnum):
     """
     Who closed the haul: `carrier` when the driver finishes it at the drop-off, `system` for the auto-complete sweep.
@@ -1053,6 +1097,10 @@ class NotificationPrefs(BaseModel):
     """
     SMS fallback for critical events.
     """
+    chat: bool
+    """
+    Push for chat messages about a haul and from support.
+    """
 
 
 class ObjectionKind(StrEnum):
@@ -1710,6 +1758,54 @@ class SubscribedFrame(BaseModel):
     """
 
 
+class SupportAuthor(StrEnum):
+    USER = "user"
+    OPERATOR = "operator"
+
+
+class SupportMessageCreated(BaseModel):
+    """
+    A message was added to a support conversation, by the person who opened it or by an operator.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    ticket_id: UUID
+    number: str
+    """
+    The ticket's short number.
+    """
+    message_id: UUID
+    author: SupportAuthor
+    user_id: UUID
+    """
+    The person the conversation belongs to.
+    """
+    text: Annotated[str, Field(max_length=2000)]
+    created_at: AwareDatetime
+
+
+class SupportMessageFrame(BaseModel):
+    """
+    Frame `support_message` goway-realtime sends to an app. Sent to the person the conversation belongs to when an operator writes. It forwards the internal `support.message_created` event as-is.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["support_message"]
+    data: SupportMessageCreated
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
 class SupportTopic(StrEnum):
     """
     What the ticket is about.
@@ -1743,6 +1839,29 @@ class TicketReplyStatus(StrEnum):
 
     ANSWERED = "answered"
     CLOSED = "closed"
+
+
+class Typing(BaseModel):
+    """
+    The caller is typing in a haul's chat; sent at most every few seconds while typing.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    booking_id: UUID
+
+
+class TypingFrame(BaseModel):
+    """
+    Frame `typing` an app sends to goway-realtime.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["typing"]
+    data: Typing
 
 
 class UnsubscribeBoard(BaseModel):
@@ -2530,7 +2649,7 @@ class BookingCreated(BaseModel):
 
 class BookingCreatedFrame(BaseModel):
     """
-    Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+    Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver and to the shipper who posted the load. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
     """
 
     model_config = ConfigDict(
@@ -2855,6 +2974,104 @@ class CarrierVerificationChanged(BaseModel):
     """
 
 
+class ChatMessageCreated(BaseModel):
+    """
+    A message was written in a haul's chat between the driver and the shipper. Realtime shows it at once; notify pushes it to whoever is not looking.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    message_id: UUID
+    client_message_id: UUID | None
+    """
+    The sending app's id for the message, so a resend after a lost reply shows once.
+    """
+    booking_id: UUID
+    load_id: UUID
+    sender_user_id: UUID
+    sender_side: ChatSide
+    recipient_user_ids: list[UUID]
+    """
+    People on the other side who should hear it: today the driver or the person who posted the load.
+    """
+    kind: ChatMessageKind
+    text: Annotated[str | None, Field(max_length=1000)]
+    """
+    The words; for a quick reply, its text in the sender's language. Null for a bare photo or location.
+    """
+    quick_reply_code: str | None
+    """
+    Code from the quick replies catalogue when `kind` is `quick_reply`.
+    """
+    photo_file_id: UUID | None
+    """
+    The `chat_photo` file; the app reads its link over REST.
+    """
+    lat: Annotated[float | None, Field(ge=-90.0, le=90.0)]
+    lng: Annotated[float | None, Field(ge=-180.0, le=180.0)]
+    created_at: AwareDatetime
+
+
+class ChatMessageFrame(BaseModel):
+    """
+    Frame `chat_message` goway-realtime sends to an app. Sent to the sender and the recipients. It forwards the internal `chat.message_created` event as-is, so `data` is that event's payload.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["chat_message"]
+    data: ChatMessageCreated
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class ChatRead(BaseModel):
+    """
+    Someone read a haul's chat up to a message; the other side sees «o'qildi».
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    booking_id: UUID
+    reader_user_id: UUID
+    reader_side: ChatSide
+    last_read_message_id: UUID
+    recipient_user_ids: list[UUID]
+    """
+    People on the other side who should hear it: today the driver or the person who posted the load.
+    """
+    read_at: AwareDatetime
+
+
+class ChatReadFrame(BaseModel):
+    """
+    Frame `chat_read` goway-realtime sends to an app. Sent to the recipients. It forwards the internal `chat.read` event as-is.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["chat_read"]
+    data: ChatRead
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
 class ClientFrame(
     RootModel[
         AuthFrame
@@ -2867,6 +3084,7 @@ class ClientFrame(
         | UnsubscribeBookingFrame
         | SubscribeBoardFrame
         | UnsubscribeBoardFrame
+        | TypingFrame
     ]
 ):
     root: Annotated[
@@ -2879,7 +3097,8 @@ class ClientFrame(
         | SubscribeBookingFrame
         | UnsubscribeBookingFrame
         | SubscribeBoardFrame
-        | UnsubscribeBoardFrame,
+        | UnsubscribeBoardFrame
+        | TypingFrame,
         Field(discriminator="type", title="ClientFrame"),
     ]
     """
@@ -3502,6 +3721,10 @@ class ServerFrame(
         | BoardLoadUpdatedFrame
         | BoardLoadRemovedFrame
         | BookingUpdatedFrame
+        | ChatMessageFrame
+        | ChatReadFrame
+        | ChatTypingFrame
+        | SupportMessageFrame
     ]
 ):
     root: Annotated[
@@ -3531,7 +3754,11 @@ class ServerFrame(
         | BoardLoadAddedFrame
         | BoardLoadUpdatedFrame
         | BoardLoadRemovedFrame
-        | BookingUpdatedFrame,
+        | BookingUpdatedFrame
+        | ChatMessageFrame
+        | ChatReadFrame
+        | ChatTypingFrame
+        | SupportMessageFrame,
         Field(discriminator="type", title="ServerFrame"),
     ]
     """

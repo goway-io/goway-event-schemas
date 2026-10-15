@@ -796,6 +796,47 @@
    "x-consumers": [
     "goway-notify"
    ]
+  },
+  "chatMessageCreated": {
+   "address": "chat.message_created",
+   "description": "A message was written in a haul's chat.\n\nPublished by `goway-loads`; consumed by `goway-notify` and `goway-realtime`.",
+   "messages": {
+    "chatMessageCreated": {
+     "$ref": "#/components/messages/chatMessageCreated"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-notify",
+    "goway-realtime"
+   ]
+  },
+  "chatRead": {
+   "address": "chat.read",
+   "description": "Someone read a haul's chat up to a message.\n\nPublished by `goway-loads`; consumed by `goway-realtime`.",
+   "messages": {
+    "chatRead": {
+     "$ref": "#/components/messages/chatRead"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-realtime"
+   ]
+  },
+  "supportMessageCreated": {
+   "address": "support.message_created",
+   "description": "A message was added to a support conversation.\n\nPublished by `goway-auth`; consumed by `goway-notify` and `goway-realtime`.",
+   "messages": {
+    "supportMessageCreated": {
+     "$ref": "#/components/messages/supportMessageCreated"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-notify",
+    "goway-realtime"
+   ]
   }
  },
  "operations": {
@@ -1270,6 +1311,30 @@
    },
    "description": "Published when an operator accepts or rejects an objection.",
    "title": "goway-loads publishes"
+  },
+  "publishChatMessageCreated": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/chatMessageCreated"
+   },
+   "description": "Published when the driver or the shipper sends a chat message.",
+   "title": "goway-loads publishes"
+  },
+  "publishChatRead": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/chatRead"
+   },
+   "description": "Published when a party marks the chat read.",
+   "title": "goway-loads publishes"
+  },
+  "publishSupportMessageCreated": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/supportMessageCreated"
+   },
+   "description": "Published when the person or an operator writes in a support conversation.",
+   "title": "goway-auth publishes"
   }
  },
  "components": {
@@ -1453,13 +1518,18 @@
         "sms": {
          "type": "boolean",
          "description": "SMS fallback for critical events."
+        },
+        "chat": {
+         "type": "boolean",
+         "description": "Push for chat messages about a haul and from support."
         }
        },
        "required": [
         "offers",
         "orders",
         "marketing",
-        "sms"
+        "sms",
+        "chat"
        ]
       },
       "role": {
@@ -1560,7 +1630,8 @@
         "offers": true,
         "orders": true,
         "marketing": false,
-        "sms": true
+        "sms": true,
+        "chat": true
        },
        "updated_at": "2026-10-14T09:30:00.123456+00:00"
       }
@@ -6892,6 +6963,354 @@
        "currency": "UZS",
        "note": "Ortishdagi suratlarda shikast bor edi",
        "resolved_at": "2026-10-16T11:00:00+00:00"
+      }
+     }
+    ]
+   },
+   "chatMessageCreated": {
+    "name": "chat.message_created",
+    "title": "Chat message",
+    "payload": {
+     "title": "ChatMessageCreated",
+     "description": "A message was written in a haul's chat between the driver and the shipper. Realtime shows it at once; notify pushes it to whoever is not looking.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "message_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "client_message_id": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "uuid",
+       "description": "The sending app's id for the message, so a resend after a lost reply shows once."
+      },
+      "booking_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "load_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "sender_user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "sender_side": {
+       "title": "ChatSide",
+       "type": "string",
+       "enum": [
+        "carrier",
+        "shipper"
+       ],
+       "description": "The side of the haul the person writes for."
+      },
+      "recipient_user_ids": {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "format": "uuid"
+       },
+       "uniqueItems": true,
+       "description": "People on the other side who should hear it: today the driver or the person who posted the load."
+      },
+      "kind": {
+       "title": "ChatMessageKind",
+       "type": "string",
+       "enum": [
+        "text",
+        "quick_reply",
+        "photo",
+        "location"
+       ]
+      },
+      "text": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "maxLength": 1000,
+       "description": "The words; for a quick reply, its text in the sender's language. Null for a bare photo or location."
+      },
+      "quick_reply_code": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "description": "Code from the quick replies catalogue when `kind` is `quick_reply`."
+      },
+      "photo_file_id": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "uuid",
+       "description": "The `chat_photo` file; the app reads its link over REST."
+      },
+      "lat": {
+       "type": [
+        "number",
+        "null"
+       ],
+       "minimum": -90,
+       "maximum": 90
+      },
+      "lng": {
+       "type": [
+        "number",
+        "null"
+       ],
+       "minimum": -180,
+       "maximum": 180
+      },
+      "created_at": {
+       "type": "string",
+       "format": "date-time"
+      }
+     },
+     "required": [
+      "event_id",
+      "message_id",
+      "client_message_id",
+      "booking_id",
+      "load_id",
+      "sender_user_id",
+      "sender_side",
+      "recipient_user_ids",
+      "kind",
+      "text",
+      "quick_reply_code",
+      "photo_file_id",
+      "lat",
+      "lng",
+      "created_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Location",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "message_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0d",
+       "client_message_id": "6f1c2a9e-3b7d-4e8f-9a0b-1c2d3e4f5a6b",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "sender_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "sender_side": "carrier",
+       "recipient_user_ids": [
+        "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a"
+       ],
+       "kind": "location",
+       "text": null,
+       "quick_reply_code": null,
+       "photo_file_id": null,
+       "lat": 41.0,
+       "lng": 69.5,
+       "created_at": "2026-10-16T09:22:00+00:00"
+      }
+     },
+     {
+      "name": "Quick reply",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "message_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0d",
+       "client_message_id": "6f1c2a9e-3b7d-4e8f-9a0b-1c2d3e4f5a6b",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "sender_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "sender_side": "carrier",
+       "recipient_user_ids": [
+        "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a"
+       ],
+       "kind": "quick_reply",
+       "text": "Yetib keldim",
+       "quick_reply_code": "arrived",
+       "photo_file_id": null,
+       "lat": null,
+       "lng": null,
+       "created_at": "2026-10-16T09:22:00+00:00"
+      }
+     },
+     {
+      "name": "Text",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "message_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0d",
+       "client_message_id": "6f1c2a9e-3b7d-4e8f-9a0b-1c2d3e4f5a6b",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "sender_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "sender_side": "carrier",
+       "recipient_user_ids": [
+        "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a"
+       ],
+       "kind": "text",
+       "text": "Assalomu alaykum, yukni ortdim. Yo'lga chiqdim.",
+       "quick_reply_code": null,
+       "photo_file_id": null,
+       "lat": null,
+       "lng": null,
+       "created_at": "2026-10-16T09:22:00+00:00"
+      }
+     }
+    ]
+   },
+   "chatRead": {
+    "name": "chat.read",
+    "title": "Chat read",
+    "payload": {
+     "title": "ChatRead",
+     "description": "Someone read a haul's chat up to a message; the other side sees «o'qildi».",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "booking_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "reader_user_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "reader_side": {
+       "title": "ChatSide",
+       "type": "string",
+       "enum": [
+        "carrier",
+        "shipper"
+       ],
+       "description": "The side of the haul the person writes for."
+      },
+      "last_read_message_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "recipient_user_ids": {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "format": "uuid"
+       },
+       "uniqueItems": true,
+       "description": "People on the other side who should hear it: today the driver or the person who posted the load."
+      },
+      "read_at": {
+       "type": "string",
+       "format": "date-time"
+      }
+     },
+     "required": [
+      "event_id",
+      "booking_id",
+      "reader_user_id",
+      "reader_side",
+      "last_read_message_id",
+      "recipient_user_ids",
+      "read_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "reader_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
+       "reader_side": "shipper",
+       "last_read_message_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0d",
+       "recipient_user_ids": [
+        "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06"
+       ],
+       "read_at": "2026-10-16T09:25:00+00:00"
+      }
+     }
+    ]
+   },
+   "supportMessageCreated": {
+    "name": "support.message_created",
+    "title": "Support message",
+    "payload": {
+     "title": "SupportMessageCreated",
+     "description": "A message was added to a support conversation, by the person who opened it or by an operator.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "ticket_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "number": {
+       "type": "string",
+       "description": "The ticket's short number."
+      },
+      "message_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "author": {
+       "title": "SupportAuthor",
+       "type": "string",
+       "enum": [
+        "user",
+        "operator"
+       ]
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The person the conversation belongs to."
+      },
+      "text": {
+       "type": "string",
+       "maxLength": 2000
+      },
+      "created_at": {
+       "type": "string",
+       "format": "date-time"
+      }
+     },
+     "required": [
+      "event_id",
+      "ticket_id",
+      "number",
+      "message_id",
+      "author",
+      "user_id",
+      "text",
+      "created_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Operator",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "ticket_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0e",
+       "number": "T-1042",
+       "message_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0f",
+       "author": "operator",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "text": "Assalomu alaykum! Balansingiz tekshirildi, komissiya to'g'ri hisoblangan.",
+       "created_at": "2026-10-16T10:01:00+00:00"
       }
      }
     ]

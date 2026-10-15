@@ -22,6 +22,8 @@
     "carrier.document_updated": "CarrierDocumentUpdated",
     "carrier.line_changed": "CarrierLineChanged",
     "carrier.verification_changed": "CarrierVerificationChanged",
+    "chat.message_created": "ChatMessageCreated",
+    "chat.read": "ChatRead",
     "device.push_failed": "DevicePushFailed",
     "device.removed": "DeviceRemoved",
     "device.upserted": "DeviceUpserted",
@@ -46,6 +48,7 @@
     "region.changed": "RegionChanged",
     "settings.changed": "SettingsChanged",
     "shipper.stats_changed": "ShipperStatsChanged",
+    "support.message_created": "SupportMessageCreated",
     "support.ticket_created": "SupportTicketCreated",
     "support.ticket_replied": "SupportTicketReplied",
     "user.blocked": "UserBlocked",
@@ -72,6 +75,7 @@
       "ping": "PingFrame",
       "subscribe_board": "SubscribeBoardFrame",
       "subscribe_booking": "SubscribeBookingFrame",
+      "typing": "TypingFrame",
       "unsubscribe_board": "UnsubscribeBoardFrame",
       "unsubscribe_booking": "UnsubscribeBookingFrame"
     },
@@ -86,6 +90,9 @@
       "booking_eta": "BookingEtaFrame",
       "booking_status": "BookingStatusFrame",
       "booking_updated": "BookingUpdatedFrame",
+      "chat_message": "ChatMessageFrame",
+      "chat_read": "ChatReadFrame",
+      "chat_typing": "ChatTypingFrame",
       "connected": "ConnectedFrame",
       "driver_location": "DriverLocationFrame",
       "error": "ErrorFrame",
@@ -102,6 +109,7 @@
       "search_progress": "SearchProgressFrame",
       "session_started": "SessionStartedFrame",
       "subscribed": "SubscribedFrame",
+      "support_message": "SupportMessageFrame",
       "verification_changed": "VerificationChangedFrame"
     }
   },
@@ -861,7 +869,7 @@
     },
     "BookingCreatedFrame": {
       "title": "BookingCreatedFrame",
-      "description": "Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+      "description": "Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver and to the shipper who posted the load. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -1928,6 +1936,282 @@
         "qty"
       ]
     },
+    "ChatMessageCreated": {
+      "title": "ChatMessageCreated",
+      "description": "A message was written in a haul's chat between the driver and the shipper. Realtime shows it at once; notify pushes it to whoever is not looking.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "message_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "client_message_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "The sending app's id for the message, so a resend after a lost reply shows once."
+        },
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "sender_user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "sender_side": {
+          "$ref": "#/definitions/ChatSide"
+        },
+        "recipient_user_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "uniqueItems": true,
+          "description": "People on the other side who should hear it: today the driver or the person who posted the load."
+        },
+        "kind": {
+          "$ref": "#/definitions/ChatMessageKind"
+        },
+        "text": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 1000,
+          "description": "The words; for a quick reply, its text in the sender's language. Null for a bare photo or location."
+        },
+        "quick_reply_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Code from the quick replies catalogue when `kind` is `quick_reply`."
+        },
+        "photo_file_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "The `chat_photo` file; the app reads its link over REST."
+        },
+        "lat": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -90,
+          "maximum": 90
+        },
+        "lng": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -180,
+          "maximum": 180
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "event_id",
+        "message_id",
+        "client_message_id",
+        "booking_id",
+        "load_id",
+        "sender_user_id",
+        "sender_side",
+        "recipient_user_ids",
+        "kind",
+        "text",
+        "quick_reply_code",
+        "photo_file_id",
+        "lat",
+        "lng",
+        "created_at"
+      ]
+    },
+    "ChatMessageFrame": {
+      "title": "ChatMessageFrame",
+      "description": "Frame `chat_message` goway-realtime sends to an app. Sent to the sender and the recipients. It forwards the internal `chat.message_created` event as-is, so `data` is that event's payload.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "chat_message"
+        },
+        "data": {
+          "$ref": "#/definitions/ChatMessageCreated"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
+    "ChatMessageKind": {
+      "title": "ChatMessageKind",
+      "type": "string",
+      "enum": [
+        "text",
+        "quick_reply",
+        "photo",
+        "location"
+      ]
+    },
+    "ChatRead": {
+      "title": "ChatRead",
+      "description": "Someone read a haul's chat up to a message; the other side sees «o'qildi».",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "reader_user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "reader_side": {
+          "$ref": "#/definitions/ChatSide"
+        },
+        "last_read_message_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "recipient_user_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "uniqueItems": true,
+          "description": "People on the other side who should hear it: today the driver or the person who posted the load."
+        },
+        "read_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "event_id",
+        "booking_id",
+        "reader_user_id",
+        "reader_side",
+        "last_read_message_id",
+        "recipient_user_ids",
+        "read_at"
+      ]
+    },
+    "ChatReadFrame": {
+      "title": "ChatReadFrame",
+      "description": "Frame `chat_read` goway-realtime sends to an app. Sent to the recipients. It forwards the internal `chat.read` event as-is.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "chat_read"
+        },
+        "data": {
+          "$ref": "#/definitions/ChatRead"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
+    "ChatSide": {
+      "title": "ChatSide",
+      "type": "string",
+      "enum": [
+        "carrier",
+        "shipper"
+      ],
+      "description": "The side of the haul the person writes for."
+    },
+    "ChatTyping": {
+      "title": "ChatTyping",
+      "description": "The other side is typing in a haul's chat. Not stored; show it for a few seconds.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "booking_id",
+        "user_id"
+      ]
+    },
+    "ChatTypingFrame": {
+      "title": "ChatTypingFrame",
+      "description": "Frame `chat_typing` goway-realtime sends to an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "chat_typing"
+        },
+        "data": {
+          "$ref": "#/definitions/ChatTyping"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
     "ClientFrame": {
       "title": "ClientFrame",
       "description": "Any frame an app may send; `type` tells which.",
@@ -1962,6 +2246,9 @@
         },
         {
           "$ref": "#/definitions/UnsubscribeBoardFrame"
+        },
+        {
+          "$ref": "#/definitions/TypingFrame"
         }
       ]
     },
@@ -3589,13 +3876,18 @@
         "sms": {
           "type": "boolean",
           "description": "SMS fallback for critical events."
+        },
+        "chat": {
+          "type": "boolean",
+          "description": "Push for chat messages about a haul and from support."
         }
       },
       "required": [
         "offers",
         "orders",
         "marketing",
-        "sms"
+        "sms",
+        "chat"
       ]
     },
     "ObjectionKind": {
@@ -4743,6 +5035,18 @@
         },
         {
           "$ref": "#/definitions/BookingUpdatedFrame"
+        },
+        {
+          "$ref": "#/definitions/ChatMessageFrame"
+        },
+        {
+          "$ref": "#/definitions/ChatReadFrame"
+        },
+        {
+          "$ref": "#/definitions/ChatTypingFrame"
+        },
+        {
+          "$ref": "#/definitions/SupportMessageFrame"
         }
       ]
     },
@@ -5045,6 +5349,90 @@
         "ts"
       ]
     },
+    "SupportAuthor": {
+      "title": "SupportAuthor",
+      "type": "string",
+      "enum": [
+        "user",
+        "operator"
+      ]
+    },
+    "SupportMessageCreated": {
+      "title": "SupportMessageCreated",
+      "description": "A message was added to a support conversation, by the person who opened it or by an operator.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "ticket_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "number": {
+          "type": "string",
+          "description": "The ticket's short number."
+        },
+        "message_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "author": {
+          "$ref": "#/definitions/SupportAuthor"
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The person the conversation belongs to."
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "event_id",
+        "ticket_id",
+        "number",
+        "message_id",
+        "author",
+        "user_id",
+        "text",
+        "created_at"
+      ]
+    },
+    "SupportMessageFrame": {
+      "title": "SupportMessageFrame",
+      "description": "Frame `support_message` goway-realtime sends to an app. Sent to the person the conversation belongs to when an operator writes. It forwards the internal `support.message_created` event as-is.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "support_message"
+        },
+        "data": {
+          "$ref": "#/definitions/SupportMessageCreated"
+        },
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the server sent the frame, RFC 3339 UTC."
+        }
+      },
+      "required": [
+        "type",
+        "data",
+        "ts"
+      ]
+    },
     "SupportTicketCreated": {
       "title": "SupportTicketCreated",
       "description": "A user opened a support ticket.",
@@ -5159,6 +5547,40 @@
         "closed"
       ],
       "description": "The ticket's status after the reply."
+    },
+    "Typing": {
+      "title": "Typing",
+      "description": "The caller is typing in a haul's chat; sent at most every few seconds while typing.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "required": [
+        "booking_id"
+      ]
+    },
+    "TypingFrame": {
+      "title": "TypingFrame",
+      "description": "Frame `typing` an app sends to goway-realtime.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "typing"
+        },
+        "data": {
+          "$ref": "#/definitions/Typing"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
     },
     "UnsubscribeBoard": {
       "title": "UnsubscribeBoard",

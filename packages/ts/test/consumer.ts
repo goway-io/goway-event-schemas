@@ -36,6 +36,14 @@ export function describe(frame: ServerFrame): string {
       return `${frame.data.seen} saw it since ${frame.data.started_at}`;
     case "booking_updated":
       return `${frame.data.booking_id} ${frame.data.change}`;
+    case "chat_message":
+      return `${frame.data.sender_side}: ${frame.data.text ?? frame.data.kind}`;
+    case "chat_read":
+      return `read up to ${frame.data.last_read_message_id}`;
+    case "chat_typing":
+      return `${frame.data.user_id} is typing`;
+    case "support_message":
+      return `${frame.data.author}: ${frame.data.text}`;
     case "board_subscribed":
       return `${frame.data.from_region_id}→${frame.data.to_region_id}`;
     case "board_load_added":

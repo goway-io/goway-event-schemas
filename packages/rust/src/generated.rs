@@ -602,7 +602,7 @@ impl<'de> ::serde::Deserialize<'de> for BookingCreatedCurrency {
             .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
     }
 }
-#[doc = "Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
+#[doc = "Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver and to the shipper who posted the load. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct BookingCreatedFrame {
     pub data: BookingCreated,
@@ -1280,6 +1280,213 @@ pub struct ChargeLine {
     pub code: ::std::string::String,
     pub qty: ::std::num::NonZeroU64,
 }
+#[doc = "A message was written in a haul's chat between the driver and the shipper. Realtime shows it at once; notify pushes it to whoever is not looking."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct ChatMessageCreated {
+    pub booking_id: ::uuid::Uuid,
+    #[doc = "The sending app's id for the message, so a resend after a lost reply shows once."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub client_message_id: ::std::option::Option<::uuid::Uuid>,
+    pub created_at: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub kind: ChatMessageKind,
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub lat: ::std::option::Option<f64>,
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub lng: ::std::option::Option<f64>,
+    pub load_id: ::uuid::Uuid,
+    pub message_id: ::uuid::Uuid,
+    #[doc = "The `chat_photo` file; the app reads its link over REST."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub photo_file_id: ::std::option::Option<::uuid::Uuid>,
+    #[doc = "Code from the quick replies catalogue when `kind` is `quick_reply`."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub quick_reply_code: ::std::option::Option<::std::string::String>,
+    #[doc = "People on the other side who should hear it: today the driver or the person who posted the load."]
+    pub recipient_user_ids: ::std::vec::Vec<::uuid::Uuid>,
+    pub sender_side: ChatSide,
+    pub sender_user_id: ::uuid::Uuid,
+    #[doc = "The words; for a quick reply, its text in the sender's language. Null for a bare photo or location."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub text: ::std::option::Option<ChatMessageCreatedText>,
+}
+#[doc = "The words; for a quick reply, its text in the sender's language. Null for a bare photo or location."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct ChatMessageCreatedText(::std::string::String);
+impl ::std::ops::Deref for ChatMessageCreatedText {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<ChatMessageCreatedText> for ::std::string::String {
+    fn from(value: ChatMessageCreatedText) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for ChatMessageCreatedText {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 1000usize {
+            return Err("longer than 1000 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for ChatMessageCreatedText {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ChatMessageCreatedText {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for ChatMessageCreatedText {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+#[doc = "Frame `chat_message` goway-realtime sends to an app. Sent to the sender and the recipients. It forwards the internal `chat.message_created` event as-is, so `data` is that event's payload."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct ChatMessageFrame {
+    pub data: ChatMessageCreated,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "`ChatMessageKind`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum ChatMessageKind {
+    #[serde(rename = "text")]
+    Text,
+    #[serde(rename = "quick_reply")]
+    QuickReply,
+    #[serde(rename = "photo")]
+    Photo,
+    #[serde(rename = "location")]
+    Location,
+}
+impl ::std::fmt::Display for ChatMessageKind {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Text => f.write_str("text"),
+            Self::QuickReply => f.write_str("quick_reply"),
+            Self::Photo => f.write_str("photo"),
+            Self::Location => f.write_str("location"),
+        }
+    }
+}
+impl ::std::str::FromStr for ChatMessageKind {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "text" => Ok(Self::Text),
+            "quick_reply" => Ok(Self::QuickReply),
+            "photo" => Ok(Self::Photo),
+            "location" => Ok(Self::Location),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ChatMessageKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ChatMessageKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "Someone read a haul's chat up to a message; the other side sees «o'qildi»."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct ChatRead {
+    pub booking_id: ::uuid::Uuid,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub last_read_message_id: ::uuid::Uuid,
+    pub read_at: ::chrono::DateTime<::chrono::offset::Utc>,
+    pub reader_side: ChatSide,
+    pub reader_user_id: ::uuid::Uuid,
+    #[doc = "People on the other side who should hear it: today the driver or the person who posted the load."]
+    pub recipient_user_ids: ::std::vec::Vec<::uuid::Uuid>,
+}
+#[doc = "Frame `chat_read` goway-realtime sends to an app. Sent to the recipients. It forwards the internal `chat.read` event as-is."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct ChatReadFrame {
+    pub data: ChatRead,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
+#[doc = "The side of the haul the person writes for."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum ChatSide {
+    #[serde(rename = "carrier")]
+    Carrier,
+    #[serde(rename = "shipper")]
+    Shipper,
+}
+impl ::std::fmt::Display for ChatSide {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Carrier => f.write_str("carrier"),
+            Self::Shipper => f.write_str("shipper"),
+        }
+    }
+}
+impl ::std::str::FromStr for ChatSide {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "carrier" => Ok(Self::Carrier),
+            "shipper" => Ok(Self::Shipper),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for ChatSide {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for ChatSide {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "The other side is typing in a haul's chat. Not stored; show it for a few seconds."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct ChatTyping {
+    pub booking_id: ::uuid::Uuid,
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "Frame `chat_typing` goway-realtime sends to an app."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct ChatTypingFrame {
+    pub data: ChatTyping,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
 #[doc = "Any frame an app may send; `type` tells which."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 #[serde(tag = "type")]
@@ -1320,6 +1527,9 @@ pub enum ClientFrame {
     #[doc = "Frame `unsubscribe_board` an app sends to goway-realtime."]
     #[serde(rename = "unsubscribe_board")]
     UnsubscribeBoard { data: UnsubscribeBoard },
+    #[doc = "Frame `typing` an app sends to goway-realtime."]
+    #[serde(rename = "typing")]
+    Typing { data: Typing },
 }
 #[doc = "Who closed the haul: `carrier` when the driver finishes it at the drop-off, `system` for the auto-complete sweep."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -2558,6 +2768,8 @@ pub struct NotificationFrame {
 #[doc = "Every switch, sent whole whenever one of them changed."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct NotificationPrefs {
+    #[doc = "Push for chat messages about a haul and from support."]
+    pub chat: bool,
     #[doc = "Promotions and news."]
     pub marketing: bool,
     #[doc = "Push for new offers and dispatch results."]
@@ -3642,7 +3854,7 @@ pub enum ServerFrame {
         #[doc = "When the server sent the frame, RFC 3339 UTC."]
         ts: ::chrono::DateTime<::chrono::offset::Utc>,
     },
-    #[doc = "Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
+    #[doc = "Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver and to the shipper who posted the load. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
     #[serde(rename = "booking_created")]
     BookingCreated {
         data: BookingCreated,
@@ -3779,6 +3991,34 @@ pub enum ServerFrame {
     #[serde(rename = "booking_updated")]
     BookingUpdated {
         data: BookingUpdated,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `chat_message` goway-realtime sends to an app. Sent to the sender and the recipients. It forwards the internal `chat.message_created` event as-is, so `data` is that event's payload."]
+    #[serde(rename = "chat_message")]
+    ChatMessage {
+        data: ChatMessageCreated,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `chat_read` goway-realtime sends to an app. Sent to the recipients. It forwards the internal `chat.read` event as-is."]
+    #[serde(rename = "chat_read")]
+    ChatRead {
+        data: ChatRead,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `chat_typing` goway-realtime sends to an app."]
+    #[serde(rename = "chat_typing")]
+    ChatTyping {
+        data: ChatTyping,
+        #[doc = "When the server sent the frame, RFC 3339 UTC."]
+        ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    },
+    #[doc = "Frame `support_message` goway-realtime sends to an app. Sent to the person the conversation belongs to when an operator writes. It forwards the internal `support.message_created` event as-is."]
+    #[serde(rename = "support_message")]
+    SupportMessage {
+        data: SupportMessageCreated,
         #[doc = "When the server sent the frame, RFC 3339 UTC."]
         ts: ::chrono::DateTime<::chrono::offset::Utc>,
     },
@@ -3992,6 +4232,114 @@ pub struct SubscribedFrame {
     #[serde(rename = "type")]
     pub type_: ::std::string::String,
 }
+#[doc = "`SupportAuthor`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum SupportAuthor {
+    #[serde(rename = "user")]
+    User,
+    #[serde(rename = "operator")]
+    Operator,
+}
+impl ::std::fmt::Display for SupportAuthor {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::User => f.write_str("user"),
+            Self::Operator => f.write_str("operator"),
+        }
+    }
+}
+impl ::std::str::FromStr for SupportAuthor {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "user" => Ok(Self::User),
+            "operator" => Ok(Self::Operator),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for SupportAuthor {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for SupportAuthor {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "A message was added to a support conversation, by the person who opened it or by an operator."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct SupportMessageCreated {
+    pub author: SupportAuthor,
+    pub created_at: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    pub message_id: ::uuid::Uuid,
+    #[doc = "The ticket's short number."]
+    pub number: ::std::string::String,
+    pub text: SupportMessageCreatedText,
+    pub ticket_id: ::uuid::Uuid,
+    #[doc = "The person the conversation belongs to."]
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "`SupportMessageCreatedText`"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct SupportMessageCreatedText(::std::string::String);
+impl ::std::ops::Deref for SupportMessageCreatedText {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<SupportMessageCreatedText> for ::std::string::String {
+    fn from(value: SupportMessageCreatedText) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for SupportMessageCreatedText {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 2000usize {
+            return Err("longer than 2000 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for SupportMessageCreatedText {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for SupportMessageCreatedText {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for SupportMessageCreatedText {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+#[doc = "Frame `support_message` goway-realtime sends to an app. Sent to the person the conversation belongs to when an operator writes. It forwards the internal `support.message_created` event as-is."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct SupportMessageFrame {
+    pub data: SupportMessageCreated,
+    #[doc = "When the server sent the frame, RFC 3339 UTC."]
+    pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
+}
 #[doc = "A user opened a support ticket."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct SupportTicketCreated {
@@ -4163,6 +4511,18 @@ impl ::std::convert::TryFrom<::std::string::String> for TicketReplyStatus {
     fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
     }
+}
+#[doc = "The caller is typing in a haul's chat; sent at most every few seconds while typing."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct Typing {
+    pub booking_id: ::uuid::Uuid,
+}
+#[doc = "Frame `typing` an app sends to goway-realtime."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct TypingFrame {
+    pub data: Typing,
+    #[serde(rename = "type")]
+    pub type_: ::std::string::String,
 }
 #[doc = "Stop hearing about a lane."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]

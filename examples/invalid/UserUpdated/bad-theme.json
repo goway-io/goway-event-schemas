@@ -8,7 +8,8 @@
     "offers": true,
     "orders": true,
     "marketing": false,
-    "sms": true
+    "sms": true,
+    "chat": true
   },
   "updated_at": "2026-10-14T09:30:00.123456+00:00"
 }

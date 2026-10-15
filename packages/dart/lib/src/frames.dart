@@ -21,6 +21,7 @@ sealed class ClientFrame {
         'unsubscribe_booking' => UnsubscribeBookingMessage(UnsubscribeBookingFrame.fromJson(json)),
         'subscribe_board' => SubscribeBoardMessage(SubscribeBoardFrame.fromJson(json)),
         'unsubscribe_board' => UnsubscribeBoardMessage(UnsubscribeBoardFrame.fromJson(json)),
+        'typing' => TypingMessage(TypingFrame.fromJson(json)),
         final other => throw FormatException('unknown client frame type: $other'),
       };
 }
@@ -81,6 +82,13 @@ final class UnsubscribeBookingMessage extends ClientFrame {
   Map<String, dynamic> toJson() => frame.toJson();
 }
 
+final class TypingMessage extends ClientFrame {
+  const TypingMessage(this.frame);
+  final TypingFrame frame;
+  @override
+  Map<String, dynamic> toJson() => frame.toJson();
+}
+
 final class SubscribeBoardMessage extends ClientFrame {
   const SubscribeBoardMessage(this.frame);
   final SubscribeBoardFrame frame;
@@ -124,6 +132,10 @@ sealed class ServerFrame {
         'search_progress' => SearchProgressMessage(SearchProgressFrame.fromJson(json)),
         'search_exhausted' => SearchExhaustedMessage(SearchExhaustedFrame.fromJson(json)),
         'booking_updated' => BookingUpdatedMessage(BookingUpdatedFrame.fromJson(json)),
+        'chat_message' => ChatMessageMessage(ChatMessageFrame.fromJson(json)),
+        'chat_read' => ChatReadMessage(ChatReadFrame.fromJson(json)),
+        'chat_typing' => ChatTypingMessage(ChatTypingFrame.fromJson(json)),
+        'support_message' => SupportMessageMessage(SupportMessageFrame.fromJson(json)),
         'board_subscribed' => BoardSubscribedMessage(BoardSubscribedFrame.fromJson(json)),
         'board_load_added' => BoardLoadAddedMessage(BoardLoadAddedFrame.fromJson(json)),
         'board_load_updated' => BoardLoadUpdatedMessage(BoardLoadUpdatedFrame.fromJson(json)),
@@ -269,6 +281,34 @@ final class SearchProgressMessage extends ServerFrame {
 final class SearchExhaustedMessage extends ServerFrame {
   const SearchExhaustedMessage(this.frame);
   final SearchExhaustedFrame frame;
+  @override
+  Map<String, dynamic> toJson() => frame.toJson();
+}
+
+final class ChatMessageMessage extends ServerFrame {
+  const ChatMessageMessage(this.frame);
+  final ChatMessageFrame frame;
+  @override
+  Map<String, dynamic> toJson() => frame.toJson();
+}
+
+final class ChatReadMessage extends ServerFrame {
+  const ChatReadMessage(this.frame);
+  final ChatReadFrame frame;
+  @override
+  Map<String, dynamic> toJson() => frame.toJson();
+}
+
+final class ChatTypingMessage extends ServerFrame {
+  const ChatTypingMessage(this.frame);
+  final ChatTypingFrame frame;
+  @override
+  Map<String, dynamic> toJson() => frame.toJson();
+}
+
+final class SupportMessageMessage extends ServerFrame {
+  const SupportMessageMessage(this.frame);
+  final SupportMessageFrame frame;
   @override
   Map<String, dynamic> toJson() => frame.toJson();
 }

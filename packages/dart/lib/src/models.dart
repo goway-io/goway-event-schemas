@@ -9,6 +9,7 @@
 //     final pingFrame = pingFrameFromJson(jsonString);
 //     final subscribeBoardFrame = subscribeBoardFrameFromJson(jsonString);
 //     final subscribeBookingFrame = subscribeBookingFrameFromJson(jsonString);
+//     final typingFrame = typingFrameFromJson(jsonString);
 //     final unsubscribeBoardFrame = unsubscribeBoardFrameFromJson(jsonString);
 //     final unsubscribeBookingFrame = unsubscribeBookingFrameFromJson(jsonString);
 //     final boardLoadAddedFrame = boardLoadAddedFrameFromJson(jsonString);
@@ -21,6 +22,9 @@
 //     final bookingEtaFrame = bookingEtaFrameFromJson(jsonString);
 //     final bookingStatusFrame = bookingStatusFrameFromJson(jsonString);
 //     final bookingUpdatedFrame = bookingUpdatedFrameFromJson(jsonString);
+//     final chatMessageFrame = chatMessageFrameFromJson(jsonString);
+//     final chatReadFrame = chatReadFrameFromJson(jsonString);
+//     final chatTypingFrame = chatTypingFrameFromJson(jsonString);
 //     final connectedFrame = connectedFrameFromJson(jsonString);
 //     final driverLocationFrame = driverLocationFrameFromJson(jsonString);
 //     final errorFrame = errorFrameFromJson(jsonString);
@@ -37,6 +41,7 @@
 //     final searchProgressFrame = searchProgressFrameFromJson(jsonString);
 //     final sessionStartedFrame = sessionStartedFrameFromJson(jsonString);
 //     final subscribedFrame = subscribedFrameFromJson(jsonString);
+//     final supportMessageFrame = supportMessageFrameFromJson(jsonString);
 //     final verificationChangedFrame = verificationChangedFrameFromJson(jsonString);
 
 import 'package:json_annotation/json_annotation.dart';
@@ -75,6 +80,10 @@ String subscribeBoardFrameToJson(SubscribeBoardFrame data) => json.encode(data.t
 SubscribeBookingFrame subscribeBookingFrameFromJson(String str) => SubscribeBookingFrame.fromJson(json.decode(str));
 
 String subscribeBookingFrameToJson(SubscribeBookingFrame data) => json.encode(data.toJson());
+
+TypingFrame typingFrameFromJson(String str) => TypingFrame.fromJson(json.decode(str));
+
+String typingFrameToJson(TypingFrame data) => json.encode(data.toJson());
 
 UnsubscribeBoardFrame unsubscribeBoardFrameFromJson(String str) => UnsubscribeBoardFrame.fromJson(json.decode(str));
 
@@ -123,6 +132,18 @@ String bookingStatusFrameToJson(BookingStatusFrame data) => json.encode(data.toJ
 BookingUpdatedFrame bookingUpdatedFrameFromJson(String str) => BookingUpdatedFrame.fromJson(json.decode(str));
 
 String bookingUpdatedFrameToJson(BookingUpdatedFrame data) => json.encode(data.toJson());
+
+ChatMessageFrame chatMessageFrameFromJson(String str) => ChatMessageFrame.fromJson(json.decode(str));
+
+String chatMessageFrameToJson(ChatMessageFrame data) => json.encode(data.toJson());
+
+ChatReadFrame chatReadFrameFromJson(String str) => ChatReadFrame.fromJson(json.decode(str));
+
+String chatReadFrameToJson(ChatReadFrame data) => json.encode(data.toJson());
+
+ChatTypingFrame chatTypingFrameFromJson(String str) => ChatTypingFrame.fromJson(json.decode(str));
+
+String chatTypingFrameToJson(ChatTypingFrame data) => json.encode(data.toJson());
 
 ConnectedFrame connectedFrameFromJson(String str) => ConnectedFrame.fromJson(json.decode(str));
 
@@ -187,6 +208,10 @@ String sessionStartedFrameToJson(SessionStartedFrame data) => json.encode(data.t
 SubscribedFrame subscribedFrameFromJson(String str) => SubscribedFrame.fromJson(json.decode(str));
 
 String subscribedFrameToJson(SubscribedFrame data) => json.encode(data.toJson());
+
+SupportMessageFrame supportMessageFrameFromJson(String str) => SupportMessageFrame.fromJson(json.decode(str));
+
+String supportMessageFrameToJson(SupportMessageFrame data) => json.encode(data.toJson());
 
 VerificationChangedFrame verificationChangedFrameFromJson(String str) => VerificationChangedFrame.fromJson(json.decode(str));
 
@@ -538,6 +563,50 @@ enum SubscribeBookingFrameType {
 
 final subscribeBookingFrameTypeValues = EnumValues({
     "subscribe_booking": SubscribeBookingFrameType.SUBSCRIBE_BOOKING
+});
+
+
+///Frame `typing` an app sends to goway-realtime.
+@JsonSerializable()
+class TypingFrame {
+    @JsonKey(name: "data")
+    final Typing data;
+    @JsonKey(name: "type")
+    final TypingFrameType type;
+
+    TypingFrame({
+        required this.data,
+        required this.type,
+    });
+
+    factory TypingFrame.fromJson(Map<String, dynamic> json) => _$TypingFrameFromJson(json);
+
+    Map<String, dynamic> toJson() => _$TypingFrameToJson(this);
+}
+
+
+///The caller is typing in a haul's chat; sent at most every few seconds while typing.
+@JsonSerializable()
+class Typing {
+    @JsonKey(name: "booking_id")
+    final String bookingId;
+
+    Typing({
+        required this.bookingId,
+    });
+
+    factory Typing.fromJson(Map<String, dynamic> json) => _$TypingFromJson(json);
+
+    Map<String, dynamic> toJson() => _$TypingToJson(this);
+}
+
+enum TypingFrameType {
+    @JsonValue("typing")
+    TYPING
+}
+
+final typingFrameTypeValues = EnumValues({
+    "typing": TypingFrameType.TYPING
 });
 
 
@@ -1170,9 +1239,9 @@ final bookingCompletedFrameTypeValues = EnumValues({
 });
 
 
-///Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver. It
-///currently forwards the internal `booking.created` event as-is, so `data` is that event's
-///payload, `event_id` and organization ids included.
+///Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver and to
+///the shipper who posted the load. It currently forwards the internal `booking.created`
+///event as-is, so `data` is that event's payload, `event_id` and organization ids included.
 @JsonSerializable()
 class BookingCreatedFrame {
     @JsonKey(name: "data")
@@ -1624,6 +1693,271 @@ enum BookingUpdatedFrameType {
 
 final bookingUpdatedFrameTypeValues = EnumValues({
     "booking_updated": BookingUpdatedFrameType.BOOKING_UPDATED
+});
+
+
+///Frame `chat_message` goway-realtime sends to an app. Sent to the sender and the
+///recipients. It forwards the internal `chat.message_created` event as-is, so `data` is
+///that event's payload.
+@JsonSerializable()
+class ChatMessageFrame {
+    @JsonKey(name: "data")
+    final ChatMessageCreated data;
+    
+    ///When the server sent the frame, RFC 3339 UTC.
+    @JsonKey(name: "ts")
+    final DateTime ts;
+    @JsonKey(name: "type")
+    final ChatMessageFrameType type;
+
+    ChatMessageFrame({
+        required this.data,
+        required this.ts,
+        required this.type,
+    });
+
+    factory ChatMessageFrame.fromJson(Map<String, dynamic> json) => _$ChatMessageFrameFromJson(json);
+
+    Map<String, dynamic> toJson() => _$ChatMessageFrameToJson(this);
+}
+
+
+///A message was written in a haul's chat between the driver and the shipper. Realtime shows
+///it at once; notify pushes it to whoever is not looking.
+@JsonSerializable()
+class ChatMessageCreated {
+    @JsonKey(name: "booking_id")
+    final String bookingId;
+    
+    ///The sending app's id for the message, so a resend after a lost reply shows once.
+    @JsonKey(name: "client_message_id")
+    final String? clientMessageId;
+    @JsonKey(name: "created_at")
+    final DateTime createdAt;
+    
+    ///Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    @JsonKey(name: "event_id")
+    final String eventId;
+    @JsonKey(name: "kind")
+    final ChatMessageKind kind;
+    @JsonKey(name: "lat")
+    final double? lat;
+    @JsonKey(name: "lng")
+    final double? lng;
+    @JsonKey(name: "load_id")
+    final String loadId;
+    @JsonKey(name: "message_id")
+    final String messageId;
+    
+    ///The `chat_photo` file; the app reads its link over REST.
+    @JsonKey(name: "photo_file_id")
+    final String? photoFileId;
+    
+    ///Code from the quick replies catalogue when `kind` is `quick_reply`.
+    @JsonKey(name: "quick_reply_code")
+    final String? quickReplyCode;
+    
+    ///People on the other side who should hear it: today the driver or the person who posted
+    ///the load.
+    @JsonKey(name: "recipient_user_ids")
+    final List<String> recipientUserIds;
+    @JsonKey(name: "sender_side")
+    final ChatSide senderSide;
+    @JsonKey(name: "sender_user_id")
+    final String senderUserId;
+    
+    ///The words; for a quick reply, its text in the sender's language. Null for a bare photo or
+    ///location.
+    @JsonKey(name: "text")
+    final String? text;
+
+    ChatMessageCreated({
+        required this.bookingId,
+        required this.clientMessageId,
+        required this.createdAt,
+        required this.eventId,
+        required this.kind,
+        required this.lat,
+        required this.lng,
+        required this.loadId,
+        required this.messageId,
+        required this.photoFileId,
+        required this.quickReplyCode,
+        required this.recipientUserIds,
+        required this.senderSide,
+        required this.senderUserId,
+        required this.text,
+    });
+
+    factory ChatMessageCreated.fromJson(Map<String, dynamic> json) => _$ChatMessageCreatedFromJson(json);
+
+    Map<String, dynamic> toJson() => _$ChatMessageCreatedToJson(this);
+}
+
+enum ChatMessageKind {
+    @JsonValue("location")
+    LOCATION,
+    @JsonValue("photo")
+    PHOTO,
+    @JsonValue("quick_reply")
+    QUICK_REPLY,
+    @JsonValue("text")
+    TEXT
+}
+
+final chatMessageKindValues = EnumValues({
+    "location": ChatMessageKind.LOCATION,
+    "photo": ChatMessageKind.PHOTO,
+    "quick_reply": ChatMessageKind.QUICK_REPLY,
+    "text": ChatMessageKind.TEXT
+});
+
+
+///The side of the haul the person writes for.
+enum ChatSide {
+    @JsonValue("carrier")
+    CARRIER,
+    @JsonValue("shipper")
+    SHIPPER
+}
+
+final chatSideValues = EnumValues({
+    "carrier": ChatSide.CARRIER,
+    "shipper": ChatSide.SHIPPER
+});
+
+enum ChatMessageFrameType {
+    @JsonValue("chat_message")
+    CHAT_MESSAGE
+}
+
+final chatMessageFrameTypeValues = EnumValues({
+    "chat_message": ChatMessageFrameType.CHAT_MESSAGE
+});
+
+
+///Frame `chat_read` goway-realtime sends to an app. Sent to the recipients. It forwards the
+///internal `chat.read` event as-is.
+@JsonSerializable()
+class ChatReadFrame {
+    @JsonKey(name: "data")
+    final ChatRead data;
+    
+    ///When the server sent the frame, RFC 3339 UTC.
+    @JsonKey(name: "ts")
+    final DateTime ts;
+    @JsonKey(name: "type")
+    final ChatReadFrameType type;
+
+    ChatReadFrame({
+        required this.data,
+        required this.ts,
+        required this.type,
+    });
+
+    factory ChatReadFrame.fromJson(Map<String, dynamic> json) => _$ChatReadFrameFromJson(json);
+
+    Map<String, dynamic> toJson() => _$ChatReadFrameToJson(this);
+}
+
+
+///Someone read a haul's chat up to a message; the other side sees «o'qildi».
+@JsonSerializable()
+class ChatRead {
+    @JsonKey(name: "booking_id")
+    final String bookingId;
+    
+    ///Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    @JsonKey(name: "event_id")
+    final String eventId;
+    @JsonKey(name: "last_read_message_id")
+    final String lastReadMessageId;
+    @JsonKey(name: "read_at")
+    final DateTime readAt;
+    @JsonKey(name: "reader_side")
+    final ChatSide readerSide;
+    @JsonKey(name: "reader_user_id")
+    final String readerUserId;
+    
+    ///People on the other side who should hear it: today the driver or the person who posted
+    ///the load.
+    @JsonKey(name: "recipient_user_ids")
+    final List<String> recipientUserIds;
+
+    ChatRead({
+        required this.bookingId,
+        required this.eventId,
+        required this.lastReadMessageId,
+        required this.readAt,
+        required this.readerSide,
+        required this.readerUserId,
+        required this.recipientUserIds,
+    });
+
+    factory ChatRead.fromJson(Map<String, dynamic> json) => _$ChatReadFromJson(json);
+
+    Map<String, dynamic> toJson() => _$ChatReadToJson(this);
+}
+
+enum ChatReadFrameType {
+    @JsonValue("chat_read")
+    CHAT_READ
+}
+
+final chatReadFrameTypeValues = EnumValues({
+    "chat_read": ChatReadFrameType.CHAT_READ
+});
+
+
+///Frame `chat_typing` goway-realtime sends to an app.
+@JsonSerializable()
+class ChatTypingFrame {
+    @JsonKey(name: "data")
+    final ChatTyping data;
+    
+    ///When the server sent the frame, RFC 3339 UTC.
+    @JsonKey(name: "ts")
+    final DateTime ts;
+    @JsonKey(name: "type")
+    final ChatTypingFrameType type;
+
+    ChatTypingFrame({
+        required this.data,
+        required this.ts,
+        required this.type,
+    });
+
+    factory ChatTypingFrame.fromJson(Map<String, dynamic> json) => _$ChatTypingFrameFromJson(json);
+
+    Map<String, dynamic> toJson() => _$ChatTypingFrameToJson(this);
+}
+
+
+///The other side is typing in a haul's chat. Not stored; show it for a few seconds.
+@JsonSerializable()
+class ChatTyping {
+    @JsonKey(name: "booking_id")
+    final String bookingId;
+    @JsonKey(name: "user_id")
+    final String userId;
+
+    ChatTyping({
+        required this.bookingId,
+        required this.userId,
+    });
+
+    factory ChatTyping.fromJson(Map<String, dynamic> json) => _$ChatTypingFromJson(json);
+
+    Map<String, dynamic> toJson() => _$ChatTypingToJson(this);
+}
+
+enum ChatTypingFrameType {
+    @JsonValue("chat_typing")
+    CHAT_TYPING
+}
+
+final chatTypingFrameTypeValues = EnumValues({
+    "chat_typing": ChatTypingFrameType.CHAT_TYPING
 });
 
 
@@ -2763,6 +3097,97 @@ enum SubscribedFrameType {
 
 final subscribedFrameTypeValues = EnumValues({
     "subscribed": SubscribedFrameType.SUBSCRIBED
+});
+
+
+///Frame `support_message` goway-realtime sends to an app. Sent to the person the
+///conversation belongs to when an operator writes. It forwards the internal
+///`support.message_created` event as-is.
+@JsonSerializable()
+class SupportMessageFrame {
+    @JsonKey(name: "data")
+    final SupportMessageCreated data;
+    
+    ///When the server sent the frame, RFC 3339 UTC.
+    @JsonKey(name: "ts")
+    final DateTime ts;
+    @JsonKey(name: "type")
+    final SupportMessageFrameType type;
+
+    SupportMessageFrame({
+        required this.data,
+        required this.ts,
+        required this.type,
+    });
+
+    factory SupportMessageFrame.fromJson(Map<String, dynamic> json) => _$SupportMessageFrameFromJson(json);
+
+    Map<String, dynamic> toJson() => _$SupportMessageFrameToJson(this);
+}
+
+
+///A message was added to a support conversation, by the person who opened it or by an
+///operator.
+@JsonSerializable()
+class SupportMessageCreated {
+    @JsonKey(name: "author")
+    final SupportAuthor author;
+    @JsonKey(name: "created_at")
+    final DateTime createdAt;
+    
+    ///Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    @JsonKey(name: "event_id")
+    final String eventId;
+    @JsonKey(name: "message_id")
+    final String messageId;
+    
+    ///The ticket's short number.
+    @JsonKey(name: "number")
+    final String number;
+    @JsonKey(name: "text")
+    final String text;
+    @JsonKey(name: "ticket_id")
+    final String ticketId;
+    
+    ///The person the conversation belongs to.
+    @JsonKey(name: "user_id")
+    final String userId;
+
+    SupportMessageCreated({
+        required this.author,
+        required this.createdAt,
+        required this.eventId,
+        required this.messageId,
+        required this.number,
+        required this.text,
+        required this.ticketId,
+        required this.userId,
+    });
+
+    factory SupportMessageCreated.fromJson(Map<String, dynamic> json) => _$SupportMessageCreatedFromJson(json);
+
+    Map<String, dynamic> toJson() => _$SupportMessageCreatedToJson(this);
+}
+
+enum SupportAuthor {
+    @JsonValue("operator")
+    OPERATOR,
+    @JsonValue("user")
+    USER
+}
+
+final supportAuthorValues = EnumValues({
+    "operator": SupportAuthor.OPERATOR,
+    "user": SupportAuthor.USER
+});
+
+enum SupportMessageFrameType {
+    @JsonValue("support_message")
+    SUPPORT_MESSAGE
+}
+
+final supportMessageFrameTypeValues = EnumValues({
+    "support_message": SupportMessageFrameType.SUPPORT_MESSAGE
 });
 
 

@@ -1,0 +1,23 @@
+{
+  "type": "chat_message",
+  "data": {
+    "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+    "message_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0d",
+    "client_message_id": "6f1c2a9e-3b7d-4e8f-9a0b-1c2d3e4f5a6b",
+    "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+    "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+    "sender_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+    "sender_side": "carrier",
+    "recipient_user_ids": [
+      "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a"
+    ],
+    "kind": "text",
+    "text": "Assalomu alaykum, yukni ortdim. Yo'lga chiqdim.",
+    "quick_reply_code": null,
+    "photo_file_id": null,
+    "lat": null,
+    "lng": null,
+    "created_at": "2026-10-16T09:22:00.000Z"
+  },
+  "ts": "2026-10-16T09:22:00.512Z"
+}

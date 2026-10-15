@@ -1,0 +1,126 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ChatMessageCreated",
+  "description": "A message was written in a haul's chat between the driver and the shipper. Realtime shows it at once; notify pushes it to whoever is not looking.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "message_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "client_message_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "The sending app's id for the message, so a resend after a lost reply shows once."
+    },
+    "booking_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "load_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "sender_user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "sender_side": {
+      "title": "ChatSide",
+      "type": "string",
+      "enum": [
+        "carrier",
+        "shipper"
+      ],
+      "description": "The side of the haul the person writes for."
+    },
+    "recipient_user_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "uniqueItems": true,
+      "description": "People on the other side who should hear it: today the driver or the person who posted the load."
+    },
+    "kind": {
+      "title": "ChatMessageKind",
+      "type": "string",
+      "enum": [
+        "text",
+        "quick_reply",
+        "photo",
+        "location"
+      ]
+    },
+    "text": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 1000,
+      "description": "The words; for a quick reply, its text in the sender's language. Null for a bare photo or location."
+    },
+    "quick_reply_code": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Code from the quick replies catalogue when `kind` is `quick_reply`."
+    },
+    "photo_file_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "The `chat_photo` file; the app reads its link over REST."
+    },
+    "lat": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": -90,
+      "maximum": 90
+    },
+    "lng": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": -180,
+      "maximum": 180
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "event_id",
+    "message_id",
+    "client_message_id",
+    "booking_id",
+    "load_id",
+    "sender_user_id",
+    "sender_side",
+    "recipient_user_ids",
+    "kind",
+    "text",
+    "quick_reply_code",
+    "photo_file_id",
+    "lat",
+    "lng",
+    "created_at"
+  ]
+}

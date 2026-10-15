@@ -279,6 +279,41 @@ SubscribeBooking _$SubscribeBookingFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$SubscribeBookingToJson(SubscribeBooking instance) =>
     <String, dynamic>{'booking_id': instance.bookingId};
 
+TypingFrame _$TypingFrameFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('TypingFrame', json, ($checkedConvert) {
+      final val = TypingFrame(
+        data: $checkedConvert(
+          'data',
+          (v) => Typing.fromJson(v as Map<String, dynamic>),
+        ),
+        type: $checkedConvert(
+          'type',
+          (v) => $enumDecode(_$TypingFrameTypeEnumMap, v),
+        ),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$TypingFrameToJson(TypingFrame instance) =>
+    <String, dynamic>{
+      'data': instance.data,
+      'type': _$TypingFrameTypeEnumMap[instance.type]!,
+    };
+
+const _$TypingFrameTypeEnumMap = {TypingFrameType.TYPING: 'typing'};
+
+Typing _$TypingFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('Typing', json, ($checkedConvert) {
+      final val = Typing(
+        bookingId: $checkedConvert('booking_id', (v) => v as String),
+      );
+      return val;
+    }, fieldKeyMap: const {'bookingId': 'booking_id'});
+
+Map<String, dynamic> _$TypingToJson(Typing instance) => <String, dynamic>{
+  'booking_id': instance.bookingId,
+};
+
 UnsubscribeBoardFrame _$UnsubscribeBoardFrameFromJson(
   Map<String, dynamic> json,
 ) => $checkedCreate('UnsubscribeBoardFrame', json, ($checkedConvert) {
@@ -1200,6 +1235,233 @@ const _$BookingChangeEnumMap = {
   BookingChange.WAITING_STARTED: 'waiting_started',
 };
 
+ChatMessageFrame _$ChatMessageFrameFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('ChatMessageFrame', json, ($checkedConvert) {
+      final val = ChatMessageFrame(
+        data: $checkedConvert(
+          'data',
+          (v) => ChatMessageCreated.fromJson(v as Map<String, dynamic>),
+        ),
+        ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
+        type: $checkedConvert(
+          'type',
+          (v) => $enumDecode(_$ChatMessageFrameTypeEnumMap, v),
+        ),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$ChatMessageFrameToJson(ChatMessageFrame instance) =>
+    <String, dynamic>{
+      'data': instance.data,
+      'ts': instance.ts.toIso8601String(),
+      'type': _$ChatMessageFrameTypeEnumMap[instance.type]!,
+    };
+
+const _$ChatMessageFrameTypeEnumMap = {
+  ChatMessageFrameType.CHAT_MESSAGE: 'chat_message',
+};
+
+ChatMessageCreated _$ChatMessageCreatedFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'ChatMessageCreated',
+      json,
+      ($checkedConvert) {
+        final val = ChatMessageCreated(
+          bookingId: $checkedConvert('booking_id', (v) => v as String),
+          clientMessageId: $checkedConvert(
+            'client_message_id',
+            (v) => v as String?,
+          ),
+          createdAt: $checkedConvert(
+            'created_at',
+            (v) => DateTime.parse(v as String),
+          ),
+          eventId: $checkedConvert('event_id', (v) => v as String),
+          kind: $checkedConvert(
+            'kind',
+            (v) => $enumDecode(_$ChatMessageKindEnumMap, v),
+          ),
+          lat: $checkedConvert('lat', (v) => (v as num?)?.toDouble()),
+          lng: $checkedConvert('lng', (v) => (v as num?)?.toDouble()),
+          loadId: $checkedConvert('load_id', (v) => v as String),
+          messageId: $checkedConvert('message_id', (v) => v as String),
+          photoFileId: $checkedConvert('photo_file_id', (v) => v as String?),
+          quickReplyCode: $checkedConvert(
+            'quick_reply_code',
+            (v) => v as String?,
+          ),
+          recipientUserIds: $checkedConvert(
+            'recipient_user_ids',
+            (v) => (v as List<dynamic>).map((e) => e as String).toList(),
+          ),
+          senderSide: $checkedConvert(
+            'sender_side',
+            (v) => $enumDecode(_$ChatSideEnumMap, v),
+          ),
+          senderUserId: $checkedConvert('sender_user_id', (v) => v as String),
+          text: $checkedConvert('text', (v) => v as String?),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'bookingId': 'booking_id',
+        'clientMessageId': 'client_message_id',
+        'createdAt': 'created_at',
+        'eventId': 'event_id',
+        'loadId': 'load_id',
+        'messageId': 'message_id',
+        'photoFileId': 'photo_file_id',
+        'quickReplyCode': 'quick_reply_code',
+        'recipientUserIds': 'recipient_user_ids',
+        'senderSide': 'sender_side',
+        'senderUserId': 'sender_user_id',
+      },
+    );
+
+Map<String, dynamic> _$ChatMessageCreatedToJson(ChatMessageCreated instance) =>
+    <String, dynamic>{
+      'booking_id': instance.bookingId,
+      'client_message_id': ?instance.clientMessageId,
+      'created_at': instance.createdAt.toIso8601String(),
+      'event_id': instance.eventId,
+      'kind': _$ChatMessageKindEnumMap[instance.kind]!,
+      'lat': ?instance.lat,
+      'lng': ?instance.lng,
+      'load_id': instance.loadId,
+      'message_id': instance.messageId,
+      'photo_file_id': ?instance.photoFileId,
+      'quick_reply_code': ?instance.quickReplyCode,
+      'recipient_user_ids': instance.recipientUserIds,
+      'sender_side': _$ChatSideEnumMap[instance.senderSide]!,
+      'sender_user_id': instance.senderUserId,
+      'text': ?instance.text,
+    };
+
+const _$ChatMessageKindEnumMap = {
+  ChatMessageKind.LOCATION: 'location',
+  ChatMessageKind.PHOTO: 'photo',
+  ChatMessageKind.QUICK_REPLY: 'quick_reply',
+  ChatMessageKind.TEXT: 'text',
+};
+
+const _$ChatSideEnumMap = {
+  ChatSide.CARRIER: 'carrier',
+  ChatSide.SHIPPER: 'shipper',
+};
+
+ChatReadFrame _$ChatReadFrameFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('ChatReadFrame', json, ($checkedConvert) {
+      final val = ChatReadFrame(
+        data: $checkedConvert(
+          'data',
+          (v) => ChatRead.fromJson(v as Map<String, dynamic>),
+        ),
+        ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
+        type: $checkedConvert(
+          'type',
+          (v) => $enumDecode(_$ChatReadFrameTypeEnumMap, v),
+        ),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$ChatReadFrameToJson(ChatReadFrame instance) =>
+    <String, dynamic>{
+      'data': instance.data,
+      'ts': instance.ts.toIso8601String(),
+      'type': _$ChatReadFrameTypeEnumMap[instance.type]!,
+    };
+
+const _$ChatReadFrameTypeEnumMap = {ChatReadFrameType.CHAT_READ: 'chat_read'};
+
+ChatRead _$ChatReadFromJson(Map<String, dynamic> json) => $checkedCreate(
+  'ChatRead',
+  json,
+  ($checkedConvert) {
+    final val = ChatRead(
+      bookingId: $checkedConvert('booking_id', (v) => v as String),
+      eventId: $checkedConvert('event_id', (v) => v as String),
+      lastReadMessageId: $checkedConvert(
+        'last_read_message_id',
+        (v) => v as String,
+      ),
+      readAt: $checkedConvert('read_at', (v) => DateTime.parse(v as String)),
+      readerSide: $checkedConvert(
+        'reader_side',
+        (v) => $enumDecode(_$ChatSideEnumMap, v),
+      ),
+      readerUserId: $checkedConvert('reader_user_id', (v) => v as String),
+      recipientUserIds: $checkedConvert(
+        'recipient_user_ids',
+        (v) => (v as List<dynamic>).map((e) => e as String).toList(),
+      ),
+    );
+    return val;
+  },
+  fieldKeyMap: const {
+    'bookingId': 'booking_id',
+    'eventId': 'event_id',
+    'lastReadMessageId': 'last_read_message_id',
+    'readAt': 'read_at',
+    'readerSide': 'reader_side',
+    'readerUserId': 'reader_user_id',
+    'recipientUserIds': 'recipient_user_ids',
+  },
+);
+
+Map<String, dynamic> _$ChatReadToJson(ChatRead instance) => <String, dynamic>{
+  'booking_id': instance.bookingId,
+  'event_id': instance.eventId,
+  'last_read_message_id': instance.lastReadMessageId,
+  'read_at': instance.readAt.toIso8601String(),
+  'reader_side': _$ChatSideEnumMap[instance.readerSide]!,
+  'reader_user_id': instance.readerUserId,
+  'recipient_user_ids': instance.recipientUserIds,
+};
+
+ChatTypingFrame _$ChatTypingFrameFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('ChatTypingFrame', json, ($checkedConvert) {
+      final val = ChatTypingFrame(
+        data: $checkedConvert(
+          'data',
+          (v) => ChatTyping.fromJson(v as Map<String, dynamic>),
+        ),
+        ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
+        type: $checkedConvert(
+          'type',
+          (v) => $enumDecode(_$ChatTypingFrameTypeEnumMap, v),
+        ),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$ChatTypingFrameToJson(ChatTypingFrame instance) =>
+    <String, dynamic>{
+      'data': instance.data,
+      'ts': instance.ts.toIso8601String(),
+      'type': _$ChatTypingFrameTypeEnumMap[instance.type]!,
+    };
+
+const _$ChatTypingFrameTypeEnumMap = {
+  ChatTypingFrameType.CHAT_TYPING: 'chat_typing',
+};
+
+ChatTyping _$ChatTypingFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('ChatTyping', json, ($checkedConvert) {
+      final val = ChatTyping(
+        bookingId: $checkedConvert('booking_id', (v) => v as String),
+        userId: $checkedConvert('user_id', (v) => v as String),
+      );
+      return val;
+    }, fieldKeyMap: const {'bookingId': 'booking_id', 'userId': 'user_id'});
+
+Map<String, dynamic> _$ChatTypingToJson(ChatTyping instance) =>
+    <String, dynamic>{
+      'booking_id': instance.bookingId,
+      'user_id': instance.userId,
+    };
+
 ConnectedFrame _$ConnectedFrameFromJson(Map<String, dynamic> json) =>
     $checkedCreate('ConnectedFrame', json, ($checkedConvert) {
       final val = ConnectedFrame(
@@ -2093,6 +2355,85 @@ Subscribed _$SubscribedFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$SubscribedToJson(Subscribed instance) =>
     <String, dynamic>{'booking_id': instance.bookingId};
+
+SupportMessageFrame _$SupportMessageFrameFromJson(Map<String, dynamic> json) =>
+    $checkedCreate('SupportMessageFrame', json, ($checkedConvert) {
+      final val = SupportMessageFrame(
+        data: $checkedConvert(
+          'data',
+          (v) => SupportMessageCreated.fromJson(v as Map<String, dynamic>),
+        ),
+        ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
+        type: $checkedConvert(
+          'type',
+          (v) => $enumDecode(_$SupportMessageFrameTypeEnumMap, v),
+        ),
+      );
+      return val;
+    });
+
+Map<String, dynamic> _$SupportMessageFrameToJson(
+  SupportMessageFrame instance,
+) => <String, dynamic>{
+  'data': instance.data,
+  'ts': instance.ts.toIso8601String(),
+  'type': _$SupportMessageFrameTypeEnumMap[instance.type]!,
+};
+
+const _$SupportMessageFrameTypeEnumMap = {
+  SupportMessageFrameType.SUPPORT_MESSAGE: 'support_message',
+};
+
+SupportMessageCreated _$SupportMessageCreatedFromJson(
+  Map<String, dynamic> json,
+) => $checkedCreate(
+  'SupportMessageCreated',
+  json,
+  ($checkedConvert) {
+    final val = SupportMessageCreated(
+      author: $checkedConvert(
+        'author',
+        (v) => $enumDecode(_$SupportAuthorEnumMap, v),
+      ),
+      createdAt: $checkedConvert(
+        'created_at',
+        (v) => DateTime.parse(v as String),
+      ),
+      eventId: $checkedConvert('event_id', (v) => v as String),
+      messageId: $checkedConvert('message_id', (v) => v as String),
+      number: $checkedConvert('number', (v) => v as String),
+      text: $checkedConvert('text', (v) => v as String),
+      ticketId: $checkedConvert('ticket_id', (v) => v as String),
+      userId: $checkedConvert('user_id', (v) => v as String),
+    );
+    return val;
+  },
+  fieldKeyMap: const {
+    'createdAt': 'created_at',
+    'eventId': 'event_id',
+    'messageId': 'message_id',
+    'ticketId': 'ticket_id',
+    'userId': 'user_id',
+  },
+);
+
+Map<String, dynamic> _$SupportMessageCreatedToJson(
+  SupportMessageCreated instance,
+) => <String, dynamic>{
+  'author': _$SupportAuthorEnumMap[instance.author]!,
+  'created_at': instance.createdAt.toIso8601String(),
+  'event_id': instance.eventId,
+  'message_id': instance.messageId,
+  'number': instance.number,
+  'text': instance.text,
+  'ticket_id': instance.ticketId,
+  'user_id': instance.userId,
+};
+
+const _$SupportAuthorEnumMap = {
+  SupportAuthor.OPERATOR: 'operator',
+  SupportAuthor.USER: 'user',
+};
 
 VerificationChangedFrame _$VerificationChangedFrameFromJson(
   Map<String, dynamic> json,

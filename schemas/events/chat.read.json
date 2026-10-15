@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ChatRead",
+  "description": "Someone read a haul's chat up to a message; the other side sees «o'qildi».",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "booking_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reader_user_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "reader_side": {
+      "title": "ChatSide",
+      "type": "string",
+      "enum": [
+        "carrier",
+        "shipper"
+      ],
+      "description": "The side of the haul the person writes for."
+    },
+    "last_read_message_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "recipient_user_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "uniqueItems": true,
+      "description": "People on the other side who should hear it: today the driver or the person who posted the load."
+    },
+    "read_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "event_id",
+    "booking_id",
+    "reader_user_id",
+    "reader_side",
+    "last_read_message_id",
+    "recipient_user_ids",
+    "read_at"
+  ]
+}

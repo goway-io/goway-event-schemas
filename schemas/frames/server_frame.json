@@ -84,6 +84,18 @@
     },
     {
       "$ref": "./server/booking_updated.json"
+    },
+    {
+      "$ref": "./server/chat_message.json"
+    },
+    {
+      "$ref": "./server/chat_read.json"
+    },
+    {
+      "$ref": "./server/chat_typing.json"
+    },
+    {
+      "$ref": "./server/support_message.json"
     }
   ]
 }

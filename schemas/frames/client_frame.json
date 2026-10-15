@@ -33,6 +33,9 @@
     },
     {
       "$ref": "./client/unsubscribe_board.json"
+    },
+    {
+      "$ref": "./client/typing.json"
     }
   ]
 }

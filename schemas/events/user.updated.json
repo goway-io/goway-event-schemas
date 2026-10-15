@@ -64,13 +64,18 @@
         "sms": {
           "type": "boolean",
           "description": "SMS fallback for critical events."
+        },
+        "chat": {
+          "type": "boolean",
+          "description": "Push for chat messages about a haul and from support."
         }
       },
       "required": [
         "offers",
         "orders",
         "marketing",
-        "sms"
+        "sms",
+        "chat"
       ]
     },
     "role": {

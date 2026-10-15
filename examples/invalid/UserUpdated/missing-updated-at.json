@@ -8,6 +8,7 @@
     "offers": true,
     "orders": true,
     "marketing": false,
-    "sms": true
+    "sms": true,
+    "chat": true
   }
 }

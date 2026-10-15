@@ -488,6 +488,30 @@ channels:
         $ref: '#/components/messages/bookingObjectionResolved'
     x-publisher: goway-loads
     x-consumers: [goway-notify]
+  chatMessageCreated:
+    address: chat.message_created
+    description: "A message was written in a haul's chat."
+    messages:
+      chatMessageCreated:
+        $ref: '#/components/messages/chatMessageCreated'
+    x-publisher: goway-loads
+    x-consumers: [goway-notify, goway-realtime]
+  chatRead:
+    address: chat.read
+    description: "Someone read a haul's chat up to a message."
+    messages:
+      chatRead:
+        $ref: '#/components/messages/chatRead'
+    x-publisher: goway-loads
+    x-consumers: [goway-realtime]
+  supportMessageCreated:
+    address: support.message_created
+    description: "A message was added to a support conversation."
+    messages:
+      supportMessageCreated:
+        $ref: '#/components/messages/supportMessageCreated'
+    x-publisher: goway-auth
+    x-consumers: [goway-notify, goway-realtime]
 operations:
   publishUserCreated:
     action: send
@@ -784,6 +808,21 @@ operations:
     channel:
       $ref: '#/channels/bookingObjectionResolved'
     description: "Published when an operator accepts or rejects an objection."
+  publishChatMessageCreated:
+    action: send
+    channel:
+      $ref: '#/channels/chatMessageCreated'
+    description: "Published when the driver or the shipper sends a chat message."
+  publishChatRead:
+    action: send
+    channel:
+      $ref: '#/channels/chatRead'
+    description: "Published when a party marks the chat read."
+  publishSupportMessageCreated:
+    action: send
+    channel:
+      $ref: '#/channels/supportMessageCreated'
+    description: "Published when the person or an operator writes in a support conversation."
 components:
   messages:
     userCreated:
@@ -1081,3 +1120,18 @@ components:
       title: Objection resolved
       payload:
         $ref: '../schemas/events/booking.objection_resolved.json'
+    chatMessageCreated:
+      name: chat.message_created
+      title: Chat message
+      payload:
+        $ref: '../schemas/events/chat.message_created.json'
+    chatRead:
+      name: chat.read
+      title: Chat read
+      payload:
+        $ref: '../schemas/events/chat.read.json'
+    supportMessageCreated:
+      name: support.message_created
+      title: Support message
+      payload:
+        $ref: '../schemas/events/support.message_created.json'
