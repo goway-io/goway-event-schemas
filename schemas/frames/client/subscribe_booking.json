@@ -11,7 +11,7 @@
     },
     "data": {
       "title": "SubscribeBooking",
-      "description": "Watch a booking of the caller's organization: status, arrival window and the driver's position.",
+      "description": "Watch a booking of the caller's organization: status, arrival window and the driver's position. The driver and the shipper who posted the load get every frame but the position without subscribing; subscribe for the position, or as another member of either organization.",
       "type": "object",
       "additionalProperties": false,
       "properties": {

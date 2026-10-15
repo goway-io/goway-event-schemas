@@ -374,7 +374,7 @@ impl<'de> ::serde::Deserialize<'de> for BookingCancelledCurrency {
             .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
     }
 }
-#[doc = "Frame `booking_cancelled` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.cancelled` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
+#[doc = "Frame `booking_cancelled` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.cancelled` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct BookingCancelledFrame {
     pub data: BookingCancelled,
@@ -506,7 +506,7 @@ impl<'de> ::serde::Deserialize<'de> for BookingCompletedCurrency {
             .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
     }
 }
-#[doc = "Frame `booking_completed` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.completed` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
+#[doc = "Frame `booking_completed` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.completed` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct BookingCompletedFrame {
     pub data: BookingCompleted,
@@ -610,7 +610,7 @@ pub struct BookingCreatedFrame {
     #[serde(rename = "type")]
     pub type_: ::std::string::String,
 }
-#[doc = "Frame `booking_eta` goway-realtime sends to an app. Sent to the booking's viewers only, and dropped when a socket is slow. It currently forwards the internal `booking.eta_updated` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
+#[doc = "Frame `booking_eta` goway-realtime sends to an app. Sent to the driver, the shipper who posted the load and the booking's viewers, and dropped when a socket is slow. It currently forwards the internal `booking.eta_updated` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct BookingEtaFrame {
     pub data: BookingEtaUpdated,
@@ -923,7 +923,7 @@ pub struct BookingStatusChanged {
     pub shipper_org_id: ::uuid::Uuid,
     pub status: BookingStatus,
 }
-#[doc = "Frame `booking_status` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.status_changed` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
+#[doc = "Frame `booking_status` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.status_changed` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct BookingStatusFrame {
     pub data: BookingStatusChanged,
@@ -3465,28 +3465,28 @@ pub enum ServerFrame {
         #[doc = "When the server sent the frame, RFC 3339 UTC."]
         ts: ::chrono::DateTime<::chrono::offset::Utc>,
     },
-    #[doc = "Frame `booking_status` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.status_changed` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
+    #[doc = "Frame `booking_status` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.status_changed` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
     #[serde(rename = "booking_status")]
     BookingStatus {
         data: BookingStatusChanged,
         #[doc = "When the server sent the frame, RFC 3339 UTC."]
         ts: ::chrono::DateTime<::chrono::offset::Utc>,
     },
-    #[doc = "Frame `booking_eta` goway-realtime sends to an app. Sent to the booking's viewers only, and dropped when a socket is slow. It currently forwards the internal `booking.eta_updated` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
+    #[doc = "Frame `booking_eta` goway-realtime sends to an app. Sent to the driver, the shipper who posted the load and the booking's viewers, and dropped when a socket is slow. It currently forwards the internal `booking.eta_updated` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
     #[serde(rename = "booking_eta")]
     BookingEta {
         data: BookingEtaUpdated,
         #[doc = "When the server sent the frame, RFC 3339 UTC."]
         ts: ::chrono::DateTime<::chrono::offset::Utc>,
     },
-    #[doc = "Frame `booking_completed` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.completed` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
+    #[doc = "Frame `booking_completed` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.completed` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
     #[serde(rename = "booking_completed")]
     BookingCompleted {
         data: BookingCompleted,
         #[doc = "When the server sent the frame, RFC 3339 UTC."]
         ts: ::chrono::DateTime<::chrono::offset::Utc>,
     },
-    #[doc = "Frame `booking_cancelled` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.cancelled` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
+    #[doc = "Frame `booking_cancelled` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.cancelled` event as-is, so `data` is that event's payload, `event_id` and organization ids included."]
     #[serde(rename = "booking_cancelled")]
     BookingCancelled {
         data: BookingCancelled,
@@ -3782,7 +3782,7 @@ pub struct SubscribeBoardFrame {
     #[serde(rename = "type")]
     pub type_: ::std::string::String,
 }
-#[doc = "Watch a booking of the caller's organization: status, arrival window and the driver's position."]
+#[doc = "Watch a booking of the caller's organization: status, arrival window and the driver's position. The driver and the shipper who posted the load get every frame but the position without subscribing; subscribe for the position, or as another member of either organization."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct SubscribeBooking {
     pub booking_id: ::uuid::Uuid,

@@ -534,7 +534,7 @@ export interface BookingCancelled {
   currency: string;
 }
 /**
- * Frame `booking_cancelled` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.cancelled` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+ * Frame `booking_cancelled` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.cancelled` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "BookingCancelledFrame".
@@ -619,7 +619,7 @@ export interface ChargeLine {
   qty: number;
 }
 /**
- * Frame `booking_completed` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.completed` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+ * Frame `booking_completed` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.completed` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "BookingCompletedFrame".
@@ -704,7 +704,7 @@ export interface BookingCreatedFrame {
   ts: string;
 }
 /**
- * Frame `booking_eta` goway-realtime sends to an app. Sent to the booking's viewers only, and dropped when a socket is slow. It currently forwards the internal `booking.eta_updated` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+ * Frame `booking_eta` goway-realtime sends to an app. Sent to the driver, the shipper who posted the load and the booking's viewers, and dropped when a socket is slow. It currently forwards the internal `booking.eta_updated` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "BookingEtaFrame".
@@ -912,7 +912,7 @@ export interface BookingStatusChanged {
   occurred_at: string;
 }
 /**
- * Frame `booking_status` goway-realtime sends to an app. Sent to the driver and to the booking's viewers. It currently forwards the internal `booking.status_changed` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+ * Frame `booking_status` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.status_changed` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "BookingStatusFrame".
@@ -1210,7 +1210,7 @@ export interface SubscribeBookingFrame {
   data: SubscribeBooking;
 }
 /**
- * Watch a booking of the caller's organization: status, arrival window and the driver's position.
+ * Watch a booking of the caller's organization: status, arrival window and the driver's position. The driver and the shipper who posted the load get every frame but the position without subscribing; subscribe for the position, or as another member of either organization.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "SubscribeBooking".
