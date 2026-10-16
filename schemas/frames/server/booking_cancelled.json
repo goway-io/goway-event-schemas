@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "BookingCancelledFrame",
-  "description": "Frame `booking_cancelled` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.cancelled` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+  "description": "Frame `booking_cancelled` goway-realtime sends to an app.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -10,7 +10,58 @@
       "const": "booking_cancelled"
     },
     "data": {
-      "$ref": "../../events/booking.cancelled.json"
+      "title": "BookingCancelledData",
+      "description": "The haul was cancelled; the app reads the booking for what it costs whom. The internal event's ids for organizations, recipients and the event itself never reach an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_code": {
+          "type": "string",
+          "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
+        },
+        "by": {
+          "title": "CancelledBy",
+          "type": "string",
+          "enum": [
+            "shipper",
+            "carrier",
+            "operator"
+          ],
+          "description": "Who cancelled."
+        },
+        "reason_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Code from the cancellation reasons catalogue; null for older clients and system cancellations."
+        },
+        "reason": {
+          "type": "string",
+          "description": "What the canceller wrote; empty when nothing was written."
+        },
+        "plan": {
+          "type": "boolean",
+          "description": "The cancelled booking was a plan."
+        }
+      },
+      "required": [
+        "booking_id",
+        "load_id",
+        "load_code",
+        "by",
+        "reason_code",
+        "reason",
+        "plan"
+      ]
     },
     "ts": {
       "type": "string",

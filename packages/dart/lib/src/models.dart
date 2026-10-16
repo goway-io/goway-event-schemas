@@ -944,14 +944,11 @@ final boardSubscribedFrameTypeValues = EnumValues({
 });
 
 
-///Frame `booking_cancelled` goway-realtime sends to an app. Sent to the driver, to the
-///shipper who posted the load (no subscription needed) and to the booking's viewers. It
-///currently forwards the internal `booking.cancelled` event as-is, so `data` is that
-///event's payload, `event_id` and organization ids included.
+///Frame `booking_cancelled` goway-realtime sends to an app.
 @JsonSerializable()
 class BookingCancelledFrame {
     @JsonKey(name: "data")
-    final BookingCancelled data;
+    final BookingCancelledData data;
     
     ///When the server sent the frame, RFC 3339 UTC.
     @JsonKey(name: "ts")
@@ -971,46 +968,20 @@ class BookingCancelledFrame {
 }
 
 
-///A booking ended without being completed: either side cancelled before the cargo was
-///loaded (`by` is `shipper` or `carrier`), or an operator cancelled it (`by` is
-///`operator`), which after loading happens only through a reported issue. The load goes
-///back to the board unless the operator withdrew it, which a `load.cancelled` then says.
+///The haul was cancelled; the app reads the booking for what it costs whom. The internal
+///event's ids for organizations, recipients and the event itself never reach an app.
 @JsonSerializable()
-class BookingCancelled {
+class BookingCancelledData {
     @JsonKey(name: "booking_id")
     final String bookingId;
     @JsonKey(name: "by")
     final CancelledBy by;
-    @JsonKey(name: "carrier_org_id")
-    final String carrierOrgId;
-    @JsonKey(name: "currency")
-    final String currency;
-    
-    ///Null when no driver was assigned.
-    @JsonKey(name: "driver_user_id")
-    final String? driverUserId;
-    
-    ///Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
-    @JsonKey(name: "event_id")
-    final String eventId;
-    
-    ///Cancellation fee the shipper owes the carrier, whole so'm (`cancel_fee_percent` once the
-    ///driver set off); null when none.
-    @JsonKey(name: "fee_amount")
-    final int? feeAmount;
     
     ///The load's short code, for example `GW-7F3K2M`; wallets and receipts show it.
     @JsonKey(name: "load_code")
     final String loadCode;
     @JsonKey(name: "load_id")
     final String loadId;
-    
-    ///The cancellation counts against the driver's acceptance rate: the driver's own
-    ///cancellation of an instant haul, or of a plan later than goway-loads' free-cancel window
-    ///before pickup, or an operator's cancellation of a booking whose driver never showed up.
-    ///False for every other shipper and operator cancellation.
-    @JsonKey(name: "penalized")
-    final bool penalized;
     
     ///The cancelled booking was a plan.
     @JsonKey(name: "plan")
@@ -1024,29 +995,20 @@ class BookingCancelled {
     ///cancellations.
     @JsonKey(name: "reason_code")
     final String? reasonCode;
-    @JsonKey(name: "shipper_org_id")
-    final String shipperOrgId;
 
-    BookingCancelled({
+    BookingCancelledData({
         required this.bookingId,
         required this.by,
-        required this.carrierOrgId,
-        required this.currency,
-        required this.driverUserId,
-        required this.eventId,
-        required this.feeAmount,
         required this.loadCode,
         required this.loadId,
-        required this.penalized,
         required this.plan,
         required this.reason,
         required this.reasonCode,
-        required this.shipperOrgId,
     });
 
-    factory BookingCancelled.fromJson(Map<String, dynamic> json) => _$BookingCancelledFromJson(json);
+    factory BookingCancelledData.fromJson(Map<String, dynamic> json) => _$BookingCancelledDataFromJson(json);
 
-    Map<String, dynamic> toJson() => _$BookingCancelledToJson(this);
+    Map<String, dynamic> toJson() => _$BookingCancelledDataToJson(this);
 }
 
 
@@ -1076,14 +1038,11 @@ final bookingCancelledFrameTypeValues = EnumValues({
 });
 
 
-///Frame `booking_completed` goway-realtime sends to an app. Sent to the driver, to the
-///shipper who posted the load (no subscription needed) and to the booking's viewers. It
-///currently forwards the internal `booking.completed` event as-is, so `data` is that
-///event's payload, `event_id` and organization ids included.
+///Frame `booking_completed` goway-realtime sends to an app.
 @JsonSerializable()
 class BookingCompletedFrame {
     @JsonKey(name: "data")
-    final BookingCompleted data;
+    final BookingCompletedData data;
     
     ///When the server sent the frame, RFC 3339 UTC.
     @JsonKey(name: "ts")
@@ -1103,22 +1062,13 @@ class BookingCompletedFrame {
 }
 
 
-///A delivered haul was closed: by the shipper, by an operator, or by the auto-complete
-///sweep. All three send the same fields. Billing charges its commission from this event.
+///The haul is closed; the app reads the booking for the bill and asks for a rating. The
+///internal event's ids for organizations, recipients and the event itself never reach an
+///app.
 @JsonSerializable()
-class BookingCompleted {
-    
-    ///Price agreed at booking, whole so'm (a bare integer; `currency` is UZS today).
-    @JsonKey(name: "agreed_amount")
-    final int agreedAmount;
+class BookingCompletedData {
     @JsonKey(name: "booking_id")
     final String bookingId;
-    @JsonKey(name: "carrier_org_id")
-    final String carrierOrgId;
-    
-    ///Price lines; the first is always the agreed tariff.
-    @JsonKey(name: "charges")
-    final List<ChargeLine> charges;
     
     ///When the haul was closed; the code allows null, it is always set. ISO 8601 with offset,
     ///as Python's `isoformat()` writes it.
@@ -1127,95 +1077,23 @@ class BookingCompleted {
     @JsonKey(name: "completed_by")
     final CompletedBy completedBy;
     
-    ///ISO 4217 code; `UZS` today.
-    @JsonKey(name: "currency")
-    final String currency;
-    @JsonKey(name: "driver_user_id")
-    final String driverUserId;
-    
-    ///Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
-    @JsonKey(name: "event_id")
-    final String eventId;
-    
     ///The load's short code, for example `GW-7F3K2M`; wallets and receipts show it.
     @JsonKey(name: "load_code")
     final String loadCode;
     @JsonKey(name: "load_id")
     final String loadId;
-    
-    ///What the haul actually settled at: the agreed price unless another sum was confirmed,
-    ///whole so'm (a bare integer; `currency` is UZS today).
-    @JsonKey(name: "settled_amount")
-    final int settledAmount;
-    @JsonKey(name: "shipper_org_id")
-    final String shipperOrgId;
-    
-    ///Charges plus waiting, whole so'm (a bare integer; `currency` is UZS today); the code
-    ///allows null.
-    @JsonKey(name: "total_amount")
-    final int? totalAmount;
-    
-    ///What the waiting costs, whole so'm (a bare integer; `currency` is UZS today).
-    @JsonKey(name: "waiting_amount")
-    final int waitingAmount;
-    
-    ///Whether the waiting is charged to the shipper.
-    @JsonKey(name: "waiting_billable")
-    final bool waitingBillable;
-    
-    ///Billable minutes the driver waited at pickup.
-    @JsonKey(name: "waiting_minutes")
-    final int waitingMinutes;
 
-    BookingCompleted({
-        required this.agreedAmount,
+    BookingCompletedData({
         required this.bookingId,
-        required this.carrierOrgId,
-        required this.charges,
         required this.completedAt,
         required this.completedBy,
-        required this.currency,
-        required this.driverUserId,
-        required this.eventId,
         required this.loadCode,
         required this.loadId,
-        required this.settledAmount,
-        required this.shipperOrgId,
-        required this.totalAmount,
-        required this.waitingAmount,
-        required this.waitingBillable,
-        required this.waitingMinutes,
     });
 
-    factory BookingCompleted.fromJson(Map<String, dynamic> json) => _$BookingCompletedFromJson(json);
+    factory BookingCompletedData.fromJson(Map<String, dynamic> json) => _$BookingCompletedDataFromJson(json);
 
-    Map<String, dynamic> toJson() => _$BookingCompletedToJson(this);
-}
-
-
-///One priced line of the haul.
-@JsonSerializable()
-class ChargeLine {
-    
-    ///Line total, whole so'm (a bare integer; `currency` is UZS today).
-    @JsonKey(name: "amount")
-    final int amount;
-    
-    ///`tariff`, `loaders` or `req:<requirement code>`.
-    @JsonKey(name: "code")
-    final String code;
-    @JsonKey(name: "qty")
-    final int qty;
-
-    ChargeLine({
-        required this.amount,
-        required this.code,
-        required this.qty,
-    });
-
-    factory ChargeLine.fromJson(Map<String, dynamic> json) => _$ChargeLineFromJson(json);
-
-    Map<String, dynamic> toJson() => _$ChargeLineToJson(this);
+    Map<String, dynamic> toJson() => _$BookingCompletedDataToJson(this);
 }
 
 
@@ -1249,13 +1127,11 @@ final bookingCompletedFrameTypeValues = EnumValues({
 });
 
 
-///Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver and to
-///the shipper who posted the load. It currently forwards the internal `booking.created`
-///event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+///Frame `booking_created` goway-realtime sends to an app.
 @JsonSerializable()
 class BookingCreatedFrame {
     @JsonKey(name: "data")
-    final BookingCreated data;
+    final BookingCreatedData data;
     
     ///When the server sent the frame, RFC 3339 UTC.
     @JsonKey(name: "ts")
@@ -1275,10 +1151,11 @@ class BookingCreatedFrame {
 }
 
 
-///A load was booked. Two paths: an accepted offer, or an instant claim from dispatch, which
-///adds `source: instant`.
+///A haul was booked. Sent to the booked driver and to the shipper who posted the load; the
+///app reads the booking for the rest. The internal event's ids for organizations,
+///recipients and the event itself never reach an app.
 @JsonSerializable()
-class BookingCreated {
+class BookingCreatedData {
     
     ///Agreed price, whole so'm (a bare integer; `currency` is UZS today).
     @JsonKey(name: "agreed_amount")
@@ -1286,33 +1163,9 @@ class BookingCreated {
     @JsonKey(name: "booking_id")
     final String bookingId;
     
-    ///Start of the span this booking keeps the driver busy, goway-loads' plan buffer included.
-    ///Dispatch offers the driver nothing whose trip overlaps it.
-    @JsonKey(name: "busy_from")
-    final DateTime busyFrom;
-    
-    ///End of that span; null when the haul's duration is unknown, which keeps the driver busy
-    ///until the booking ends.
-    @JsonKey(name: "busy_until")
-    final DateTime? busyUntil;
-    @JsonKey(name: "carrier_org_id")
-    final String carrierOrgId;
-    
     ///ISO 4217 code; `UZS` today.
     @JsonKey(name: "currency")
     final String currency;
-    
-    ///The driver; the offer path allows null, a booking always has one.
-    @JsonKey(name: "driver_user_id")
-    final String? driverUserId;
-    
-    ///Driving time of the haul in minutes; null when routing was unavailable.
-    @JsonKey(name: "duration_min")
-    final int? durationMin;
-    
-    ///Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
-    @JsonKey(name: "event_id")
-    final String eventId;
     @JsonKey(name: "load_id")
     final String loadId;
     
@@ -1328,37 +1181,23 @@ class BookingCreated {
     ///The driver booked a plan: a load scheduled ahead, taken from the plan list.
     @JsonKey(name: "plan")
     final bool plan;
-    @JsonKey(name: "shipper_org_id")
-    final String shipperOrgId;
-    
-    ///The person who posted the load; they hear `booking_created` on the socket too.
-    @JsonKey(name: "shipper_user_id")
-    final String shipperUserId;
     @JsonKey(name: "source")
     final BookingSource? source;
 
-    BookingCreated({
+    BookingCreatedData({
         required this.agreedAmount,
         required this.bookingId,
-        required this.busyFrom,
-        required this.busyUntil,
-        required this.carrierOrgId,
         required this.currency,
-        required this.driverUserId,
-        required this.durationMin,
-        required this.eventId,
         required this.loadId,
         required this.pickupFrom,
         required this.pickupTo,
         required this.plan,
-        required this.shipperOrgId,
-        required this.shipperUserId,
         this.source,
     });
 
-    factory BookingCreated.fromJson(Map<String, dynamic> json) => _$BookingCreatedFromJson(json);
+    factory BookingCreatedData.fromJson(Map<String, dynamic> json) => _$BookingCreatedDataFromJson(json);
 
-    Map<String, dynamic> toJson() => _$BookingCreatedToJson(this);
+    Map<String, dynamic> toJson() => _$BookingCreatedDataToJson(this);
 }
 
 
@@ -1382,14 +1221,11 @@ final bookingCreatedFrameTypeValues = EnumValues({
 });
 
 
-///Frame `booking_eta` goway-realtime sends to an app. Sent to the driver, the shipper who
-///posted the load and the booking's viewers, and dropped when a socket is slow. It
-///currently forwards the internal `booking.eta_updated` event as-is, so `data` is that
-///event's payload, `event_id` and organization ids included.
+///Frame `booking_eta` goway-realtime sends to an app.
 @JsonSerializable()
 class BookingEtaFrame {
     @JsonKey(name: "data")
-    final BookingEtaUpdated data;
+    final BookingEtaData data;
     
     ///When the server sent the frame, RFC 3339 UTC.
     @JsonKey(name: "ts")
@@ -1409,16 +1245,12 @@ class BookingEtaFrame {
 }
 
 
-///The arrival window or the time the truck is free again moved: when the haul is booked
-///(`confirmed`), at every carrier step, and on fresh GPS while `en_route` or `in_transit`.
+///The arrival window or the road position changed. The internal event's ids for
+///organizations, recipients and the event itself never reach an app.
 @JsonSerializable()
-class BookingEtaUpdated {
+class BookingEtaData {
     @JsonKey(name: "booking_id")
     final String bookingId;
-    @JsonKey(name: "carrier_org_id")
-    final String carrierOrgId;
-    @JsonKey(name: "driver_user_id")
-    final String driverUserId;
     
     ///Earliest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's
     ///`isoformat()` writes it.
@@ -1434,19 +1266,6 @@ class BookingEtaUpdated {
     @JsonKey(name: "eta_to")
     final DateTime? etaTo;
     
-    ///Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
-    @JsonKey(name: "event_id")
-    final String eventId;
-    
-    ///When the truck is expected to be empty again. ISO 8601 with offset, as Python's
-    ///`isoformat()` writes it.
-    @JsonKey(name: "free_at")
-    final DateTime? freeAt;
-    
-    ///Where the truck will be free: the drop-off region; null when unknown.
-    @JsonKey(name: "free_region_id")
-    final String? freeRegionId;
-    
     ///The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null
     ///until it crosses one.
     @JsonKey(name: "last_waypoint")
@@ -1458,36 +1277,23 @@ class BookingEtaUpdated {
     ///unavailable.
     @JsonKey(name: "remaining_km")
     final double? remainingKm;
-    @JsonKey(name: "shipper_org_id")
-    final String shipperOrgId;
     @JsonKey(name: "status")
     final BookingStatus status;
-    
-    ///The booked vehicle's truck class code.
-    @JsonKey(name: "truck_class")
-    final String truckClass;
 
-    BookingEtaUpdated({
+    BookingEtaData({
         required this.bookingId,
-        required this.carrierOrgId,
-        required this.driverUserId,
         required this.etaFrom,
         required this.etaStop,
         required this.etaTo,
-        required this.eventId,
-        required this.freeAt,
-        required this.freeRegionId,
         required this.lastWaypoint,
         required this.loadId,
         required this.remainingKm,
-        required this.shipperOrgId,
         required this.status,
-        required this.truckClass,
     });
 
-    factory BookingEtaUpdated.fromJson(Map<String, dynamic> json) => _$BookingEtaUpdatedFromJson(json);
+    factory BookingEtaData.fromJson(Map<String, dynamic> json) => _$BookingEtaDataFromJson(json);
 
-    Map<String, dynamic> toJson() => _$BookingEtaUpdatedToJson(this);
+    Map<String, dynamic> toJson() => _$BookingEtaDataToJson(this);
 }
 
 enum EtaStop {
@@ -1559,14 +1365,11 @@ final bookingEtaFrameTypeValues = EnumValues({
 });
 
 
-///Frame `booking_status` goway-realtime sends to an app. Sent to the driver, to the shipper
-///who posted the load (no subscription needed) and to the booking's viewers. It currently
-///forwards the internal `booking.status_changed` event as-is, so `data` is that event's
-///payload, `event_id` and organization ids included.
+///Frame `booking_status` goway-realtime sends to an app.
 @JsonSerializable()
 class BookingStatusFrame {
     @JsonKey(name: "data")
-    final BookingStatusChanged data;
+    final BookingStatusData data;
     
     ///When the server sent the frame, RFC 3339 UTC.
     @JsonKey(name: "ts")
@@ -1586,18 +1389,12 @@ class BookingStatusFrame {
 }
 
 
-///The carrier moved the haul one step on: `en_route`, `at_pickup`, `loading`, `in_transit`
-///or `delivered`. Completion and cancellation have their own subjects.
+///The haul moved to another step. The internal event's ids for organizations, recipients
+///and the event itself never reach an app.
 @JsonSerializable()
-class BookingStatusChanged {
+class BookingStatusData {
     @JsonKey(name: "booking_id")
     final String bookingId;
-    @JsonKey(name: "carrier_org_id")
-    final String carrierOrgId;
-    
-    ///Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
-    @JsonKey(name: "event_id")
-    final String eventId;
     @JsonKey(name: "load_id")
     final String loadId;
     
@@ -1605,24 +1402,19 @@ class BookingStatusChanged {
     ///Steps arrive in order; this is the time to show.
     @JsonKey(name: "occurred_at")
     final DateTime occurredAt;
-    @JsonKey(name: "shipper_org_id")
-    final String shipperOrgId;
     @JsonKey(name: "status")
     final BookingStatus status;
 
-    BookingStatusChanged({
+    BookingStatusData({
         required this.bookingId,
-        required this.carrierOrgId,
-        required this.eventId,
         required this.loadId,
         required this.occurredAt,
-        required this.shipperOrgId,
         required this.status,
     });
 
-    factory BookingStatusChanged.fromJson(Map<String, dynamic> json) => _$BookingStatusChangedFromJson(json);
+    factory BookingStatusData.fromJson(Map<String, dynamic> json) => _$BookingStatusDataFromJson(json);
 
-    Map<String, dynamic> toJson() => _$BookingStatusChangedToJson(this);
+    Map<String, dynamic> toJson() => _$BookingStatusDataToJson(this);
 }
 
 enum BookingStatusFrameType {
@@ -1706,13 +1498,11 @@ final bookingUpdatedFrameTypeValues = EnumValues({
 });
 
 
-///Frame `chat_message` goway-realtime sends to an app. Sent to the sender and the
-///recipients. It forwards the internal `chat.message_created` event as-is, so `data` is
-///that event's payload.
+///Frame `chat_message` goway-realtime sends to an app.
 @JsonSerializable()
 class ChatMessageFrame {
     @JsonKey(name: "data")
-    final ChatMessageCreated data;
+    final ChatMessageData data;
     
     ///When the server sent the frame, RFC 3339 UTC.
     @JsonKey(name: "ts")
@@ -1732,10 +1522,10 @@ class ChatMessageFrame {
 }
 
 
-///A message was written in a haul's chat between the driver and the shipper. Realtime shows
-///it at once; notify pushes it to whoever is not looking.
+///A message in a haul's chat, to both sides and to the writer's other devices. The internal
+///event's ids for organizations, recipients and the event itself never reach an app.
 @JsonSerializable()
-class ChatMessageCreated {
+class ChatMessageData {
     @JsonKey(name: "booking_id")
     final String bookingId;
     
@@ -1744,10 +1534,6 @@ class ChatMessageCreated {
     final String? clientMessageId;
     @JsonKey(name: "created_at")
     final DateTime createdAt;
-    
-    ///Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
-    @JsonKey(name: "event_id")
-    final String eventId;
     @JsonKey(name: "kind")
     final ChatMessageKind kind;
     @JsonKey(name: "lat")
@@ -1766,11 +1552,6 @@ class ChatMessageCreated {
     ///Code from the quick replies catalogue when `kind` is `quick_reply`.
     @JsonKey(name: "quick_reply_code")
     final String? quickReplyCode;
-    
-    ///People on the other side who should hear it: today the driver or the person who posted
-    ///the load.
-    @JsonKey(name: "recipient_user_ids")
-    final List<String> recipientUserIds;
     @JsonKey(name: "sender_side")
     final ChatSide senderSide;
     @JsonKey(name: "sender_user_id")
@@ -1781,11 +1562,10 @@ class ChatMessageCreated {
     @JsonKey(name: "text")
     final String? text;
 
-    ChatMessageCreated({
+    ChatMessageData({
         required this.bookingId,
         required this.clientMessageId,
         required this.createdAt,
-        required this.eventId,
         required this.kind,
         required this.lat,
         required this.lng,
@@ -1793,15 +1573,14 @@ class ChatMessageCreated {
         required this.messageId,
         required this.photoFileId,
         required this.quickReplyCode,
-        required this.recipientUserIds,
         required this.senderSide,
         required this.senderUserId,
         required this.text,
     });
 
-    factory ChatMessageCreated.fromJson(Map<String, dynamic> json) => _$ChatMessageCreatedFromJson(json);
+    factory ChatMessageData.fromJson(Map<String, dynamic> json) => _$ChatMessageDataFromJson(json);
 
-    Map<String, dynamic> toJson() => _$ChatMessageCreatedToJson(this);
+    Map<String, dynamic> toJson() => _$ChatMessageDataToJson(this);
 }
 
 enum ChatMessageKind {
@@ -1846,12 +1625,11 @@ final chatMessageFrameTypeValues = EnumValues({
 });
 
 
-///Frame `chat_read` goway-realtime sends to an app. Sent to the recipients. It forwards the
-///internal `chat.read` event as-is.
+///Frame `chat_read` goway-realtime sends to an app.
 @JsonSerializable()
 class ChatReadFrame {
     @JsonKey(name: "data")
-    final ChatRead data;
+    final ChatReadData data;
     
     ///When the server sent the frame, RFC 3339 UTC.
     @JsonKey(name: "ts")
@@ -1871,15 +1649,12 @@ class ChatReadFrame {
 }
 
 
-///Someone read a haul's chat up to a message; the other side sees «o'qildi».
+///One side read a haul's chat up to a message. The internal event's ids for organizations,
+///recipients and the event itself never reach an app.
 @JsonSerializable()
-class ChatRead {
+class ChatReadData {
     @JsonKey(name: "booking_id")
     final String bookingId;
-    
-    ///Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
-    @JsonKey(name: "event_id")
-    final String eventId;
     @JsonKey(name: "last_read_message_id")
     final String lastReadMessageId;
     @JsonKey(name: "read_at")
@@ -1888,25 +1663,18 @@ class ChatRead {
     final ChatSide readerSide;
     @JsonKey(name: "reader_user_id")
     final String readerUserId;
-    
-    ///People on the other side who should hear it: today the driver or the person who posted
-    ///the load.
-    @JsonKey(name: "recipient_user_ids")
-    final List<String> recipientUserIds;
 
-    ChatRead({
+    ChatReadData({
         required this.bookingId,
-        required this.eventId,
         required this.lastReadMessageId,
         required this.readAt,
         required this.readerSide,
         required this.readerUserId,
-        required this.recipientUserIds,
     });
 
-    factory ChatRead.fromJson(Map<String, dynamic> json) => _$ChatReadFromJson(json);
+    factory ChatReadData.fromJson(Map<String, dynamic> json) => _$ChatReadDataFromJson(json);
 
-    Map<String, dynamic> toJson() => _$ChatReadToJson(this);
+    Map<String, dynamic> toJson() => _$ChatReadDataToJson(this);
 }
 
 enum ChatReadFrameType {
@@ -2006,16 +1774,11 @@ class Connected {
     final String connId;
     @JsonKey(name: "user_id")
     final String userId;
-    
-    ///The goway-realtime worker holding the socket, `<host>-<pid>-<suffix>`; for logs.
-    @JsonKey(name: "worker")
-    final String worker;
 
     Connected({
         required this.config,
         required this.connId,
         required this.userId,
-        required this.worker,
     });
 
     factory Connected.fromJson(Map<String, dynamic> json) => _$ConnectedFromJson(json);
@@ -3122,13 +2885,11 @@ final subscribedFrameTypeValues = EnumValues({
 });
 
 
-///Frame `support_message` goway-realtime sends to an app. Sent to the person the
-///conversation belongs to when an operator writes. It forwards the internal
-///`support.message_created` event as-is.
+///Frame `support_message` goway-realtime sends to an app.
 @JsonSerializable()
 class SupportMessageFrame {
     @JsonKey(name: "data")
-    final SupportMessageCreated data;
+    final SupportMessageData data;
     
     ///When the server sent the frame, RFC 3339 UTC.
     @JsonKey(name: "ts")
@@ -3148,18 +2909,14 @@ class SupportMessageFrame {
 }
 
 
-///A message was added to a support conversation, by the person who opened it or by an
-///operator.
+///A message in a support conversation, to the person who opened it. The internal event's
+///ids for organizations, recipients and the event itself never reach an app.
 @JsonSerializable()
-class SupportMessageCreated {
+class SupportMessageData {
     @JsonKey(name: "author")
     final SupportAuthor author;
     @JsonKey(name: "created_at")
     final DateTime createdAt;
-    
-    ///Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
-    @JsonKey(name: "event_id")
-    final String eventId;
     @JsonKey(name: "message_id")
     final String messageId;
     
@@ -3170,25 +2927,19 @@ class SupportMessageCreated {
     final String text;
     @JsonKey(name: "ticket_id")
     final String ticketId;
-    
-    ///The person the conversation belongs to.
-    @JsonKey(name: "user_id")
-    final String userId;
 
-    SupportMessageCreated({
+    SupportMessageData({
         required this.author,
         required this.createdAt,
-        required this.eventId,
         required this.messageId,
         required this.number,
         required this.text,
         required this.ticketId,
-        required this.userId,
     });
 
-    factory SupportMessageCreated.fromJson(Map<String, dynamic> json) => _$SupportMessageCreatedFromJson(json);
+    factory SupportMessageData.fromJson(Map<String, dynamic> json) => _$SupportMessageDataFromJson(json);
 
-    Map<String, dynamic> toJson() => _$SupportMessageCreatedToJson(this);
+    Map<String, dynamic> toJson() => _$SupportMessageDataToJson(this);
 }
 
 enum SupportAuthor {

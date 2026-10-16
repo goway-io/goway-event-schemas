@@ -23,10 +23,6 @@
           "type": "string",
           "description": "This socket's id, 32 hex characters."
         },
-        "worker": {
-          "type": "string",
-          "description": "The goway-realtime worker holding the socket, `<host>-<pid>-<suffix>`; for logs."
-        },
         "config": {
           "title": "ConnectionConfig",
           "description": "Current realtime settings the app plays by.",
@@ -59,7 +55,6 @@
       "required": [
         "user_id",
         "conn_id",
-        "worker",
         "config"
       ]
     },

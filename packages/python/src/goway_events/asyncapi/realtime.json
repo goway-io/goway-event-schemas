@@ -735,10 +735,6 @@
          "type": "string",
          "description": "This socket's id, 32 hex characters."
         },
-        "worker": {
-         "type": "string",
-         "description": "The goway-realtime worker holding the socket, `<host>-<pid>-<suffix>`; for logs."
-        },
         "config": {
          "title": "ConnectionConfig",
          "description": "Current realtime settings the app plays by.",
@@ -771,7 +767,6 @@
        "required": [
         "user_id",
         "conn_id",
-        "worker",
         "config"
        ]
       },
@@ -795,7 +790,6 @@
        "data": {
         "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
         "conn_id": "6f1c2a9e3b7d4e8f9a0b1c2d3e4f5a6b",
-        "worker": "realtime-7d9f-1-a1b2c3",
         "config": {
          "offer_ttl_seconds": 20,
          "offer_grace_seconds": 3,
@@ -1414,7 +1408,7 @@
     "title": "Booking created",
     "payload": {
      "title": "BookingCreatedFrame",
-     "description": "Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver and to the shipper who posted the load. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+     "description": "Frame `booking_created` goway-realtime sends to an app.",
      "type": "object",
      "additionalProperties": false,
      "properties": {
@@ -1423,16 +1417,11 @@
        "const": "booking_created"
       },
       "data": {
-       "title": "BookingCreated",
-       "description": "A load was booked. Two paths: an accepted offer, or an instant claim from dispatch, which adds `source: instant`.",
+       "title": "BookingCreatedData",
+       "description": "A haul was booked. Sent to the booked driver and to the shipper who posted the load; the app reads the booking for the rest. The internal event's ids for organizations, recipients and the event itself never reach an app.",
        "type": "object",
        "additionalProperties": false,
        "properties": {
-        "event_id": {
-         "type": "string",
-         "format": "uuid",
-         "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
-        },
         "booking_id": {
          "type": "string",
          "format": "uuid"
@@ -1441,21 +1430,17 @@
          "type": "string",
          "format": "uuid"
         },
-        "shipper_org_id": {
-         "type": "string",
-         "format": "uuid"
+        "plan": {
+         "type": "boolean",
+         "description": "The driver booked a plan: a load scheduled ahead, taken from the plan list."
         },
-        "carrier_org_id": {
+        "source": {
+         "title": "BookingSource",
          "type": "string",
-         "format": "uuid"
-        },
-        "driver_user_id": {
-         "type": [
-          "string",
-          "null"
+         "enum": [
+          "instant"
          ],
-         "format": "uuid",
-         "description": "The driver; the offer path allows null, a booking always has one."
+         "description": "Present only for an instant claim from dispatch; an accepted offer leaves it out."
         },
         "agreed_amount": {
          "type": "integer",
@@ -1467,19 +1452,6 @@
          "minLength": 3,
          "maxLength": 3,
          "description": "ISO 4217 code; `UZS` today."
-        },
-        "source": {
-         "title": "BookingSource",
-         "type": "string",
-         "enum": [
-          "instant"
-         ],
-         "description": "Present only for an instant claim from dispatch; an accepted offer leaves it out."
-        },
-        "shipper_user_id": {
-         "type": "string",
-         "format": "uuid",
-         "description": "The person who posted the load; they hear `booking_created` on the socket too."
         },
         "pickup_from": {
          "type": [
@@ -1496,49 +1468,16 @@
          ],
          "format": "date-time",
          "description": "Latest pickup; null when not given."
-        },
-        "duration_min": {
-         "type": [
-          "integer",
-          "null"
-         ],
-         "minimum": 0,
-         "description": "Driving time of the haul in minutes; null when routing was unavailable."
-        },
-        "busy_from": {
-         "type": "string",
-         "format": "date-time",
-         "description": "Start of the span this booking keeps the driver busy, goway-loads' plan buffer included. Dispatch offers the driver nothing whose trip overlaps it."
-        },
-        "busy_until": {
-         "type": [
-          "string",
-          "null"
-         ],
-         "format": "date-time",
-         "description": "End of that span; null when the haul's duration is unknown, which keeps the driver busy until the booking ends."
-        },
-        "plan": {
-         "type": "boolean",
-         "description": "The driver booked a plan: a load scheduled ahead, taken from the plan list."
         }
        },
        "required": [
-        "event_id",
         "booking_id",
         "load_id",
-        "shipper_org_id",
-        "carrier_org_id",
-        "driver_user_id",
+        "plan",
         "agreed_amount",
         "currency",
-        "shipper_user_id",
         "pickup_from",
-        "pickup_to",
-        "duration_min",
-        "busy_from",
-        "busy_until",
-        "plan"
+        "pickup_to"
        ]
       },
       "ts": {
@@ -1559,21 +1498,13 @@
       "payload": {
        "type": "booking_created",
        "data": {
-        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
         "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
         "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
-        "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
-        "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
-        "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
         "agreed_amount": 4500000,
         "currency": "UZS",
         "source": "instant",
-        "shipper_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
         "pickup_from": "2026-10-15T03:00:00.000Z",
         "pickup_to": "2026-10-15T09:00:00.000Z",
-        "duration_min": 330,
-        "busy_from": "2026-10-15T02:00:00.000Z",
-        "busy_until": "2026-10-15T15:30:00.000Z",
         "plan": false
        },
        "ts": "2026-10-14T09:30:00.123Z"
@@ -1586,7 +1517,7 @@
     "title": "Haul moved on",
     "payload": {
      "title": "BookingStatusFrame",
-     "description": "Frame `booking_status` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.status_changed` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+     "description": "Frame `booking_status` goway-realtime sends to an app.",
      "type": "object",
      "additionalProperties": false,
      "properties": {
@@ -1595,16 +1526,11 @@
        "const": "booking_status"
       },
       "data": {
-       "title": "BookingStatusChanged",
-       "description": "The carrier moved the haul one step on: `en_route`, `at_pickup`, `loading`, `in_transit` or `delivered`. Completion and cancellation have their own subjects.",
+       "title": "BookingStatusData",
+       "description": "The haul moved to another step. The internal event's ids for organizations, recipients and the event itself never reach an app.",
        "type": "object",
        "additionalProperties": false,
        "properties": {
-        "event_id": {
-         "type": "string",
-         "format": "uuid",
-         "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
-        },
         "booking_id": {
          "type": "string",
          "format": "uuid"
@@ -1627,14 +1553,6 @@
           "cancelled"
          ]
         },
-        "shipper_org_id": {
-         "type": "string",
-         "format": "uuid"
-        },
-        "carrier_org_id": {
-         "type": "string",
-         "format": "uuid"
-        },
         "occurred_at": {
          "type": "string",
          "format": "date-time",
@@ -1642,12 +1560,9 @@
         }
        },
        "required": [
-        "event_id",
         "booking_id",
         "load_id",
         "status",
-        "shipper_org_id",
-        "carrier_org_id",
         "occurred_at"
        ]
       },
@@ -1669,12 +1584,9 @@
       "payload": {
        "type": "booking_status",
        "data": {
-        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
         "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
         "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
         "status": "at_pickup",
-        "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
-        "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
         "occurred_at": "2026-10-15T07:12:40.512Z"
        },
        "ts": "2026-10-14T09:30:00.123Z"
@@ -1687,7 +1599,7 @@
     "title": "Arrival window moved",
     "payload": {
      "title": "BookingEtaFrame",
-     "description": "Frame `booking_eta` goway-realtime sends to an app. Sent to the driver, the shipper who posted the load and the booking's viewers, and dropped when a socket is slow. It currently forwards the internal `booking.eta_updated` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+     "description": "Frame `booking_eta` goway-realtime sends to an app.",
      "type": "object",
      "additionalProperties": false,
      "properties": {
@@ -1696,33 +1608,16 @@
        "const": "booking_eta"
       },
       "data": {
-       "title": "BookingEtaUpdated",
-       "description": "The arrival window or the time the truck is free again moved: when the haul is booked (`confirmed`), at every carrier step, and on fresh GPS while `en_route` or `in_transit`.",
+       "title": "BookingEtaData",
+       "description": "The arrival window or the road position changed. The internal event's ids for organizations, recipients and the event itself never reach an app.",
        "type": "object",
        "additionalProperties": false,
        "properties": {
-        "event_id": {
-         "type": "string",
-         "format": "uuid",
-         "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
-        },
         "booking_id": {
          "type": "string",
          "format": "uuid"
         },
         "load_id": {
-         "type": "string",
-         "format": "uuid"
-        },
-        "carrier_org_id": {
-         "type": "string",
-         "format": "uuid"
-        },
-        "driver_user_id": {
-         "type": "string",
-         "format": "uuid"
-        },
-        "shipper_org_id": {
          "type": "string",
          "format": "uuid"
         },
@@ -1772,26 +1667,6 @@
          "format": "date-time",
          "description": "Latest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's `isoformat()` writes it."
         },
-        "free_at": {
-         "type": [
-          "string",
-          "null"
-         ],
-         "format": "date-time",
-         "description": "When the truck is expected to be empty again. ISO 8601 with offset, as Python's `isoformat()` writes it."
-        },
-        "free_region_id": {
-         "type": [
-          "string",
-          "null"
-         ],
-         "format": "uuid",
-         "description": "Where the truck will be free: the drop-off region; null when unknown."
-        },
-        "truck_class": {
-         "type": "string",
-         "description": "The booked vehicle's truck class code."
-        },
         "remaining_km": {
          "type": [
           "number",
@@ -1829,19 +1704,12 @@
         }
        },
        "required": [
-        "event_id",
         "booking_id",
         "load_id",
-        "carrier_org_id",
-        "driver_user_id",
-        "shipper_org_id",
         "status",
         "eta_stop",
         "eta_from",
         "eta_to",
-        "free_at",
-        "free_region_id",
-        "truck_class",
         "remaining_km",
         "last_waypoint"
        ]
@@ -1864,19 +1732,12 @@
       "payload": {
        "type": "booking_eta",
        "data": {
-        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
         "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
         "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
-        "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
-        "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
-        "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
         "status": "en_route",
         "eta_stop": "pickup",
         "eta_from": "2026-10-14T10:05:00.123Z",
         "eta_to": "2026-10-14T10:25:00.123Z",
-        "free_at": "2026-10-14T17:40:00.123Z",
-        "free_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e08",
-        "truck_class": "tent_20t",
         "remaining_km": null,
         "last_waypoint": null
        },
@@ -1890,7 +1751,7 @@
     "title": "Booking completed",
     "payload": {
      "title": "BookingCompletedFrame",
-     "description": "Frame `booking_completed` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.completed` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+     "description": "Frame `booking_completed` goway-realtime sends to an app.",
      "type": "object",
      "additionalProperties": false,
      "properties": {
@@ -1899,16 +1760,11 @@
        "const": "booking_completed"
       },
       "data": {
-       "title": "BookingCompleted",
-       "description": "A delivered haul was closed: by the shipper, by an operator, or by the auto-complete sweep. All three send the same fields. Billing charges its commission from this event.",
+       "title": "BookingCompletedData",
+       "description": "The haul is closed; the app reads the booking for the bill and asks for a rating. The internal event's ids for organizations, recipients and the event itself never reach an app.",
        "type": "object",
        "additionalProperties": false,
        "properties": {
-        "event_id": {
-         "type": "string",
-         "format": "uuid",
-         "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
-        },
         "booking_id": {
          "type": "string",
          "format": "uuid"
@@ -1917,27 +1773,9 @@
          "type": "string",
          "format": "uuid"
         },
-        "carrier_org_id": {
+        "load_code": {
          "type": "string",
-         "format": "uuid"
-        },
-        "shipper_org_id": {
-         "type": "string",
-         "format": "uuid"
-        },
-        "driver_user_id": {
-         "type": "string",
-         "format": "uuid"
-        },
-        "agreed_amount": {
-         "type": "integer",
-         "minimum": 0,
-         "description": "Price agreed at booking, whole so'm (a bare integer; `currency` is UZS today)."
-        },
-        "settled_amount": {
-         "type": "integer",
-         "minimum": 0,
-         "description": "What the haul actually settled at: the agreed price unless another sum was confirmed, whole so'm (a bare integer; `currency` is UZS today)."
+         "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
         },
         "completed_at": {
          "type": [
@@ -1957,88 +1795,14 @@
           "system"
          ],
          "description": "Who closed the haul: `carrier` when the driver finishes it at the drop-off, `system` for the auto-complete sweep."
-        },
-        "charges": {
-         "type": "array",
-         "items": {
-          "title": "ChargeLine",
-          "description": "One priced line of the haul.",
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-           "code": {
-            "type": "string",
-            "description": "`tariff`, `loaders` or `req:<requirement code>`."
-           },
-           "amount": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Line total, whole so'm (a bare integer; `currency` is UZS today)."
-           },
-           "qty": {
-            "type": "integer",
-            "minimum": 1
-           }
-          },
-          "required": [
-           "code",
-           "amount",
-           "qty"
-          ]
-         },
-         "description": "Price lines; the first is always the agreed tariff."
-        },
-        "waiting_minutes": {
-         "type": "integer",
-         "minimum": 0,
-         "description": "Billable minutes the driver waited at pickup."
-        },
-        "waiting_amount": {
-         "type": "integer",
-         "minimum": 0,
-         "description": "What the waiting costs, whole so'm (a bare integer; `currency` is UZS today)."
-        },
-        "waiting_billable": {
-         "type": "boolean",
-         "description": "Whether the waiting is charged to the shipper."
-        },
-        "total_amount": {
-         "type": [
-          "integer",
-          "null"
-         ],
-         "minimum": 0,
-         "description": "Charges plus waiting, whole so'm (a bare integer; `currency` is UZS today); the code allows null."
-        },
-        "currency": {
-         "type": "string",
-         "minLength": 3,
-         "maxLength": 3,
-         "description": "ISO 4217 code; `UZS` today."
-        },
-        "load_code": {
-         "type": "string",
-         "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
         }
        },
        "required": [
-        "event_id",
         "booking_id",
         "load_id",
-        "carrier_org_id",
-        "shipper_org_id",
-        "driver_user_id",
-        "agreed_amount",
-        "settled_amount",
+        "load_code",
         "completed_at",
-        "completed_by",
-        "charges",
-        "waiting_minutes",
-        "waiting_amount",
-        "waiting_billable",
-        "total_amount",
-        "currency",
-        "load_code"
+        "completed_by"
        ]
       },
       "ts": {
@@ -2059,33 +1823,10 @@
       "payload": {
        "type": "booking_completed",
        "data": {
-        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
         "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
         "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
-        "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
-        "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
-        "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
-        "agreed_amount": 4350000,
-        "settled_amount": 4350000,
         "completed_at": "2026-10-14T09:30:00.123Z",
         "completed_by": "shipper",
-        "charges": [
-         {
-          "code": "tariff",
-          "amount": 4350000,
-          "qty": 1
-         },
-         {
-          "code": "loaders",
-          "amount": 200000,
-          "qty": 2
-         }
-        ],
-        "waiting_minutes": 25,
-        "waiting_amount": 50000,
-        "waiting_billable": true,
-        "total_amount": 4600000,
-        "currency": "UZS",
         "load_code": "GW-7F3K2M"
        },
        "ts": "2026-10-14T09:30:00.123Z"
@@ -2098,7 +1839,7 @@
     "title": "Booking cancelled",
     "payload": {
      "title": "BookingCancelledFrame",
-     "description": "Frame `booking_cancelled` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.cancelled` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+     "description": "Frame `booking_cancelled` goway-realtime sends to an app.",
      "type": "object",
      "additionalProperties": false,
      "properties": {
@@ -2107,16 +1848,11 @@
        "const": "booking_cancelled"
       },
       "data": {
-       "title": "BookingCancelled",
-       "description": "A booking ended without being completed: either side cancelled before the cargo was loaded (`by` is `shipper` or `carrier`), or an operator cancelled it (`by` is `operator`), which after loading happens only through a reported issue. The load goes back to the board unless the operator withdrew it, which a `load.cancelled` then says.",
+       "title": "BookingCancelledData",
+       "description": "The haul was cancelled; the app reads the booking for what it costs whom. The internal event's ids for organizations, recipients and the event itself never reach an app.",
        "type": "object",
        "additionalProperties": false,
        "properties": {
-        "event_id": {
-         "type": "string",
-         "format": "uuid",
-         "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
-        },
         "booking_id": {
          "type": "string",
          "format": "uuid"
@@ -2124,6 +1860,10 @@
         "load_id": {
          "type": "string",
          "format": "uuid"
+        },
+        "load_code": {
+         "type": "string",
+         "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
         },
         "by": {
          "title": "CancelledBy",
@@ -2135,34 +1875,6 @@
          ],
          "description": "Who cancelled."
         },
-        "reason": {
-         "type": "string",
-         "description": "What the canceller wrote; empty when nothing was written."
-        },
-        "shipper_org_id": {
-         "type": "string",
-         "format": "uuid"
-        },
-        "carrier_org_id": {
-         "type": "string",
-         "format": "uuid"
-        },
-        "driver_user_id": {
-         "type": [
-          "string",
-          "null"
-         ],
-         "format": "uuid",
-         "description": "Null when no driver was assigned."
-        },
-        "plan": {
-         "type": "boolean",
-         "description": "The cancelled booking was a plan."
-        },
-        "penalized": {
-         "type": "boolean",
-         "description": "The cancellation counts against the driver's acceptance rate: the driver's own cancellation of an instant haul, or of a plan later than goway-loads' free-cancel window before pickup, or an operator's cancellation of a booking whose driver never showed up. False for every other shipper and operator cancellation."
-        },
         "reason_code": {
          "type": [
           "string",
@@ -2170,39 +1882,23 @@
          ],
          "description": "Code from the cancellation reasons catalogue; null for older clients and system cancellations."
         },
-        "fee_amount": {
-         "type": [
-          "integer",
-          "null"
-         ],
-         "minimum": 0,
-         "description": "Cancellation fee the shipper owes the carrier, whole so'm (`cancel_fee_percent` once the driver set off); null when none."
-        },
-        "currency": {
+        "reason": {
          "type": "string",
-         "minLength": 3,
-         "maxLength": 3
+         "description": "What the canceller wrote; empty when nothing was written."
         },
-        "load_code": {
-         "type": "string",
-         "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
+        "plan": {
+         "type": "boolean",
+         "description": "The cancelled booking was a plan."
         }
        },
        "required": [
-        "event_id",
         "booking_id",
         "load_id",
+        "load_code",
         "by",
-        "reason",
-        "shipper_org_id",
-        "carrier_org_id",
-        "driver_user_id",
-        "plan",
-        "penalized",
         "reason_code",
-        "fee_amount",
-        "currency",
-        "load_code"
+        "reason",
+        "plan"
        ]
       },
       "ts": {
@@ -2223,19 +1919,12 @@
       "payload": {
        "type": "booking_cancelled",
        "data": {
-        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
         "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
         "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
         "by": "shipper",
         "reason": "Yuk tayyor emas",
-        "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
-        "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
-        "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
         "plan": false,
-        "penalized": false,
         "reason_code": null,
-        "fee_amount": null,
-        "currency": "UZS",
         "load_code": "GW-7F3K2M"
        },
        "ts": "2026-10-14T09:30:00.123Z"
@@ -3535,7 +3224,7 @@
     "title": "Chat message",
     "payload": {
      "title": "ChatMessageFrame",
-     "description": "Frame `chat_message` goway-realtime sends to an app. Sent to the sender and the recipients. It forwards the internal `chat.message_created` event as-is, so `data` is that event's payload.",
+     "description": "Frame `chat_message` goway-realtime sends to an app.",
      "type": "object",
      "additionalProperties": false,
      "properties": {
@@ -3544,16 +3233,11 @@
        "const": "chat_message"
       },
       "data": {
-       "title": "ChatMessageCreated",
-       "description": "A message was written in a haul's chat between the driver and the shipper. Realtime shows it at once; notify pushes it to whoever is not looking.",
+       "title": "ChatMessageData",
+       "description": "A message in a haul's chat, to both sides and to the writer's other devices. The internal event's ids for organizations, recipients and the event itself never reach an app.",
        "type": "object",
        "additionalProperties": false,
        "properties": {
-        "event_id": {
-         "type": "string",
-         "format": "uuid",
-         "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
-        },
         "message_id": {
          "type": "string",
          "format": "uuid"
@@ -3586,15 +3270,6 @@
           "shipper"
          ],
          "description": "The side of the haul the person writes for."
-        },
-        "recipient_user_ids": {
-         "type": "array",
-         "items": {
-          "type": "string",
-          "format": "uuid"
-         },
-         "uniqueItems": true,
-         "description": "People on the other side who should hear it: today the driver or the person who posted the load."
         },
         "kind": {
          "title": "ChatMessageKind",
@@ -3651,14 +3326,12 @@
         }
        },
        "required": [
-        "event_id",
         "message_id",
         "client_message_id",
         "booking_id",
         "load_id",
         "sender_user_id",
         "sender_side",
-        "recipient_user_ids",
         "kind",
         "text",
         "quick_reply_code",
@@ -3686,16 +3359,12 @@
       "payload": {
        "type": "chat_message",
        "data": {
-        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
         "message_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0d",
         "client_message_id": "6f1c2a9e-3b7d-4e8f-9a0b-1c2d3e4f5a6b",
         "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
         "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
         "sender_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
         "sender_side": "carrier",
-        "recipient_user_ids": [
-         "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a"
-        ],
         "kind": "text",
         "text": "Assalomu alaykum, yukni ortdim. Yo'lga chiqdim.",
         "quick_reply_code": null,
@@ -3714,7 +3383,7 @@
     "title": "Chat read",
     "payload": {
      "title": "ChatReadFrame",
-     "description": "Frame `chat_read` goway-realtime sends to an app. Sent to the recipients. It forwards the internal `chat.read` event as-is.",
+     "description": "Frame `chat_read` goway-realtime sends to an app.",
      "type": "object",
      "additionalProperties": false,
      "properties": {
@@ -3723,16 +3392,11 @@
        "const": "chat_read"
       },
       "data": {
-       "title": "ChatRead",
-       "description": "Someone read a haul's chat up to a message; the other side sees «o'qildi».",
+       "title": "ChatReadData",
+       "description": "One side read a haul's chat up to a message. The internal event's ids for organizations, recipients and the event itself never reach an app.",
        "type": "object",
        "additionalProperties": false,
        "properties": {
-        "event_id": {
-         "type": "string",
-         "format": "uuid",
-         "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
-        },
         "booking_id": {
          "type": "string",
          "format": "uuid"
@@ -3754,27 +3418,16 @@
          "type": "string",
          "format": "uuid"
         },
-        "recipient_user_ids": {
-         "type": "array",
-         "items": {
-          "type": "string",
-          "format": "uuid"
-         },
-         "uniqueItems": true,
-         "description": "People on the other side who should hear it: today the driver or the person who posted the load."
-        },
         "read_at": {
          "type": "string",
          "format": "date-time"
         }
        },
        "required": [
-        "event_id",
         "booking_id",
         "reader_user_id",
         "reader_side",
         "last_read_message_id",
-        "recipient_user_ids",
         "read_at"
        ]
       },
@@ -3796,14 +3449,10 @@
       "payload": {
        "type": "chat_read",
        "data": {
-        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
         "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
         "reader_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
         "reader_side": "shipper",
         "last_read_message_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0d",
-        "recipient_user_ids": [
-         "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06"
-        ],
         "read_at": "2026-10-16T09:25:00.000Z"
        },
        "ts": "2026-10-16T09:25:00.512Z"
@@ -3875,7 +3524,7 @@
     "title": "Support message",
     "payload": {
      "title": "SupportMessageFrame",
-     "description": "Frame `support_message` goway-realtime sends to an app. Sent to the person the conversation belongs to when an operator writes. It forwards the internal `support.message_created` event as-is.",
+     "description": "Frame `support_message` goway-realtime sends to an app.",
      "type": "object",
      "additionalProperties": false,
      "properties": {
@@ -3884,16 +3533,11 @@
        "const": "support_message"
       },
       "data": {
-       "title": "SupportMessageCreated",
-       "description": "A message was added to a support conversation, by the person who opened it or by an operator.",
+       "title": "SupportMessageData",
+       "description": "A message in a support conversation, to the person who opened it. The internal event's ids for organizations, recipients and the event itself never reach an app.",
        "type": "object",
        "additionalProperties": false,
        "properties": {
-        "event_id": {
-         "type": "string",
-         "format": "uuid",
-         "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
-        },
         "ticket_id": {
          "type": "string",
          "format": "uuid"
@@ -3914,11 +3558,6 @@
           "operator"
          ]
         },
-        "user_id": {
-         "type": "string",
-         "format": "uuid",
-         "description": "The person the conversation belongs to."
-        },
         "text": {
          "type": "string",
          "maxLength": 2000
@@ -3929,12 +3568,10 @@
         }
        },
        "required": [
-        "event_id",
         "ticket_id",
         "number",
         "message_id",
         "author",
-        "user_id",
         "text",
         "created_at"
        ]
@@ -3957,12 +3594,10 @@
       "payload": {
        "type": "support_message",
        "data": {
-        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
         "ticket_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0e",
         "number": "T-1042",
         "message_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0f",
         "author": "operator",
-        "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
         "text": "Assalomu alaykum! Balansingiz tekshirildi, komissiya to'g'ri hisoblangan.",
         "created_at": "2026-10-16T10:01:00.000Z"
        },

@@ -598,9 +598,56 @@
         "load_code"
       ]
     },
+    "BookingCancelledData": {
+      "title": "BookingCancelledData",
+      "description": "The haul was cancelled; the app reads the booking for what it costs whom. The internal event's ids for organizations, recipients and the event itself never reach an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_code": {
+          "type": "string",
+          "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
+        },
+        "by": {
+          "$ref": "#/definitions/CancelledBy"
+        },
+        "reason_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Code from the cancellation reasons catalogue; null for older clients and system cancellations."
+        },
+        "reason": {
+          "type": "string",
+          "description": "What the canceller wrote; empty when nothing was written."
+        },
+        "plan": {
+          "type": "boolean",
+          "description": "The cancelled booking was a plan."
+        }
+      },
+      "required": [
+        "booking_id",
+        "load_id",
+        "load_code",
+        "by",
+        "reason_code",
+        "reason",
+        "plan"
+      ]
+    },
     "BookingCancelledFrame": {
       "title": "BookingCancelledFrame",
-      "description": "Frame `booking_cancelled` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.cancelled` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+      "description": "Frame `booking_cancelled` goway-realtime sends to an app.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -609,7 +656,7 @@
           "const": "booking_cancelled"
         },
         "data": {
-          "$ref": "#/definitions/BookingCancelled"
+          "$ref": "#/definitions/BookingCancelledData"
         },
         "ts": {
           "type": "string",
@@ -744,9 +791,47 @@
         "load_code"
       ]
     },
+    "BookingCompletedData": {
+      "title": "BookingCompletedData",
+      "description": "The haul is closed; the app reads the booking for the bill and asks for a rating. The internal event's ids for organizations, recipients and the event itself never reach an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_code": {
+          "type": "string",
+          "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
+        },
+        "completed_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "When the haul was closed; the code allows null, it is always set. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        },
+        "completed_by": {
+          "$ref": "#/definitions/CompletedBy"
+        }
+      },
+      "required": [
+        "booking_id",
+        "load_id",
+        "load_code",
+        "completed_at",
+        "completed_by"
+      ]
+    },
     "BookingCompletedFrame": {
       "title": "BookingCompletedFrame",
-      "description": "Frame `booking_completed` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.completed` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+      "description": "Frame `booking_completed` goway-realtime sends to an app.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -755,7 +840,7 @@
           "const": "booking_completed"
         },
         "data": {
-          "$ref": "#/definitions/BookingCompleted"
+          "$ref": "#/definitions/BookingCompletedData"
         },
         "ts": {
           "type": "string",
@@ -883,9 +968,68 @@
         "plan"
       ]
     },
+    "BookingCreatedData": {
+      "title": "BookingCreatedData",
+      "description": "A haul was booked. Sent to the booked driver and to the shipper who posted the load; the app reads the booking for the rest. The internal event's ids for organizations, recipients and the event itself never reach an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "plan": {
+          "type": "boolean",
+          "description": "The driver booked a plan: a load scheduled ahead, taken from the plan list."
+        },
+        "source": {
+          "$ref": "#/definitions/BookingSource"
+        },
+        "agreed_amount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Agreed price, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3,
+          "description": "ISO 4217 code; `UZS` today."
+        },
+        "pickup_from": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "Earliest pickup; null when not given. A pickup well ahead makes this booking a plan rather than a trip under way."
+        },
+        "pickup_to": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "Latest pickup; null when not given."
+        }
+      },
+      "required": [
+        "booking_id",
+        "load_id",
+        "plan",
+        "agreed_amount",
+        "currency",
+        "pickup_from",
+        "pickup_to"
+      ]
+    },
     "BookingCreatedFrame": {
       "title": "BookingCreatedFrame",
-      "description": "Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver and to the shipper who posted the load. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+      "description": "Frame `booking_created` goway-realtime sends to an app.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -894,7 +1038,7 @@
           "const": "booking_created"
         },
         "data": {
-          "$ref": "#/definitions/BookingCreated"
+          "$ref": "#/definitions/BookingCreatedData"
         },
         "ts": {
           "type": "string",
@@ -908,9 +1052,84 @@
         "ts"
       ]
     },
+    "BookingEtaData": {
+      "title": "BookingEtaData",
+      "description": "The arrival window or the road position changed. The internal event's ids for organizations, recipients and the event itself never reach an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "status": {
+          "$ref": "#/definitions/BookingStatus"
+        },
+        "eta_stop": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/EtaStop"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Which stop the window is for; null when no arrival is expected any more."
+        },
+        "eta_from": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "Earliest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        },
+        "eta_to": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "Latest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        },
+        "remaining_km": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Road kilometres left to the next stop; null before the haul sets off or while routing is unavailable."
+        },
+        "last_waypoint": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/PassedWaypoint"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one."
+        }
+      },
+      "required": [
+        "booking_id",
+        "load_id",
+        "status",
+        "eta_stop",
+        "eta_from",
+        "eta_to",
+        "remaining_km",
+        "last_waypoint"
+      ]
+    },
     "BookingEtaFrame": {
       "title": "BookingEtaFrame",
-      "description": "Frame `booking_eta` goway-realtime sends to an app. Sent to the driver, the shipper who posted the load and the booking's viewers, and dropped when a socket is slow. It currently forwards the internal `booking.eta_updated` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+      "description": "Frame `booking_eta` goway-realtime sends to an app.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -919,7 +1138,7 @@
           "const": "booking_eta"
         },
         "data": {
-          "$ref": "#/definitions/BookingEtaUpdated"
+          "$ref": "#/definitions/BookingEtaData"
         },
         "ts": {
           "type": "string",
@@ -1550,9 +1769,39 @@
         "occurred_at"
       ]
     },
+    "BookingStatusData": {
+      "title": "BookingStatusData",
+      "description": "The haul moved to another step. The internal event's ids for organizations, recipients and the event itself never reach an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "status": {
+          "$ref": "#/definitions/BookingStatus"
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the step happened: the driver's tap, which an app offline for a while sends late. Steps arrive in order; this is the time to show."
+        }
+      },
+      "required": [
+        "booking_id",
+        "load_id",
+        "status",
+        "occurred_at"
+      ]
+    },
     "BookingStatusFrame": {
       "title": "BookingStatusFrame",
-      "description": "Frame `booking_status` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.status_changed` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+      "description": "Frame `booking_status` goway-realtime sends to an app.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -1561,7 +1810,7 @@
           "const": "booking_status"
         },
         "data": {
-          "$ref": "#/definitions/BookingStatusChanged"
+          "$ref": "#/definitions/BookingStatusData"
         },
         "ts": {
           "type": "string",
@@ -2064,9 +2313,105 @@
         "created_at"
       ]
     },
+    "ChatMessageData": {
+      "title": "ChatMessageData",
+      "description": "A message in a haul's chat, to both sides and to the writer's other devices. The internal event's ids for organizations, recipients and the event itself never reach an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "message_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "client_message_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "The sending app's id for the message, so a resend after a lost reply shows once."
+        },
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "sender_user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "sender_side": {
+          "$ref": "#/definitions/ChatSide"
+        },
+        "kind": {
+          "$ref": "#/definitions/ChatMessageKind"
+        },
+        "text": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 1000,
+          "description": "The words; for a quick reply, its text in the sender's language. Null for a bare photo or location."
+        },
+        "quick_reply_code": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Code from the quick replies catalogue when `kind` is `quick_reply`."
+        },
+        "photo_file_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "The `chat_photo` file; the app reads its link over REST."
+        },
+        "lat": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -90,
+          "maximum": 90
+        },
+        "lng": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -180,
+          "maximum": 180
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "message_id",
+        "client_message_id",
+        "booking_id",
+        "load_id",
+        "sender_user_id",
+        "sender_side",
+        "kind",
+        "text",
+        "quick_reply_code",
+        "photo_file_id",
+        "lat",
+        "lng",
+        "created_at"
+      ]
+    },
     "ChatMessageFrame": {
       "title": "ChatMessageFrame",
-      "description": "Frame `chat_message` goway-realtime sends to an app. Sent to the sender and the recipients. It forwards the internal `chat.message_created` event as-is, so `data` is that event's payload.",
+      "description": "Frame `chat_message` goway-realtime sends to an app.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -2075,7 +2420,7 @@
           "const": "chat_message"
         },
         "data": {
-          "$ref": "#/definitions/ChatMessageCreated"
+          "$ref": "#/definitions/ChatMessageData"
         },
         "ts": {
           "type": "string",
@@ -2149,9 +2494,43 @@
         "read_at"
       ]
     },
+    "ChatReadData": {
+      "title": "ChatReadData",
+      "description": "One side read a haul's chat up to a message. The internal event's ids for organizations, recipients and the event itself never reach an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "reader_user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "reader_side": {
+          "$ref": "#/definitions/ChatSide"
+        },
+        "last_read_message_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "read_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "booking_id",
+        "reader_user_id",
+        "reader_side",
+        "last_read_message_id",
+        "read_at"
+      ]
+    },
     "ChatReadFrame": {
       "title": "ChatReadFrame",
-      "description": "Frame `chat_read` goway-realtime sends to an app. Sent to the recipients. It forwards the internal `chat.read` event as-is.",
+      "description": "Frame `chat_read` goway-realtime sends to an app.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -2160,7 +2539,7 @@
           "const": "chat_read"
         },
         "data": {
-          "$ref": "#/definitions/ChatRead"
+          "$ref": "#/definitions/ChatReadData"
         },
         "ts": {
           "type": "string",
@@ -2293,10 +2672,6 @@
           "type": "string",
           "description": "This socket's id, 32 hex characters."
         },
-        "worker": {
-          "type": "string",
-          "description": "The goway-realtime worker holding the socket, `<host>-<pid>-<suffix>`; for logs."
-        },
         "config": {
           "$ref": "#/definitions/ConnectionConfig"
         }
@@ -2304,7 +2679,6 @@
       "required": [
         "user_id",
         "conn_id",
-        "worker",
         "config"
       ]
     },
@@ -5452,9 +5826,48 @@
         "created_at"
       ]
     },
+    "SupportMessageData": {
+      "title": "SupportMessageData",
+      "description": "A message in a support conversation, to the person who opened it. The internal event's ids for organizations, recipients and the event itself never reach an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ticket_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "number": {
+          "type": "string",
+          "description": "The ticket's short number."
+        },
+        "message_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "author": {
+          "$ref": "#/definitions/SupportAuthor"
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ticket_id",
+        "number",
+        "message_id",
+        "author",
+        "text",
+        "created_at"
+      ]
+    },
     "SupportMessageFrame": {
       "title": "SupportMessageFrame",
-      "description": "Frame `support_message` goway-realtime sends to an app. Sent to the person the conversation belongs to when an operator writes. It forwards the internal `support.message_created` event as-is.",
+      "description": "Frame `support_message` goway-realtime sends to an app.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -5463,7 +5876,7 @@
           "const": "support_message"
         },
         "data": {
-          "$ref": "#/definitions/SupportMessageCreated"
+          "$ref": "#/definitions/SupportMessageData"
         },
         "ts": {
           "type": "string",

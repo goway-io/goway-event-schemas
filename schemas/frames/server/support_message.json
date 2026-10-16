@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "SupportMessageFrame",
-  "description": "Frame `support_message` goway-realtime sends to an app. Sent to the person the conversation belongs to when an operator writes. It forwards the internal `support.message_created` event as-is.",
+  "description": "Frame `support_message` goway-realtime sends to an app.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -10,7 +10,48 @@
       "const": "support_message"
     },
     "data": {
-      "$ref": "../../events/support.message_created.json"
+      "title": "SupportMessageData",
+      "description": "A message in a support conversation, to the person who opened it. The internal event's ids for organizations, recipients and the event itself never reach an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ticket_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "number": {
+          "type": "string",
+          "description": "The ticket's short number."
+        },
+        "message_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "author": {
+          "title": "SupportAuthor",
+          "type": "string",
+          "enum": [
+            "user",
+            "operator"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "ticket_id",
+        "number",
+        "message_id",
+        "author",
+        "text",
+        "created_at"
+      ]
     },
     "ts": {
       "type": "string",

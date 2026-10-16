@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "BookingEtaFrame",
-  "description": "Frame `booking_eta` goway-realtime sends to an app. Sent to the driver, the shipper who posted the load and the booking's viewers, and dropped when a socket is slow. It currently forwards the internal `booking.eta_updated` event as-is, so `data` is that event's payload, `event_id` and organization ids included.",
+  "description": "Frame `booking_eta` goway-realtime sends to an app.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -10,7 +10,111 @@
       "const": "booking_eta"
     },
     "data": {
-      "$ref": "../../events/booking.eta_updated.json"
+      "title": "BookingEtaData",
+      "description": "The arrival window or the road position changed. The internal event's ids for organizations, recipients and the event itself never reach an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "status": {
+          "title": "BookingStatus",
+          "type": "string",
+          "enum": [
+            "confirmed",
+            "en_route",
+            "at_pickup",
+            "loading",
+            "in_transit",
+            "delivered",
+            "completed",
+            "cancelled"
+          ]
+        },
+        "eta_stop": {
+          "anyOf": [
+            {
+              "title": "EtaStop",
+              "type": "string",
+              "enum": [
+                "pickup",
+                "dropoff"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Which stop the window is for; null when no arrival is expected any more."
+        },
+        "eta_from": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "Earliest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        },
+        "eta_to": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "Latest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's `isoformat()` writes it."
+        },
+        "remaining_km": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Road kilometres left to the next stop; null before the haul sets off or while routing is unavailable."
+        },
+        "last_waypoint": {
+          "anyOf": [
+            {
+              "title": "PassedWaypoint",
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "region_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "passed_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "region_id",
+                "passed_at"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one."
+        }
+      },
+      "required": [
+        "booking_id",
+        "load_id",
+        "status",
+        "eta_stop",
+        "eta_from",
+        "eta_to",
+        "remaining_km",
+        "last_waypoint"
+      ]
     },
     "ts": {
       "type": "string",

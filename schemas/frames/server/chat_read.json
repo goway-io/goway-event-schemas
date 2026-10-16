@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ChatReadFrame",
-  "description": "Frame `chat_read` goway-realtime sends to an app. Sent to the recipients. It forwards the internal `chat.read` event as-is.",
+  "description": "Frame `chat_read` goway-realtime sends to an app.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -10,7 +10,44 @@
       "const": "chat_read"
     },
     "data": {
-      "$ref": "../../events/chat.read.json"
+      "title": "ChatReadData",
+      "description": "One side read a haul's chat up to a message. The internal event's ids for organizations, recipients and the event itself never reach an app.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "booking_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "reader_user_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "reader_side": {
+          "title": "ChatSide",
+          "type": "string",
+          "enum": [
+            "carrier",
+            "shipper"
+          ],
+          "description": "The side of the haul the person writes for."
+        },
+        "last_read_message_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "read_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "booking_id",
+        "reader_user_id",
+        "reader_side",
+        "last_read_message_id",
+        "read_at"
+      ]
     },
     "ts": {
       "type": "string",

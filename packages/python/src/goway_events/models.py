@@ -231,16 +231,33 @@ class BookingStatusChanged(BaseModel):
     """
 
 
+class BookingStatusData(BaseModel):
+    """
+    The haul moved to another step. The internal event's ids for organizations, recipients and the event itself never reach an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    booking_id: UUID
+    load_id: UUID
+    status: BookingStatus
+    occurred_at: AwareDatetime
+    """
+    When the step happened: the driver's tap, which an app offline for a while sends late. Steps arrive in order; this is the time to show.
+    """
+
+
 class BookingStatusFrame(BaseModel):
     """
-    Frame `booking_status` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.status_changed` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+    Frame `booking_status` goway-realtime sends to an app.
     """
 
     model_config = ConfigDict(
         extra="ignore",
     )
     type: Literal["booking_status"]
-    data: BookingStatusChanged
+    data: BookingStatusData
     ts: AwareDatetime
     """
     When the server sent the frame, RFC 3339 UTC.
@@ -1806,16 +1823,35 @@ class SupportMessageCreated(BaseModel):
     created_at: AwareDatetime
 
 
+class SupportMessageData(BaseModel):
+    """
+    A message in a support conversation, to the person who opened it. The internal event's ids for organizations, recipients and the event itself never reach an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    ticket_id: UUID
+    number: str
+    """
+    The ticket's short number.
+    """
+    message_id: UUID
+    author: SupportAuthor
+    text: Annotated[str, Field(max_length=2000)]
+    created_at: AwareDatetime
+
+
 class SupportMessageFrame(BaseModel):
     """
-    Frame `support_message` goway-realtime sends to an app. Sent to the person the conversation belongs to when an operator writes. It forwards the internal `support.message_created` event as-is.
+    Frame `support_message` goway-realtime sends to an app.
     """
 
     model_config = ConfigDict(
         extra="ignore",
     )
     type: Literal["support_message"]
-    data: SupportMessageCreated
+    data: SupportMessageData
     ts: AwareDatetime
     """
     When the server sent the frame, RFC 3339 UTC.
@@ -2531,16 +2567,45 @@ class BookingCancelled(BaseModel):
     """
 
 
+class BookingCancelledData(BaseModel):
+    """
+    The haul was cancelled; the app reads the booking for what it costs whom. The internal event's ids for organizations, recipients and the event itself never reach an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    booking_id: UUID
+    load_id: UUID
+    load_code: str
+    """
+    The load's short code, for example `GW-7F3K2M`; wallets and receipts show it.
+    """
+    by: CancelledBy
+    reason_code: str | None
+    """
+    Code from the cancellation reasons catalogue; null for older clients and system cancellations.
+    """
+    reason: str
+    """
+    What the canceller wrote; empty when nothing was written.
+    """
+    plan: bool
+    """
+    The cancelled booking was a plan.
+    """
+
+
 class BookingCancelledFrame(BaseModel):
     """
-    Frame `booking_cancelled` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.cancelled` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+    Frame `booking_cancelled` goway-realtime sends to an app.
     """
 
     model_config = ConfigDict(
         extra="ignore",
     )
     type: Literal["booking_cancelled"]
-    data: BookingCancelled
+    data: BookingCancelledData
     ts: AwareDatetime
     """
     When the server sent the frame, RFC 3339 UTC.
@@ -2607,16 +2672,37 @@ class BookingCompleted(BaseModel):
     """
 
 
+class BookingCompletedData(BaseModel):
+    """
+    The haul is closed; the app reads the booking for the bill and asks for a rating. The internal event's ids for organizations, recipients and the event itself never reach an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    booking_id: UUID
+    load_id: UUID
+    load_code: str
+    """
+    The load's short code, for example `GW-7F3K2M`; wallets and receipts show it.
+    """
+    completed_at: AwareDatetime | None
+    """
+    When the haul was closed; the code allows null, it is always set. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+    completed_by: CompletedBy
+
+
 class BookingCompletedFrame(BaseModel):
     """
-    Frame `booking_completed` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.completed` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+    Frame `booking_completed` goway-realtime sends to an app.
     """
 
     model_config = ConfigDict(
         extra="ignore",
     )
     type: Literal["booking_completed"]
-    data: BookingCompleted
+    data: BookingCompletedData
     ts: AwareDatetime
     """
     When the server sent the frame, RFC 3339 UTC.
@@ -2682,16 +2768,98 @@ class BookingCreated(BaseModel):
     """
 
 
+class BookingCreatedData(BaseModel):
+    """
+    A haul was booked. Sent to the booked driver and to the shipper who posted the load; the app reads the booking for the rest. The internal event's ids for organizations, recipients and the event itself never reach an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    booking_id: UUID
+    load_id: UUID
+    plan: bool
+    """
+    The driver booked a plan: a load scheduled ahead, taken from the plan list.
+    """
+    source: BookingSource | None = None
+    agreed_amount: Annotated[int, Field(ge=0)]
+    """
+    Agreed price, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    """
+    ISO 4217 code; `UZS` today.
+    """
+    pickup_from: AwareDatetime | None
+    """
+    Earliest pickup; null when not given. A pickup well ahead makes this booking a plan rather than a trip under way.
+    """
+    pickup_to: AwareDatetime | None
+    """
+    Latest pickup; null when not given.
+    """
+
+
 class BookingCreatedFrame(BaseModel):
     """
-    Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver and to the shipper who posted the load. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+    Frame `booking_created` goway-realtime sends to an app.
     """
 
     model_config = ConfigDict(
         extra="ignore",
     )
     type: Literal["booking_created"]
-    data: BookingCreated
+    data: BookingCreatedData
+    ts: AwareDatetime
+    """
+    When the server sent the frame, RFC 3339 UTC.
+    """
+
+
+class BookingEtaData(BaseModel):
+    """
+    The arrival window or the road position changed. The internal event's ids for organizations, recipients and the event itself never reach an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    booking_id: UUID
+    load_id: UUID
+    status: BookingStatus
+    eta_stop: EtaStop | None
+    """
+    Which stop the window is for; null when no arrival is expected any more.
+    """
+    eta_from: AwareDatetime | None
+    """
+    Earliest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+    eta_to: AwareDatetime | None
+    """
+    Latest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's `isoformat()` writes it.
+    """
+    remaining_km: Annotated[float | None, Field(ge=0.0)]
+    """
+    Road kilometres left to the next stop; null before the haul sets off or while routing is unavailable.
+    """
+    last_waypoint: PassedWaypoint | None
+    """
+    The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one.
+    """
+
+
+class BookingEtaFrame(BaseModel):
+    """
+    Frame `booking_eta` goway-realtime sends to an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    type: Literal["booking_eta"]
+    data: BookingEtaData
     ts: AwareDatetime
     """
     When the server sent the frame, RFC 3339 UTC.
@@ -3052,16 +3220,51 @@ class ChatMessageCreated(BaseModel):
     created_at: AwareDatetime
 
 
+class ChatMessageData(BaseModel):
+    """
+    A message in a haul's chat, to both sides and to the writer's other devices. The internal event's ids for organizations, recipients and the event itself never reach an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    message_id: UUID
+    client_message_id: UUID | None
+    """
+    The sending app's id for the message, so a resend after a lost reply shows once.
+    """
+    booking_id: UUID
+    load_id: UUID
+    sender_user_id: UUID
+    sender_side: ChatSide
+    kind: ChatMessageKind
+    text: Annotated[str | None, Field(max_length=1000)]
+    """
+    The words; for a quick reply, its text in the sender's language. Null for a bare photo or location.
+    """
+    quick_reply_code: str | None
+    """
+    Code from the quick replies catalogue when `kind` is `quick_reply`.
+    """
+    photo_file_id: UUID | None
+    """
+    The `chat_photo` file; the app reads its link over REST.
+    """
+    lat: Annotated[float | None, Field(ge=-90.0, le=90.0)]
+    lng: Annotated[float | None, Field(ge=-180.0, le=180.0)]
+    created_at: AwareDatetime
+
+
 class ChatMessageFrame(BaseModel):
     """
-    Frame `chat_message` goway-realtime sends to an app. Sent to the sender and the recipients. It forwards the internal `chat.message_created` event as-is, so `data` is that event's payload.
+    Frame `chat_message` goway-realtime sends to an app.
     """
 
     model_config = ConfigDict(
         extra="ignore",
     )
     type: Literal["chat_message"]
-    data: ChatMessageCreated
+    data: ChatMessageData
     ts: AwareDatetime
     """
     When the server sent the frame, RFC 3339 UTC.
@@ -3091,16 +3294,31 @@ class ChatRead(BaseModel):
     read_at: AwareDatetime
 
 
+class ChatReadData(BaseModel):
+    """
+    One side read a haul's chat up to a message. The internal event's ids for organizations, recipients and the event itself never reach an app.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    booking_id: UUID
+    reader_user_id: UUID
+    reader_side: ChatSide
+    last_read_message_id: UUID
+    read_at: AwareDatetime
+
+
 class ChatReadFrame(BaseModel):
     """
-    Frame `chat_read` goway-realtime sends to an app. Sent to the recipients. It forwards the internal `chat.read` event as-is.
+    Frame `chat_read` goway-realtime sends to an app.
     """
 
     model_config = ConfigDict(
         extra="ignore",
     )
     type: Literal["chat_read"]
-    data: ChatRead
+    data: ChatReadData
     ts: AwareDatetime
     """
     When the server sent the frame, RFC 3339 UTC.
@@ -3153,10 +3371,6 @@ class Connected(BaseModel):
     conn_id: str
     """
     This socket's id, 32 hex characters.
-    """
-    worker: str
-    """
-    The goway-realtime worker holding the socket, `<host>-<pid>-<suffix>`; for logs.
     """
     config: ConnectionConfig
 
@@ -3742,22 +3956,6 @@ class WalletEligibilityChanged(BaseModel):
     Why offers stopped; null when the wallet is eligible.
     """
     side: WalletSide
-
-
-class BookingEtaFrame(BaseModel):
-    """
-    Frame `booking_eta` goway-realtime sends to an app. Sent to the driver, the shipper who posted the load and the booking's viewers, and dropped when a socket is slow. It currently forwards the internal `booking.eta_updated` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
-    """
-
-    model_config = ConfigDict(
-        extra="ignore",
-    )
-    type: Literal["booking_eta"]
-    data: BookingEtaUpdated
-    ts: AwareDatetime
-    """
-    When the server sent the frame, RFC 3339 UTC.
-    """
 
 
 class ServerFrame(

@@ -1,21 +1,13 @@
 {
   "type": "booking_created",
   "data": {
-    "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
     "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
     "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
-    "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
-    "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
-    "driver_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
     "agreed_amount": 4500000,
     "currency": "UZS",
     "source": "instant",
-    "shipper_user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
     "pickup_from": "2026-10-15T03:00:00.000Z",
     "pickup_to": "2026-10-15T09:00:00.000Z",
-    "duration_min": 330,
-    "busy_from": "2026-10-15T02:00:00.000Z",
-    "busy_until": "2026-10-15T15:30:00.000Z",
     "plan": false
   },
   "ts": "2026-10-14T09:30:00.123Z"

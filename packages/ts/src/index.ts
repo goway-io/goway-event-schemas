@@ -581,14 +581,41 @@ export interface BookingCancelled {
   load_code: string;
 }
 /**
- * Frame `booking_cancelled` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.cancelled` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+ * The haul was cancelled; the app reads the booking for what it costs whom. The internal event's ids for organizations, recipients and the event itself never reach an app.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BookingCancelledData".
+ */
+export interface BookingCancelledData {
+  booking_id: string;
+  load_id: string;
+  /**
+   * The load's short code, for example `GW-7F3K2M`; wallets and receipts show it.
+   */
+  load_code: string;
+  by: CancelledBy;
+  /**
+   * Code from the cancellation reasons catalogue; null for older clients and system cancellations.
+   */
+  reason_code: string | null;
+  /**
+   * What the canceller wrote; empty when nothing was written.
+   */
+  reason: string;
+  /**
+   * The cancelled booking was a plan.
+   */
+  plan: boolean;
+}
+/**
+ * Frame `booking_cancelled` goway-realtime sends to an app.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "BookingCancelledFrame".
  */
 export interface BookingCancelledFrame {
   type: "booking_cancelled";
-  data: BookingCancelled;
+  data: BookingCancelledData;
   /**
    * When the server sent the frame, RFC 3339 UTC.
    */
@@ -670,14 +697,33 @@ export interface ChargeLine {
   qty: number;
 }
 /**
- * Frame `booking_completed` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.completed` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+ * The haul is closed; the app reads the booking for the bill and asks for a rating. The internal event's ids for organizations, recipients and the event itself never reach an app.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BookingCompletedData".
+ */
+export interface BookingCompletedData {
+  booking_id: string;
+  load_id: string;
+  /**
+   * The load's short code, for example `GW-7F3K2M`; wallets and receipts show it.
+   */
+  load_code: string;
+  /**
+   * When the haul was closed; the code allows null, it is always set. ISO 8601 with offset, as Python's `isoformat()` writes it.
+   */
+  completed_at: string | null;
+  completed_by: CompletedBy;
+}
+/**
+ * Frame `booking_completed` goway-realtime sends to an app.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "BookingCompletedFrame".
  */
 export interface BookingCompletedFrame {
   type: "booking_completed";
-  data: BookingCompleted;
+  data: BookingCompletedData;
   /**
    * When the server sent the frame, RFC 3339 UTC.
    */
@@ -741,28 +787,98 @@ export interface BookingCreated {
   plan: boolean;
 }
 /**
- * Frame `booking_created` goway-realtime sends to an app. Sent to the booked driver and to the shipper who posted the load. It currently forwards the internal `booking.created` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+ * A haul was booked. Sent to the booked driver and to the shipper who posted the load; the app reads the booking for the rest. The internal event's ids for organizations, recipients and the event itself never reach an app.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BookingCreatedData".
+ */
+export interface BookingCreatedData {
+  booking_id: string;
+  load_id: string;
+  /**
+   * The driver booked a plan: a load scheduled ahead, taken from the plan list.
+   */
+  plan: boolean;
+  source?: BookingSource;
+  /**
+   * Agreed price, whole so'm (a bare integer; `currency` is UZS today).
+   */
+  agreed_amount: number;
+  /**
+   * ISO 4217 code; `UZS` today.
+   */
+  currency: string;
+  /**
+   * Earliest pickup; null when not given. A pickup well ahead makes this booking a plan rather than a trip under way.
+   */
+  pickup_from: string | null;
+  /**
+   * Latest pickup; null when not given.
+   */
+  pickup_to: string | null;
+}
+/**
+ * Frame `booking_created` goway-realtime sends to an app.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "BookingCreatedFrame".
  */
 export interface BookingCreatedFrame {
   type: "booking_created";
-  data: BookingCreated;
+  data: BookingCreatedData;
   /**
    * When the server sent the frame, RFC 3339 UTC.
    */
   ts: string;
 }
 /**
- * Frame `booking_eta` goway-realtime sends to an app. Sent to the driver, the shipper who posted the load and the booking's viewers, and dropped when a socket is slow. It currently forwards the internal `booking.eta_updated` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+ * The arrival window or the road position changed. The internal event's ids for organizations, recipients and the event itself never reach an app.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BookingEtaData".
+ */
+export interface BookingEtaData {
+  booking_id: string;
+  load_id: string;
+  status: BookingStatus;
+  /**
+   * Which stop the window is for; null when no arrival is expected any more.
+   */
+  eta_stop: EtaStop | null;
+  /**
+   * Earliest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's `isoformat()` writes it.
+   */
+  eta_from: string | null;
+  /**
+   * Latest expected arrival at `eta_stop`; null with it. ISO 8601 with offset, as Python's `isoformat()` writes it.
+   */
+  eta_to: string | null;
+  /**
+   * Road kilometres left to the next stop; null before the haul sets off or while routing is unavailable.
+   */
+  remaining_km: number | null;
+  /**
+   * The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one.
+   */
+  last_waypoint: PassedWaypoint | null;
+}
+/**
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "PassedWaypoint".
+ */
+export interface PassedWaypoint {
+  region_id: string;
+  passed_at: string;
+}
+/**
+ * Frame `booking_eta` goway-realtime sends to an app.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "BookingEtaFrame".
  */
 export interface BookingEtaFrame {
   type: "booking_eta";
-  data: BookingEtaUpdated;
+  data: BookingEtaData;
   /**
    * When the server sent the frame, RFC 3339 UTC.
    */
@@ -817,14 +933,6 @@ export interface BookingEtaUpdated {
    * The last region boundary the truck crossed, for «Angrendan o'tdi · 142 km qoldi»; null until it crosses one.
    */
   last_waypoint: PassedWaypoint | null;
-}
-/**
- * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
- * via the `definition` "PassedWaypoint".
- */
-export interface PassedWaypoint {
-  region_id: string;
-  passed_at: string;
 }
 /**
  * Someone on the haul reported a problem («Muammo bor»). Until an operator resolves it the haul is under review: its step does not move, the waiting clock is paused and the driver's cancellation does not count against them.
@@ -1026,14 +1134,29 @@ export interface BookingStatusChanged {
   occurred_at: string;
 }
 /**
- * Frame `booking_status` goway-realtime sends to an app. Sent to the driver, to the shipper who posted the load (no subscription needed) and to the booking's viewers. It currently forwards the internal `booking.status_changed` event as-is, so `data` is that event's payload, `event_id` and organization ids included.
+ * The haul moved to another step. The internal event's ids for organizations, recipients and the event itself never reach an app.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "BookingStatusData".
+ */
+export interface BookingStatusData {
+  booking_id: string;
+  load_id: string;
+  status: BookingStatus;
+  /**
+   * When the step happened: the driver's tap, which an app offline for a while sends late. Steps arrive in order; this is the time to show.
+   */
+  occurred_at: string;
+}
+/**
+ * Frame `booking_status` goway-realtime sends to an app.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "BookingStatusFrame".
  */
 export interface BookingStatusFrame {
   type: "booking_status";
-  data: BookingStatusChanged;
+  data: BookingStatusData;
   /**
    * When the server sent the frame, RFC 3339 UTC.
    */
@@ -1256,14 +1379,47 @@ export interface ChatMessageCreated {
   created_at: string;
 }
 /**
- * Frame `chat_message` goway-realtime sends to an app. Sent to the sender and the recipients. It forwards the internal `chat.message_created` event as-is, so `data` is that event's payload.
+ * A message in a haul's chat, to both sides and to the writer's other devices. The internal event's ids for organizations, recipients and the event itself never reach an app.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "ChatMessageData".
+ */
+export interface ChatMessageData {
+  message_id: string;
+  /**
+   * The sending app's id for the message, so a resend after a lost reply shows once.
+   */
+  client_message_id: string | null;
+  booking_id: string;
+  load_id: string;
+  sender_user_id: string;
+  sender_side: ChatSide;
+  kind: ChatMessageKind;
+  /**
+   * The words; for a quick reply, its text in the sender's language. Null for a bare photo or location.
+   */
+  text: string | null;
+  /**
+   * Code from the quick replies catalogue when `kind` is `quick_reply`.
+   */
+  quick_reply_code: string | null;
+  /**
+   * The `chat_photo` file; the app reads its link over REST.
+   */
+  photo_file_id: string | null;
+  lat: number | null;
+  lng: number | null;
+  created_at: string;
+}
+/**
+ * Frame `chat_message` goway-realtime sends to an app.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "ChatMessageFrame".
  */
 export interface ChatMessageFrame {
   type: "chat_message";
-  data: ChatMessageCreated;
+  data: ChatMessageData;
   /**
    * When the server sent the frame, RFC 3339 UTC.
    */
@@ -1291,14 +1447,27 @@ export interface ChatRead {
   read_at: string;
 }
 /**
- * Frame `chat_read` goway-realtime sends to an app. Sent to the recipients. It forwards the internal `chat.read` event as-is.
+ * One side read a haul's chat up to a message. The internal event's ids for organizations, recipients and the event itself never reach an app.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "ChatReadData".
+ */
+export interface ChatReadData {
+  booking_id: string;
+  reader_user_id: string;
+  reader_side: ChatSide;
+  last_read_message_id: string;
+  read_at: string;
+}
+/**
+ * Frame `chat_read` goway-realtime sends to an app.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "ChatReadFrame".
  */
 export interface ChatReadFrame {
   type: "chat_read";
-  data: ChatRead;
+  data: ChatReadData;
   /**
    * When the server sent the frame, RFC 3339 UTC.
    */
@@ -1536,10 +1705,6 @@ export interface Connected {
    * This socket's id, 32 hex characters.
    */
   conn_id: string;
-  /**
-   * The goway-realtime worker holding the socket, `<host>-<pid>-<suffix>`; for logs.
-   */
-  worker: string;
   config: ConnectionConfig;
 }
 /**
@@ -2868,30 +3033,26 @@ export interface VerificationChanged {
   status: VerificationStatus;
 }
 /**
- * Frame `support_message` goway-realtime sends to an app. Sent to the person the conversation belongs to when an operator writes. It forwards the internal `support.message_created` event as-is.
+ * Frame `support_message` goway-realtime sends to an app.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "SupportMessageFrame".
  */
 export interface SupportMessageFrame {
   type: "support_message";
-  data: SupportMessageCreated;
+  data: SupportMessageData;
   /**
    * When the server sent the frame, RFC 3339 UTC.
    */
   ts: string;
 }
 /**
- * A message was added to a support conversation, by the person who opened it or by an operator.
+ * A message in a support conversation, to the person who opened it. The internal event's ids for organizations, recipients and the event itself never reach an app.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
- * via the `definition` "SupportMessageCreated".
+ * via the `definition` "SupportMessageData".
  */
-export interface SupportMessageCreated {
-  /**
-   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
-   */
-  event_id: string;
+export interface SupportMessageData {
   ticket_id: string;
   /**
    * The ticket's short number.
@@ -2899,10 +3060,6 @@ export interface SupportMessageCreated {
   number: string;
   message_id: string;
   author: SupportAuthor;
-  /**
-   * The person the conversation belongs to.
-   */
-  user_id: string;
   text: string;
   created_at: string;
 }
@@ -2950,6 +3107,31 @@ export interface ShipperStatsChanged {
    * All ratings ever received; only grows.
    */
   rating_count: number;
+}
+/**
+ * A message was added to a support conversation, by the person who opened it or by an operator.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "SupportMessageCreated".
+ */
+export interface SupportMessageCreated {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  ticket_id: string;
+  /**
+   * The ticket's short number.
+   */
+  number: string;
+  message_id: string;
+  author: SupportAuthor;
+  /**
+   * The person the conversation belongs to.
+   */
+  user_id: string;
+  text: string;
+  created_at: string;
 }
 /**
  * A user opened a support ticket.

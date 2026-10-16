@@ -639,7 +639,7 @@ BookingCancelledFrame _$BookingCancelledFrameFromJson(
   final val = BookingCancelledFrame(
     data: $checkedConvert(
       'data',
-      (v) => BookingCancelled.fromJson(v as Map<String, dynamic>),
+      (v) => BookingCancelledData.fromJson(v as Map<String, dynamic>),
     ),
     ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
     type: $checkedConvert(
@@ -662,62 +662,42 @@ const _$BookingCancelledFrameTypeEnumMap = {
   BookingCancelledFrameType.BOOKING_CANCELLED: 'booking_cancelled',
 };
 
-BookingCancelled _$BookingCancelledFromJson(Map<String, dynamic> json) =>
-    $checkedCreate(
-      'BookingCancelled',
-      json,
-      ($checkedConvert) {
-        final val = BookingCancelled(
-          bookingId: $checkedConvert('booking_id', (v) => v as String),
-          by: $checkedConvert(
-            'by',
-            (v) => $enumDecode(_$CancelledByEnumMap, v),
-          ),
-          carrierOrgId: $checkedConvert('carrier_org_id', (v) => v as String),
-          currency: $checkedConvert('currency', (v) => v as String),
-          driverUserId: $checkedConvert('driver_user_id', (v) => v as String?),
-          eventId: $checkedConvert('event_id', (v) => v as String),
-          feeAmount: $checkedConvert('fee_amount', (v) => (v as num?)?.toInt()),
-          loadCode: $checkedConvert('load_code', (v) => v as String),
-          loadId: $checkedConvert('load_id', (v) => v as String),
-          penalized: $checkedConvert('penalized', (v) => v as bool),
-          plan: $checkedConvert('plan', (v) => v as bool),
-          reason: $checkedConvert('reason', (v) => v as String),
-          reasonCode: $checkedConvert('reason_code', (v) => v as String?),
-          shipperOrgId: $checkedConvert('shipper_org_id', (v) => v as String),
-        );
-        return val;
-      },
-      fieldKeyMap: const {
-        'bookingId': 'booking_id',
-        'carrierOrgId': 'carrier_org_id',
-        'driverUserId': 'driver_user_id',
-        'eventId': 'event_id',
-        'feeAmount': 'fee_amount',
-        'loadCode': 'load_code',
-        'loadId': 'load_id',
-        'reasonCode': 'reason_code',
-        'shipperOrgId': 'shipper_org_id',
-      },
+BookingCancelledData _$BookingCancelledDataFromJson(
+  Map<String, dynamic> json,
+) => $checkedCreate(
+  'BookingCancelledData',
+  json,
+  ($checkedConvert) {
+    final val = BookingCancelledData(
+      bookingId: $checkedConvert('booking_id', (v) => v as String),
+      by: $checkedConvert('by', (v) => $enumDecode(_$CancelledByEnumMap, v)),
+      loadCode: $checkedConvert('load_code', (v) => v as String),
+      loadId: $checkedConvert('load_id', (v) => v as String),
+      plan: $checkedConvert('plan', (v) => v as bool),
+      reason: $checkedConvert('reason', (v) => v as String),
+      reasonCode: $checkedConvert('reason_code', (v) => v as String?),
     );
+    return val;
+  },
+  fieldKeyMap: const {
+    'bookingId': 'booking_id',
+    'loadCode': 'load_code',
+    'loadId': 'load_id',
+    'reasonCode': 'reason_code',
+  },
+);
 
-Map<String, dynamic> _$BookingCancelledToJson(BookingCancelled instance) =>
-    <String, dynamic>{
-      'booking_id': instance.bookingId,
-      'by': _$CancelledByEnumMap[instance.by]!,
-      'carrier_org_id': instance.carrierOrgId,
-      'currency': instance.currency,
-      'driver_user_id': ?instance.driverUserId,
-      'event_id': instance.eventId,
-      'fee_amount': ?instance.feeAmount,
-      'load_code': instance.loadCode,
-      'load_id': instance.loadId,
-      'penalized': instance.penalized,
-      'plan': instance.plan,
-      'reason': instance.reason,
-      'reason_code': ?instance.reasonCode,
-      'shipper_org_id': instance.shipperOrgId,
-    };
+Map<String, dynamic> _$BookingCancelledDataToJson(
+  BookingCancelledData instance,
+) => <String, dynamic>{
+  'booking_id': instance.bookingId,
+  'by': _$CancelledByEnumMap[instance.by]!,
+  'load_code': instance.loadCode,
+  'load_id': instance.loadId,
+  'plan': instance.plan,
+  'reason': instance.reason,
+  'reason_code': ?instance.reasonCode,
+};
 
 const _$CancelledByEnumMap = {
   CancelledBy.CARRIER: 'carrier',
@@ -731,7 +711,7 @@ BookingCompletedFrame _$BookingCompletedFrameFromJson(
   final val = BookingCompletedFrame(
     data: $checkedConvert(
       'data',
-      (v) => BookingCompleted.fromJson(v as Map<String, dynamic>),
+      (v) => BookingCompletedData.fromJson(v as Map<String, dynamic>),
     ),
     ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
     type: $checkedConvert(
@@ -754,22 +734,14 @@ const _$BookingCompletedFrameTypeEnumMap = {
   BookingCompletedFrameType.BOOKING_COMPLETED: 'booking_completed',
 };
 
-BookingCompleted _$BookingCompletedFromJson(
+BookingCompletedData _$BookingCompletedDataFromJson(
   Map<String, dynamic> json,
 ) => $checkedCreate(
-  'BookingCompleted',
+  'BookingCompletedData',
   json,
   ($checkedConvert) {
-    final val = BookingCompleted(
-      agreedAmount: $checkedConvert('agreed_amount', (v) => (v as num).toInt()),
+    final val = BookingCompletedData(
       bookingId: $checkedConvert('booking_id', (v) => v as String),
-      carrierOrgId: $checkedConvert('carrier_org_id', (v) => v as String),
-      charges: $checkedConvert(
-        'charges',
-        (v) => (v as List<dynamic>)
-            .map((e) => ChargeLine.fromJson(e as Map<String, dynamic>))
-            .toList(),
-      ),
       completedAt: $checkedConvert(
         'completed_at',
         (v) => v == null ? null : DateTime.parse(v as String),
@@ -778,68 +750,29 @@ BookingCompleted _$BookingCompletedFromJson(
         'completed_by',
         (v) => $enumDecode(_$CompletedByEnumMap, v),
       ),
-      currency: $checkedConvert('currency', (v) => v as String),
-      driverUserId: $checkedConvert('driver_user_id', (v) => v as String),
-      eventId: $checkedConvert('event_id', (v) => v as String),
       loadCode: $checkedConvert('load_code', (v) => v as String),
       loadId: $checkedConvert('load_id', (v) => v as String),
-      settledAmount: $checkedConvert(
-        'settled_amount',
-        (v) => (v as num).toInt(),
-      ),
-      shipperOrgId: $checkedConvert('shipper_org_id', (v) => v as String),
-      totalAmount: $checkedConvert('total_amount', (v) => (v as num?)?.toInt()),
-      waitingAmount: $checkedConvert(
-        'waiting_amount',
-        (v) => (v as num).toInt(),
-      ),
-      waitingBillable: $checkedConvert('waiting_billable', (v) => v as bool),
-      waitingMinutes: $checkedConvert(
-        'waiting_minutes',
-        (v) => (v as num).toInt(),
-      ),
     );
     return val;
   },
   fieldKeyMap: const {
-    'agreedAmount': 'agreed_amount',
     'bookingId': 'booking_id',
-    'carrierOrgId': 'carrier_org_id',
     'completedAt': 'completed_at',
     'completedBy': 'completed_by',
-    'driverUserId': 'driver_user_id',
-    'eventId': 'event_id',
     'loadCode': 'load_code',
     'loadId': 'load_id',
-    'settledAmount': 'settled_amount',
-    'shipperOrgId': 'shipper_org_id',
-    'totalAmount': 'total_amount',
-    'waitingAmount': 'waiting_amount',
-    'waitingBillable': 'waiting_billable',
-    'waitingMinutes': 'waiting_minutes',
   },
 );
 
-Map<String, dynamic> _$BookingCompletedToJson(BookingCompleted instance) =>
-    <String, dynamic>{
-      'agreed_amount': instance.agreedAmount,
-      'booking_id': instance.bookingId,
-      'carrier_org_id': instance.carrierOrgId,
-      'charges': instance.charges,
-      'completed_at': ?instance.completedAt?.toIso8601String(),
-      'completed_by': _$CompletedByEnumMap[instance.completedBy]!,
-      'currency': instance.currency,
-      'driver_user_id': instance.driverUserId,
-      'event_id': instance.eventId,
-      'load_code': instance.loadCode,
-      'load_id': instance.loadId,
-      'settled_amount': instance.settledAmount,
-      'shipper_org_id': instance.shipperOrgId,
-      'total_amount': ?instance.totalAmount,
-      'waiting_amount': instance.waitingAmount,
-      'waiting_billable': instance.waitingBillable,
-      'waiting_minutes': instance.waitingMinutes,
-    };
+Map<String, dynamic> _$BookingCompletedDataToJson(
+  BookingCompletedData instance,
+) => <String, dynamic>{
+  'booking_id': instance.bookingId,
+  'completed_at': ?instance.completedAt?.toIso8601String(),
+  'completed_by': _$CompletedByEnumMap[instance.completedBy]!,
+  'load_code': instance.loadCode,
+  'load_id': instance.loadId,
+};
 
 const _$CompletedByEnumMap = {
   CompletedBy.CARRIER: 'carrier',
@@ -848,29 +781,12 @@ const _$CompletedByEnumMap = {
   CompletedBy.SYSTEM: 'system',
 };
 
-ChargeLine _$ChargeLineFromJson(Map<String, dynamic> json) =>
-    $checkedCreate('ChargeLine', json, ($checkedConvert) {
-      final val = ChargeLine(
-        amount: $checkedConvert('amount', (v) => (v as num).toInt()),
-        code: $checkedConvert('code', (v) => v as String),
-        qty: $checkedConvert('qty', (v) => (v as num).toInt()),
-      );
-      return val;
-    });
-
-Map<String, dynamic> _$ChargeLineToJson(ChargeLine instance) =>
-    <String, dynamic>{
-      'amount': instance.amount,
-      'code': instance.code,
-      'qty': instance.qty,
-    };
-
 BookingCreatedFrame _$BookingCreatedFrameFromJson(Map<String, dynamic> json) =>
     $checkedCreate('BookingCreatedFrame', json, ($checkedConvert) {
       final val = BookingCreatedFrame(
         data: $checkedConvert(
           'data',
-          (v) => BookingCreated.fromJson(v as Map<String, dynamic>),
+          (v) => BookingCreatedData.fromJson(v as Map<String, dynamic>),
         ),
         ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
         type: $checkedConvert(
@@ -893,81 +809,53 @@ const _$BookingCreatedFrameTypeEnumMap = {
   BookingCreatedFrameType.BOOKING_CREATED: 'booking_created',
 };
 
-BookingCreated _$BookingCreatedFromJson(
-  Map<String, dynamic> json,
-) => $checkedCreate(
-  'BookingCreated',
-  json,
-  ($checkedConvert) {
-    final val = BookingCreated(
-      agreedAmount: $checkedConvert('agreed_amount', (v) => (v as num).toInt()),
-      bookingId: $checkedConvert('booking_id', (v) => v as String),
-      busyFrom: $checkedConvert(
-        'busy_from',
-        (v) => DateTime.parse(v as String),
-      ),
-      busyUntil: $checkedConvert(
-        'busy_until',
-        (v) => v == null ? null : DateTime.parse(v as String),
-      ),
-      carrierOrgId: $checkedConvert('carrier_org_id', (v) => v as String),
-      currency: $checkedConvert('currency', (v) => v as String),
-      driverUserId: $checkedConvert('driver_user_id', (v) => v as String?),
-      durationMin: $checkedConvert('duration_min', (v) => (v as num?)?.toInt()),
-      eventId: $checkedConvert('event_id', (v) => v as String),
-      loadId: $checkedConvert('load_id', (v) => v as String),
-      pickupFrom: $checkedConvert(
-        'pickup_from',
-        (v) => v == null ? null : DateTime.parse(v as String),
-      ),
-      pickupTo: $checkedConvert(
-        'pickup_to',
-        (v) => v == null ? null : DateTime.parse(v as String),
-      ),
-      plan: $checkedConvert('plan', (v) => v as bool),
-      shipperOrgId: $checkedConvert('shipper_org_id', (v) => v as String),
-      shipperUserId: $checkedConvert('shipper_user_id', (v) => v as String),
-      source: $checkedConvert(
-        'source',
-        (v) => $enumDecodeNullable(_$BookingSourceEnumMap, v),
-      ),
+BookingCreatedData _$BookingCreatedDataFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'BookingCreatedData',
+      json,
+      ($checkedConvert) {
+        final val = BookingCreatedData(
+          agreedAmount: $checkedConvert(
+            'agreed_amount',
+            (v) => (v as num).toInt(),
+          ),
+          bookingId: $checkedConvert('booking_id', (v) => v as String),
+          currency: $checkedConvert('currency', (v) => v as String),
+          loadId: $checkedConvert('load_id', (v) => v as String),
+          pickupFrom: $checkedConvert(
+            'pickup_from',
+            (v) => v == null ? null : DateTime.parse(v as String),
+          ),
+          pickupTo: $checkedConvert(
+            'pickup_to',
+            (v) => v == null ? null : DateTime.parse(v as String),
+          ),
+          plan: $checkedConvert('plan', (v) => v as bool),
+          source: $checkedConvert(
+            'source',
+            (v) => $enumDecodeNullable(_$BookingSourceEnumMap, v),
+          ),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'agreedAmount': 'agreed_amount',
+        'bookingId': 'booking_id',
+        'loadId': 'load_id',
+        'pickupFrom': 'pickup_from',
+        'pickupTo': 'pickup_to',
+      },
     );
-    return val;
-  },
-  fieldKeyMap: const {
-    'agreedAmount': 'agreed_amount',
-    'bookingId': 'booking_id',
-    'busyFrom': 'busy_from',
-    'busyUntil': 'busy_until',
-    'carrierOrgId': 'carrier_org_id',
-    'driverUserId': 'driver_user_id',
-    'durationMin': 'duration_min',
-    'eventId': 'event_id',
-    'loadId': 'load_id',
-    'pickupFrom': 'pickup_from',
-    'pickupTo': 'pickup_to',
-    'shipperOrgId': 'shipper_org_id',
-    'shipperUserId': 'shipper_user_id',
-  },
-);
 
-Map<String, dynamic> _$BookingCreatedToJson(BookingCreated instance) =>
+Map<String, dynamic> _$BookingCreatedDataToJson(BookingCreatedData instance) =>
     <String, dynamic>{
       'agreed_amount': instance.agreedAmount,
       'booking_id': instance.bookingId,
-      'busy_from': instance.busyFrom.toIso8601String(),
-      'busy_until': ?instance.busyUntil?.toIso8601String(),
-      'carrier_org_id': instance.carrierOrgId,
       'currency': instance.currency,
-      'driver_user_id': ?instance.driverUserId,
-      'duration_min': ?instance.durationMin,
-      'event_id': instance.eventId,
       'load_id': instance.loadId,
       'pickup_from': ?instance.pickupFrom?.toIso8601String(),
       'pickup_to': ?instance.pickupTo?.toIso8601String(),
       'plan': instance.plan,
-      'shipper_org_id': instance.shipperOrgId,
-      'shipper_user_id': instance.shipperUserId,
       'source': ?_$BookingSourceEnumMap[instance.source],
     };
 
@@ -978,7 +866,7 @@ BookingEtaFrame _$BookingEtaFrameFromJson(Map<String, dynamic> json) =>
       final val = BookingEtaFrame(
         data: $checkedConvert(
           'data',
-          (v) => BookingEtaUpdated.fromJson(v as Map<String, dynamic>),
+          (v) => BookingEtaData.fromJson(v as Map<String, dynamic>),
         ),
         ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
         type: $checkedConvert(
@@ -1000,15 +888,13 @@ const _$BookingEtaFrameTypeEnumMap = {
   BookingEtaFrameType.BOOKING_ETA: 'booking_eta',
 };
 
-BookingEtaUpdated _$BookingEtaUpdatedFromJson(Map<String, dynamic> json) =>
+BookingEtaData _$BookingEtaDataFromJson(Map<String, dynamic> json) =>
     $checkedCreate(
-      'BookingEtaUpdated',
+      'BookingEtaData',
       json,
       ($checkedConvert) {
-        final val = BookingEtaUpdated(
+        final val = BookingEtaData(
           bookingId: $checkedConvert('booking_id', (v) => v as String),
-          carrierOrgId: $checkedConvert('carrier_org_id', (v) => v as String),
-          driverUserId: $checkedConvert('driver_user_id', (v) => v as String),
           etaFrom: $checkedConvert(
             'eta_from',
             (v) => v == null ? null : DateTime.parse(v as String),
@@ -1021,12 +907,6 @@ BookingEtaUpdated _$BookingEtaUpdatedFromJson(Map<String, dynamic> json) =>
             'eta_to',
             (v) => v == null ? null : DateTime.parse(v as String),
           ),
-          eventId: $checkedConvert('event_id', (v) => v as String),
-          freeAt: $checkedConvert(
-            'free_at',
-            (v) => v == null ? null : DateTime.parse(v as String),
-          ),
-          freeRegionId: $checkedConvert('free_region_id', (v) => v as String?),
           lastWaypoint: $checkedConvert(
             'last_waypoint',
             (v) => v == null
@@ -1038,50 +918,34 @@ BookingEtaUpdated _$BookingEtaUpdatedFromJson(Map<String, dynamic> json) =>
             'remaining_km',
             (v) => (v as num?)?.toDouble(),
           ),
-          shipperOrgId: $checkedConvert('shipper_org_id', (v) => v as String),
           status: $checkedConvert(
             'status',
             (v) => $enumDecode(_$BookingStatusEnumMap, v),
           ),
-          truckClass: $checkedConvert('truck_class', (v) => v as String),
         );
         return val;
       },
       fieldKeyMap: const {
         'bookingId': 'booking_id',
-        'carrierOrgId': 'carrier_org_id',
-        'driverUserId': 'driver_user_id',
         'etaFrom': 'eta_from',
         'etaStop': 'eta_stop',
         'etaTo': 'eta_to',
-        'eventId': 'event_id',
-        'freeAt': 'free_at',
-        'freeRegionId': 'free_region_id',
         'lastWaypoint': 'last_waypoint',
         'loadId': 'load_id',
         'remainingKm': 'remaining_km',
-        'shipperOrgId': 'shipper_org_id',
-        'truckClass': 'truck_class',
       },
     );
 
-Map<String, dynamic> _$BookingEtaUpdatedToJson(BookingEtaUpdated instance) =>
+Map<String, dynamic> _$BookingEtaDataToJson(BookingEtaData instance) =>
     <String, dynamic>{
       'booking_id': instance.bookingId,
-      'carrier_org_id': instance.carrierOrgId,
-      'driver_user_id': instance.driverUserId,
       'eta_from': ?instance.etaFrom?.toIso8601String(),
       'eta_stop': ?_$EtaStopEnumMap[instance.etaStop],
       'eta_to': ?instance.etaTo?.toIso8601String(),
-      'event_id': instance.eventId,
-      'free_at': ?instance.freeAt?.toIso8601String(),
-      'free_region_id': ?instance.freeRegionId,
       'last_waypoint': ?instance.lastWaypoint,
       'load_id': instance.loadId,
       'remaining_km': ?instance.remainingKm,
-      'shipper_org_id': instance.shipperOrgId,
       'status': _$BookingStatusEnumMap[instance.status]!,
-      'truck_class': instance.truckClass,
     };
 
 const _$EtaStopEnumMap = {EtaStop.DROPOFF: 'dropoff', EtaStop.PICKUP: 'pickup'};
@@ -1120,7 +984,7 @@ BookingStatusFrame _$BookingStatusFrameFromJson(Map<String, dynamic> json) =>
       final val = BookingStatusFrame(
         data: $checkedConvert(
           'data',
-          (v) => BookingStatusChanged.fromJson(v as Map<String, dynamic>),
+          (v) => BookingStatusData.fromJson(v as Map<String, dynamic>),
         ),
         ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
         type: $checkedConvert(
@@ -1142,50 +1006,39 @@ const _$BookingStatusFrameTypeEnumMap = {
   BookingStatusFrameType.BOOKING_STATUS: 'booking_status',
 };
 
-BookingStatusChanged _$BookingStatusChangedFromJson(
-  Map<String, dynamic> json,
-) => $checkedCreate(
-  'BookingStatusChanged',
-  json,
-  ($checkedConvert) {
-    final val = BookingStatusChanged(
-      bookingId: $checkedConvert('booking_id', (v) => v as String),
-      carrierOrgId: $checkedConvert('carrier_org_id', (v) => v as String),
-      eventId: $checkedConvert('event_id', (v) => v as String),
-      loadId: $checkedConvert('load_id', (v) => v as String),
-      occurredAt: $checkedConvert(
-        'occurred_at',
-        (v) => DateTime.parse(v as String),
-      ),
-      shipperOrgId: $checkedConvert('shipper_org_id', (v) => v as String),
-      status: $checkedConvert(
-        'status',
-        (v) => $enumDecode(_$BookingStatusEnumMap, v),
-      ),
+BookingStatusData _$BookingStatusDataFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'BookingStatusData',
+      json,
+      ($checkedConvert) {
+        final val = BookingStatusData(
+          bookingId: $checkedConvert('booking_id', (v) => v as String),
+          loadId: $checkedConvert('load_id', (v) => v as String),
+          occurredAt: $checkedConvert(
+            'occurred_at',
+            (v) => DateTime.parse(v as String),
+          ),
+          status: $checkedConvert(
+            'status',
+            (v) => $enumDecode(_$BookingStatusEnumMap, v),
+          ),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'bookingId': 'booking_id',
+        'loadId': 'load_id',
+        'occurredAt': 'occurred_at',
+      },
     );
-    return val;
-  },
-  fieldKeyMap: const {
-    'bookingId': 'booking_id',
-    'carrierOrgId': 'carrier_org_id',
-    'eventId': 'event_id',
-    'loadId': 'load_id',
-    'occurredAt': 'occurred_at',
-    'shipperOrgId': 'shipper_org_id',
-  },
-);
 
-Map<String, dynamic> _$BookingStatusChangedToJson(
-  BookingStatusChanged instance,
-) => <String, dynamic>{
-  'booking_id': instance.bookingId,
-  'carrier_org_id': instance.carrierOrgId,
-  'event_id': instance.eventId,
-  'load_id': instance.loadId,
-  'occurred_at': instance.occurredAt.toIso8601String(),
-  'shipper_org_id': instance.shipperOrgId,
-  'status': _$BookingStatusEnumMap[instance.status]!,
-};
+Map<String, dynamic> _$BookingStatusDataToJson(BookingStatusData instance) =>
+    <String, dynamic>{
+      'booking_id': instance.bookingId,
+      'load_id': instance.loadId,
+      'occurred_at': instance.occurredAt.toIso8601String(),
+      'status': _$BookingStatusEnumMap[instance.status]!,
+    };
 
 BookingUpdatedFrame _$BookingUpdatedFrameFromJson(Map<String, dynamic> json) =>
     $checkedCreate('BookingUpdatedFrame', json, ($checkedConvert) {
@@ -1246,7 +1099,7 @@ ChatMessageFrame _$ChatMessageFrameFromJson(Map<String, dynamic> json) =>
       final val = ChatMessageFrame(
         data: $checkedConvert(
           'data',
-          (v) => ChatMessageCreated.fromJson(v as Map<String, dynamic>),
+          (v) => ChatMessageData.fromJson(v as Map<String, dynamic>),
         ),
         ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
         type: $checkedConvert(
@@ -1268,12 +1121,12 @@ const _$ChatMessageFrameTypeEnumMap = {
   ChatMessageFrameType.CHAT_MESSAGE: 'chat_message',
 };
 
-ChatMessageCreated _$ChatMessageCreatedFromJson(Map<String, dynamic> json) =>
+ChatMessageData _$ChatMessageDataFromJson(Map<String, dynamic> json) =>
     $checkedCreate(
-      'ChatMessageCreated',
+      'ChatMessageData',
       json,
       ($checkedConvert) {
-        final val = ChatMessageCreated(
+        final val = ChatMessageData(
           bookingId: $checkedConvert('booking_id', (v) => v as String),
           clientMessageId: $checkedConvert(
             'client_message_id',
@@ -1283,7 +1136,6 @@ ChatMessageCreated _$ChatMessageCreatedFromJson(Map<String, dynamic> json) =>
             'created_at',
             (v) => DateTime.parse(v as String),
           ),
-          eventId: $checkedConvert('event_id', (v) => v as String),
           kind: $checkedConvert(
             'kind',
             (v) => $enumDecode(_$ChatMessageKindEnumMap, v),
@@ -1296,10 +1148,6 @@ ChatMessageCreated _$ChatMessageCreatedFromJson(Map<String, dynamic> json) =>
           quickReplyCode: $checkedConvert(
             'quick_reply_code',
             (v) => v as String?,
-          ),
-          recipientUserIds: $checkedConvert(
-            'recipient_user_ids',
-            (v) => (v as List<dynamic>).map((e) => e as String).toList(),
           ),
           senderSide: $checkedConvert(
             'sender_side',
@@ -1314,23 +1162,20 @@ ChatMessageCreated _$ChatMessageCreatedFromJson(Map<String, dynamic> json) =>
         'bookingId': 'booking_id',
         'clientMessageId': 'client_message_id',
         'createdAt': 'created_at',
-        'eventId': 'event_id',
         'loadId': 'load_id',
         'messageId': 'message_id',
         'photoFileId': 'photo_file_id',
         'quickReplyCode': 'quick_reply_code',
-        'recipientUserIds': 'recipient_user_ids',
         'senderSide': 'sender_side',
         'senderUserId': 'sender_user_id',
       },
     );
 
-Map<String, dynamic> _$ChatMessageCreatedToJson(ChatMessageCreated instance) =>
+Map<String, dynamic> _$ChatMessageDataToJson(ChatMessageData instance) =>
     <String, dynamic>{
       'booking_id': instance.bookingId,
       'client_message_id': ?instance.clientMessageId,
       'created_at': instance.createdAt.toIso8601String(),
-      'event_id': instance.eventId,
       'kind': _$ChatMessageKindEnumMap[instance.kind]!,
       'lat': ?instance.lat,
       'lng': ?instance.lng,
@@ -1338,7 +1183,6 @@ Map<String, dynamic> _$ChatMessageCreatedToJson(ChatMessageCreated instance) =>
       'message_id': instance.messageId,
       'photo_file_id': ?instance.photoFileId,
       'quick_reply_code': ?instance.quickReplyCode,
-      'recipient_user_ids': instance.recipientUserIds,
       'sender_side': _$ChatSideEnumMap[instance.senderSide]!,
       'sender_user_id': instance.senderUserId,
       'text': ?instance.text,
@@ -1361,7 +1205,7 @@ ChatReadFrame _$ChatReadFrameFromJson(Map<String, dynamic> json) =>
       final val = ChatReadFrame(
         data: $checkedConvert(
           'data',
-          (v) => ChatRead.fromJson(v as Map<String, dynamic>),
+          (v) => ChatReadData.fromJson(v as Map<String, dynamic>),
         ),
         ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
         type: $checkedConvert(
@@ -1381,50 +1225,46 @@ Map<String, dynamic> _$ChatReadFrameToJson(ChatReadFrame instance) =>
 
 const _$ChatReadFrameTypeEnumMap = {ChatReadFrameType.CHAT_READ: 'chat_read'};
 
-ChatRead _$ChatReadFromJson(Map<String, dynamic> json) => $checkedCreate(
-  'ChatRead',
-  json,
-  ($checkedConvert) {
-    final val = ChatRead(
-      bookingId: $checkedConvert('booking_id', (v) => v as String),
-      eventId: $checkedConvert('event_id', (v) => v as String),
-      lastReadMessageId: $checkedConvert(
-        'last_read_message_id',
-        (v) => v as String,
-      ),
-      readAt: $checkedConvert('read_at', (v) => DateTime.parse(v as String)),
-      readerSide: $checkedConvert(
-        'reader_side',
-        (v) => $enumDecode(_$ChatSideEnumMap, v),
-      ),
-      readerUserId: $checkedConvert('reader_user_id', (v) => v as String),
-      recipientUserIds: $checkedConvert(
-        'recipient_user_ids',
-        (v) => (v as List<dynamic>).map((e) => e as String).toList(),
-      ),
+ChatReadData _$ChatReadDataFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'ChatReadData',
+      json,
+      ($checkedConvert) {
+        final val = ChatReadData(
+          bookingId: $checkedConvert('booking_id', (v) => v as String),
+          lastReadMessageId: $checkedConvert(
+            'last_read_message_id',
+            (v) => v as String,
+          ),
+          readAt: $checkedConvert(
+            'read_at',
+            (v) => DateTime.parse(v as String),
+          ),
+          readerSide: $checkedConvert(
+            'reader_side',
+            (v) => $enumDecode(_$ChatSideEnumMap, v),
+          ),
+          readerUserId: $checkedConvert('reader_user_id', (v) => v as String),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'bookingId': 'booking_id',
+        'lastReadMessageId': 'last_read_message_id',
+        'readAt': 'read_at',
+        'readerSide': 'reader_side',
+        'readerUserId': 'reader_user_id',
+      },
     );
-    return val;
-  },
-  fieldKeyMap: const {
-    'bookingId': 'booking_id',
-    'eventId': 'event_id',
-    'lastReadMessageId': 'last_read_message_id',
-    'readAt': 'read_at',
-    'readerSide': 'reader_side',
-    'readerUserId': 'reader_user_id',
-    'recipientUserIds': 'recipient_user_ids',
-  },
-);
 
-Map<String, dynamic> _$ChatReadToJson(ChatRead instance) => <String, dynamic>{
-  'booking_id': instance.bookingId,
-  'event_id': instance.eventId,
-  'last_read_message_id': instance.lastReadMessageId,
-  'read_at': instance.readAt.toIso8601String(),
-  'reader_side': _$ChatSideEnumMap[instance.readerSide]!,
-  'reader_user_id': instance.readerUserId,
-  'recipient_user_ids': instance.recipientUserIds,
-};
+Map<String, dynamic> _$ChatReadDataToJson(ChatReadData instance) =>
+    <String, dynamic>{
+      'booking_id': instance.bookingId,
+      'last_read_message_id': instance.lastReadMessageId,
+      'read_at': instance.readAt.toIso8601String(),
+      'reader_side': _$ChatSideEnumMap[instance.readerSide]!,
+      'reader_user_id': instance.readerUserId,
+    };
 
 ChatTypingFrame _$ChatTypingFrameFromJson(Map<String, dynamic> json) =>
     $checkedCreate('ChatTypingFrame', json, ($checkedConvert) {
@@ -1502,7 +1342,6 @@ Connected _$ConnectedFromJson(Map<String, dynamic> json) =>
         ),
         connId: $checkedConvert('conn_id', (v) => v as String),
         userId: $checkedConvert('user_id', (v) => v as String),
-        worker: $checkedConvert('worker', (v) => v as String),
       );
       return val;
     }, fieldKeyMap: const {'connId': 'conn_id', 'userId': 'user_id'});
@@ -1511,7 +1350,6 @@ Map<String, dynamic> _$ConnectedToJson(Connected instance) => <String, dynamic>{
   'config': instance.config,
   'conn_id': instance.connId,
   'user_id': instance.userId,
-  'worker': instance.worker,
 };
 
 ConnectionConfig _$ConnectionConfigFromJson(Map<String, dynamic> json) =>
@@ -2371,7 +2209,7 @@ SupportMessageFrame _$SupportMessageFrameFromJson(Map<String, dynamic> json) =>
       final val = SupportMessageFrame(
         data: $checkedConvert(
           'data',
-          (v) => SupportMessageCreated.fromJson(v as Map<String, dynamic>),
+          (v) => SupportMessageData.fromJson(v as Map<String, dynamic>),
         ),
         ts: $checkedConvert('ts', (v) => DateTime.parse(v as String)),
         type: $checkedConvert(
@@ -2394,51 +2232,43 @@ const _$SupportMessageFrameTypeEnumMap = {
   SupportMessageFrameType.SUPPORT_MESSAGE: 'support_message',
 };
 
-SupportMessageCreated _$SupportMessageCreatedFromJson(
-  Map<String, dynamic> json,
-) => $checkedCreate(
-  'SupportMessageCreated',
-  json,
-  ($checkedConvert) {
-    final val = SupportMessageCreated(
-      author: $checkedConvert(
-        'author',
-        (v) => $enumDecode(_$SupportAuthorEnumMap, v),
-      ),
-      createdAt: $checkedConvert(
-        'created_at',
-        (v) => DateTime.parse(v as String),
-      ),
-      eventId: $checkedConvert('event_id', (v) => v as String),
-      messageId: $checkedConvert('message_id', (v) => v as String),
-      number: $checkedConvert('number', (v) => v as String),
-      text: $checkedConvert('text', (v) => v as String),
-      ticketId: $checkedConvert('ticket_id', (v) => v as String),
-      userId: $checkedConvert('user_id', (v) => v as String),
+SupportMessageData _$SupportMessageDataFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
+      'SupportMessageData',
+      json,
+      ($checkedConvert) {
+        final val = SupportMessageData(
+          author: $checkedConvert(
+            'author',
+            (v) => $enumDecode(_$SupportAuthorEnumMap, v),
+          ),
+          createdAt: $checkedConvert(
+            'created_at',
+            (v) => DateTime.parse(v as String),
+          ),
+          messageId: $checkedConvert('message_id', (v) => v as String),
+          number: $checkedConvert('number', (v) => v as String),
+          text: $checkedConvert('text', (v) => v as String),
+          ticketId: $checkedConvert('ticket_id', (v) => v as String),
+        );
+        return val;
+      },
+      fieldKeyMap: const {
+        'createdAt': 'created_at',
+        'messageId': 'message_id',
+        'ticketId': 'ticket_id',
+      },
     );
-    return val;
-  },
-  fieldKeyMap: const {
-    'createdAt': 'created_at',
-    'eventId': 'event_id',
-    'messageId': 'message_id',
-    'ticketId': 'ticket_id',
-    'userId': 'user_id',
-  },
-);
 
-Map<String, dynamic> _$SupportMessageCreatedToJson(
-  SupportMessageCreated instance,
-) => <String, dynamic>{
-  'author': _$SupportAuthorEnumMap[instance.author]!,
-  'created_at': instance.createdAt.toIso8601String(),
-  'event_id': instance.eventId,
-  'message_id': instance.messageId,
-  'number': instance.number,
-  'text': instance.text,
-  'ticket_id': instance.ticketId,
-  'user_id': instance.userId,
-};
+Map<String, dynamic> _$SupportMessageDataToJson(SupportMessageData instance) =>
+    <String, dynamic>{
+      'author': _$SupportAuthorEnumMap[instance.author]!,
+      'created_at': instance.createdAt.toIso8601String(),
+      'message_id': instance.messageId,
+      'number': instance.number,
+      'text': instance.text,
+      'ticket_id': instance.ticketId,
+    };
 
 const _$SupportAuthorEnumMap = {
   SupportAuthor.OPERATOR: 'operator',
