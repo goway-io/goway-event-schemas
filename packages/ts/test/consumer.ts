@@ -3,7 +3,7 @@ import type { ClientFrame, OfferOutcome, ServerFrame, WalletEligibilityChanged }
 export function describe(frame: ServerFrame): string {
   switch (frame.type) {
     case "connected":
-      return `${frame.data.conn_id} on ${frame.data.worker}, offers last ${frame.data.config.offer_ttl_seconds}s`;
+      return `${frame.data.conn_id}, offers last ${frame.data.config.offer_ttl_seconds}s`;
     case "pong":
     case "offline":
     case "offers_unblocked":
@@ -23,7 +23,7 @@ export function describe(frame: ServerFrame): string {
     case "booking_eta":
       return frame.data.eta_to ?? "no window";
     case "booking_completed":
-      return `${frame.data.settled_amount} by ${frame.data.completed_by}`;
+      return `${frame.data.load_code} by ${frame.data.completed_by}`;
     case "booking_cancelled":
       return frame.data.by;
     case "driver_location":
