@@ -24,7 +24,9 @@ REST stays in each service's OpenAPI, generated from its code.
 
 - A payload only grows within a version. Never rename, retype or remove a field; never add an enum value a
   consumer may not know. A breaking change is a new subject ending in `.v2`, published beside the old one until
-  every consumer has moved.
+  every consumer has moved. `make breaking` holds every change against the latest `v*` tag (a client frame the
+  other way round: no new required field, no dropped value). Retiring the old subject, or a frame change every
+  app already ships for, is a `feat!:` commit followed by a new major tag.
 - Schemas are closed (`additionalProperties: false`): a producer cannot send a field nobody agreed on. Generated
   types are open: a consumer ignores a field it does not know yet.
 - A new server frame type is additive, never breaking: goway-realtime may start sending it before every installed
@@ -47,5 +49,6 @@ REST stays in each service's OpenAPI, generated from its code.
 ## Commands
 
 `make tools` once, then `make check` (validate, lint, examples), `make generate` (all languages), `make test`,
-`make docs` (HTML pages in `build/docs`), `make drift` (fails when `make generate` changes or adds anything under
+`make breaking` (changes since the latest `v*` tag a consumer could not read), `make docs` (HTML pages in
+`build/docs`), `make drift` (fails when `make generate` changes or adds anything under
 `packages/` that is not committed).

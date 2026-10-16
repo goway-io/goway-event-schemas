@@ -18,6 +18,9 @@ check: bundle
 	for doc in $(DOCS); do $(BIN)/spectral lint asyncapi/$$doc.yaml --ruleset .spectral.yaml --fail-severity warn || exit 1; done
 	uv run --quiet scripts/check_examples.py
 
+breaking:
+	python3 scripts/check_breaking.py
+
 generate: bundle
 	./scripts/generate.sh
 
