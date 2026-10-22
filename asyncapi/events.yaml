@@ -40,6 +40,30 @@ channels:
         $ref: '#/components/messages/userDeleted'
     x-publisher: goway-auth
     x-consumers: [goway-loads, goway-billing, goway-notify]
+  membershipCreated:
+    address: membership.created
+    description: A person joined an organization on one side of the market, or a removed membership came back.
+    messages:
+      membershipCreated:
+        $ref: '#/components/messages/membershipCreated'
+    x-publisher: goway-auth
+    x-consumers: [goway-loads, goway-billing, goway-notify]
+  membershipUpdated:
+    address: membership.updated
+    description: A live membership changed its side, its role or the person's role inside the organization.
+    messages:
+      membershipUpdated:
+        $ref: '#/components/messages/membershipUpdated'
+    x-publisher: goway-auth
+    x-consumers: [goway-loads, goway-billing, goway-notify]
+  membershipRemoved:
+    address: membership.removed
+    description: A membership ended.
+    messages:
+      membershipRemoved:
+        $ref: '#/components/messages/membershipRemoved'
+    x-publisher: goway-auth
+    x-consumers: [goway-loads, goway-billing, goway-notify]
   userLogin:
     address: user.login
     description: Somebody signed in to the account.
@@ -536,6 +560,21 @@ operations:
     channel:
       $ref: '#/channels/userDeleted'
     description: Published when the owner deletes the account, and on an admin soft or hard delete (with `updated_at`).
+  publishMembershipCreated:
+    action: send
+    channel:
+      $ref: '#/channels/membershipCreated'
+    description: Published when an account opens (self-signup, admin create) and when a deleted account is restored.
+  publishMembershipUpdated:
+    action: send
+    channel:
+      $ref: '#/channels/membershipUpdated'
+    description: Published by a role switch and by an admin role change.
+  publishMembershipRemoved:
+    action: send
+    channel:
+      $ref: '#/channels/membershipRemoved'
+    description: Published when the owner deletes the account and on an admin soft or hard delete.
   publishUserLogin:
     action: send
     channel:
@@ -853,6 +892,21 @@ components:
       title: User deleted
       payload:
         $ref: '../schemas/events/user.deleted.json'
+    membershipCreated:
+      name: membership.created
+      title: Membership created
+      payload:
+        $ref: '../schemas/events/membership.created.json'
+    membershipUpdated:
+      name: membership.updated
+      title: Membership updated
+      payload:
+        $ref: '../schemas/events/membership.updated.json'
+    membershipRemoved:
+      name: membership.removed
+      title: Membership removed
+      payload:
+        $ref: '../schemas/events/membership.removed.json'
     userLogin:
       name: user.login
       title: User signed in

@@ -39,6 +39,9 @@
     "load.posted": "LoadPosted",
     "load.updated": "LoadUpdated",
     "location.sampled": "LocationSampled",
+    "membership.created": "MembershipCreated",
+    "membership.removed": "MembershipRemoved",
+    "membership.updated": "MembershipUpdated",
     "notification.created": "NotificationCreated",
     "offer.accepted": "OfferAccepted",
     "offer.created": "OfferCreated",
@@ -4137,6 +4140,166 @@
         "recorded_at"
       ]
     },
+    "MembershipCreated": {
+      "title": "MembershipCreated",
+      "description": "A person joined an organization on one side of the market, or a removed membership came back. A person holds at most one live membership per side. The full state is sent, so a consumer upserts it.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "membership_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Stable id of the membership; every later event about it carries the same one."
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The person."
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The organization the person works in on this side."
+        },
+        "side": {
+          "$ref": "#/definitions/MembershipSide"
+        },
+        "role": {
+          "type": "string",
+          "description": "The role the side's tokens carry, for example `carrier`, `shipper` or `superadmin`."
+        },
+        "org_role": {
+          "$ref": "#/definitions/OrgRole"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When it was created or came back. ISO 8601 with offset."
+        }
+      },
+      "required": [
+        "event_id",
+        "membership_id",
+        "user_id",
+        "org_id",
+        "side",
+        "role",
+        "org_role",
+        "created_at"
+      ]
+    },
+    "MembershipRemoved": {
+      "title": "MembershipRemoved",
+      "description": "A membership ended: the person closed that side or the account was deleted. Keep it as a tombstone; a later `membership.created` with the same id brings it back.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "membership_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Stable id of the membership; every later event about it carries the same one."
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The person."
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The organization the person works in on this side."
+        },
+        "side": {
+          "$ref": "#/definitions/MembershipSide"
+        },
+        "removed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When it ended. ISO 8601 with offset."
+        }
+      },
+      "required": [
+        "event_id",
+        "membership_id",
+        "user_id",
+        "org_id",
+        "side",
+        "removed_at"
+      ]
+    },
+    "MembershipSide": {
+      "title": "MembershipSide",
+      "type": "string",
+      "enum": [
+        "shipper",
+        "carrier",
+        "platform"
+      ],
+      "description": "The side of the market the membership works on: the organization's kind. `platform` is GoWay's own staff."
+    },
+    "MembershipUpdated": {
+      "title": "MembershipUpdated",
+      "description": "A live membership changed its organization's side, its role or the person's role inside the organization. The full state is sent; keep the newest by `updated_at`.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "membership_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Stable id of the membership; every later event about it carries the same one."
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The person."
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The organization the person works in on this side."
+        },
+        "side": {
+          "$ref": "#/definitions/MembershipSide"
+        },
+        "role": {
+          "type": "string",
+          "description": "The role the side's tokens carry, for example `carrier`, `shipper` or `superadmin`."
+        },
+        "org_role": {
+          "$ref": "#/definitions/OrgRole"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When it changed. ISO 8601 with offset."
+        }
+      },
+      "required": [
+        "event_id",
+        "membership_id",
+        "user_id",
+        "org_id",
+        "side",
+        "role",
+        "org_role",
+        "updated_at"
+      ]
+    },
     "Notification": {
       "title": "Notification",
       "description": "Something landed in the user's notification feed. `data` opens the right screen on tap and `unread` is the new badge. Copied from `notification.created`; a field that event lacked or sent empty arrives as null.",
@@ -4981,6 +5144,15 @@
         "data",
         "ts"
       ]
+    },
+    "OrgRole": {
+      "title": "OrgRole",
+      "type": "string",
+      "enum": [
+        "owner",
+        "member"
+      ],
+      "description": "What the person is inside the organization: `owner` for the account that opened it, `member` otherwise."
     },
     "OrgUpdated": {
       "title": "OrgUpdated",

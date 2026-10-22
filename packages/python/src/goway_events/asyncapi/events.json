@@ -60,6 +60,51 @@
     "goway-notify"
    ]
   },
+  "membershipCreated": {
+   "address": "membership.created",
+   "description": "A person joined an organization on one side of the market, or a removed membership came back.\n\nPublished by `goway-auth`; consumed by `goway-loads`, `goway-billing` and `goway-notify`.",
+   "messages": {
+    "membershipCreated": {
+     "$ref": "#/components/messages/membershipCreated"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-loads",
+    "goway-billing",
+    "goway-notify"
+   ]
+  },
+  "membershipUpdated": {
+   "address": "membership.updated",
+   "description": "A live membership changed its side, its role or the person's role inside the organization.\n\nPublished by `goway-auth`; consumed by `goway-loads`, `goway-billing` and `goway-notify`.",
+   "messages": {
+    "membershipUpdated": {
+     "$ref": "#/components/messages/membershipUpdated"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-loads",
+    "goway-billing",
+    "goway-notify"
+   ]
+  },
+  "membershipRemoved": {
+   "address": "membership.removed",
+   "description": "A membership ended.\n\nPublished by `goway-auth`; consumed by `goway-loads`, `goway-billing` and `goway-notify`.",
+   "messages": {
+    "membershipRemoved": {
+     "$ref": "#/components/messages/membershipRemoved"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-loads",
+    "goway-billing",
+    "goway-notify"
+   ]
+  },
   "userLogin": {
    "address": "user.login",
    "description": "Somebody signed in to the account.\n\nPublished by `goway-auth`; consumed by `goway-notify` and `goway-realtime`.",
@@ -878,6 +923,30 @@
     "$ref": "#/channels/userDeleted"
    },
    "description": "Published when the owner deletes the account, and on an admin soft or hard delete (with `updated_at`).",
+   "title": "goway-auth publishes"
+  },
+  "publishMembershipCreated": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/membershipCreated"
+   },
+   "description": "Published when an account opens (self-signup, admin create) and when a deleted account is restored.",
+   "title": "goway-auth publishes"
+  },
+  "publishMembershipUpdated": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/membershipUpdated"
+   },
+   "description": "Published by a role switch and by an admin role change.",
+   "title": "goway-auth publishes"
+  },
+  "publishMembershipRemoved": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/membershipRemoved"
+   },
+   "description": "Published when the owner deletes the account and on an admin soft or hard delete.",
    "title": "goway-auth publishes"
   },
   "publishUserLogin": {
@@ -1712,6 +1781,244 @@
        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
        "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
        "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05"
+      }
+     }
+    ]
+   },
+   "membershipCreated": {
+    "name": "membership.created",
+    "title": "Membership created",
+    "payload": {
+     "title": "MembershipCreated",
+     "description": "A person joined an organization on one side of the market, or a removed membership came back. A person holds at most one live membership per side. The full state is sent, so a consumer upserts it.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "membership_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Stable id of the membership; every later event about it carries the same one."
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The person."
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The organization the person works in on this side."
+      },
+      "side": {
+       "title": "MembershipSide",
+       "type": "string",
+       "enum": [
+        "shipper",
+        "carrier",
+        "platform"
+       ],
+       "description": "The side of the market the membership works on: the organization's kind. `platform` is GoWay's own staff."
+      },
+      "role": {
+       "type": "string",
+       "description": "The role the side's tokens carry, for example `carrier`, `shipper` or `superadmin`."
+      },
+      "org_role": {
+       "title": "OrgRole",
+       "type": "string",
+       "enum": [
+        "owner",
+        "member"
+       ],
+       "description": "What the person is inside the organization: `owner` for the account that opened it, `member` otherwise."
+      },
+      "created_at": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When it was created or came back. ISO 8601 with offset."
+      }
+     },
+     "required": [
+      "event_id",
+      "membership_id",
+      "user_id",
+      "org_id",
+      "side",
+      "role",
+      "org_role",
+      "created_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Signup",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "membership_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "side": "carrier",
+       "role": "carrier",
+       "org_role": "owner",
+       "created_at": "2026-10-22T09:30:00+00:00"
+      }
+     }
+    ]
+   },
+   "membershipUpdated": {
+    "name": "membership.updated",
+    "title": "Membership updated",
+    "payload": {
+     "title": "MembershipUpdated",
+     "description": "A live membership changed its organization's side, its role or the person's role inside the organization. The full state is sent; keep the newest by `updated_at`.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "membership_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Stable id of the membership; every later event about it carries the same one."
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The person."
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The organization the person works in on this side."
+      },
+      "side": {
+       "title": "MembershipSide",
+       "type": "string",
+       "enum": [
+        "shipper",
+        "carrier",
+        "platform"
+       ],
+       "description": "The side of the market the membership works on: the organization's kind. `platform` is GoWay's own staff."
+      },
+      "role": {
+       "type": "string",
+       "description": "The role the side's tokens carry, for example `carrier`, `shipper` or `superadmin`."
+      },
+      "org_role": {
+       "title": "OrgRole",
+       "type": "string",
+       "enum": [
+        "owner",
+        "member"
+       ],
+       "description": "What the person is inside the organization: `owner` for the account that opened it, `member` otherwise."
+      },
+      "updated_at": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When it changed. ISO 8601 with offset."
+      }
+     },
+     "required": [
+      "event_id",
+      "membership_id",
+      "user_id",
+      "org_id",
+      "side",
+      "role",
+      "org_role",
+      "updated_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Role switch",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "membership_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "side": "shipper",
+       "role": "shipper",
+       "org_role": "owner",
+       "updated_at": "2026-10-22T09:31:00+00:00"
+      }
+     }
+    ]
+   },
+   "membershipRemoved": {
+    "name": "membership.removed",
+    "title": "Membership removed",
+    "payload": {
+     "title": "MembershipRemoved",
+     "description": "A membership ended: the person closed that side or the account was deleted. Keep it as a tombstone; a later `membership.created` with the same id brings it back.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "membership_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Stable id of the membership; every later event about it carries the same one."
+      },
+      "user_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The person."
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The organization the person works in on this side."
+      },
+      "side": {
+       "title": "MembershipSide",
+       "type": "string",
+       "enum": [
+        "shipper",
+        "carrier",
+        "platform"
+       ],
+       "description": "The side of the market the membership works on: the organization's kind. `platform` is GoWay's own staff."
+      },
+      "removed_at": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When it ended. ISO 8601 with offset."
+      }
+     },
+     "required": [
+      "event_id",
+      "membership_id",
+      "user_id",
+      "org_id",
+      "side",
+      "removed_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Account deleted",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "membership_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+       "side": "carrier",
+       "removed_at": "2026-10-22T10:00:00+00:00"
       }
      }
     ]

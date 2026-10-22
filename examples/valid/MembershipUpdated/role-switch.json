@@ -1,0 +1,10 @@
+{
+  "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+  "membership_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+  "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+  "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+  "side": "shipper",
+  "role": "shipper",
+  "org_role": "owner",
+  "updated_at": "2026-10-22T09:31:00+00:00"
+}

@@ -2941,6 +2941,99 @@ pub struct LocationSampled {
     #[doc = "When the position was sampled, RFC 3339 UTC with milliseconds."]
     pub recorded_at: ::chrono::DateTime<::chrono::offset::Utc>,
 }
+#[doc = "A person joined an organization on one side of the market, or a removed membership came back. A person holds at most one live membership per side. The full state is sent, so a consumer upserts it."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MembershipCreated {
+    #[doc = "When it was created or came back. ISO 8601 with offset."]
+    pub created_at: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "Stable id of the membership; every later event about it carries the same one."]
+    pub membership_id: ::uuid::Uuid,
+    #[doc = "The organization the person works in on this side."]
+    pub org_id: ::uuid::Uuid,
+    pub org_role: OrgRole,
+    #[doc = "The role the side's tokens carry, for example `carrier`, `shipper` or `superadmin`."]
+    pub role: ::std::string::String,
+    pub side: MembershipSide,
+    #[doc = "The person."]
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "A membership ended: the person closed that side or the account was deleted. Keep it as a tombstone; a later `membership.created` with the same id brings it back."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MembershipRemoved {
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "Stable id of the membership; every later event about it carries the same one."]
+    pub membership_id: ::uuid::Uuid,
+    #[doc = "The organization the person works in on this side."]
+    pub org_id: ::uuid::Uuid,
+    #[doc = "When it ended. ISO 8601 with offset."]
+    pub removed_at: ::chrono::DateTime<::chrono::offset::Utc>,
+    pub side: MembershipSide,
+    #[doc = "The person."]
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "The side of the market the membership works on: the organization's kind. `platform` is GoWay's own staff."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum MembershipSide {
+    #[serde(rename = "shipper")]
+    Shipper,
+    #[serde(rename = "carrier")]
+    Carrier,
+    #[serde(rename = "platform")]
+    Platform,
+}
+impl ::std::fmt::Display for MembershipSide {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Shipper => f.write_str("shipper"),
+            Self::Carrier => f.write_str("carrier"),
+            Self::Platform => f.write_str("platform"),
+        }
+    }
+}
+impl ::std::str::FromStr for MembershipSide {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "shipper" => Ok(Self::Shipper),
+            "carrier" => Ok(Self::Carrier),
+            "platform" => Ok(Self::Platform),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for MembershipSide {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MembershipSide {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "A live membership changed its organization's side, its role or the person's role inside the organization. The full state is sent; keep the newest by `updated_at`."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MembershipUpdated {
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "Stable id of the membership; every later event about it carries the same one."]
+    pub membership_id: ::uuid::Uuid,
+    #[doc = "The organization the person works in on this side."]
+    pub org_id: ::uuid::Uuid,
+    pub org_role: OrgRole,
+    #[doc = "The role the side's tokens carry, for example `carrier`, `shipper` or `superadmin`."]
+    pub role: ::std::string::String,
+    pub side: MembershipSide,
+    #[doc = "When it changed. ISO 8601 with offset."]
+    pub updated_at: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[doc = "The person."]
+    pub user_id: ::uuid::Uuid,
+}
 #[doc = "Something landed in the user's notification feed. `data` opens the right screen on tap and `unread` is the new badge. Copied from `notification.created`; a field that event lacked or sent empty arrives as null."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct Notification {
@@ -3618,6 +3711,44 @@ pub struct OnlineFrame {
     pub ts: ::chrono::DateTime<::chrono::offset::Utc>,
     #[serde(rename = "type")]
     pub type_: ::std::string::String,
+}
+#[doc = "What the person is inside the organization: `owner` for the account that opened it, `member` otherwise."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum OrgRole {
+    #[serde(rename = "owner")]
+    Owner,
+    #[serde(rename = "member")]
+    Member,
+}
+impl ::std::fmt::Display for OrgRole {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Owner => f.write_str("owner"),
+            Self::Member => f.write_str("member"),
+        }
+    }
+}
+impl ::std::str::FromStr for OrgRole {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "owner" => Ok(Self::Owner),
+            "member" => Ok(Self::Member),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for OrgRole {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for OrgRole {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
 }
 #[doc = "An organization's details changed. Only what changed is sent, besides `org_id` and `updated_at`: a role switch sends `kind` and `account_type`; the organization screen any of `name`, `legal_name`, `inn`, `contact_phone`, `address`."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]

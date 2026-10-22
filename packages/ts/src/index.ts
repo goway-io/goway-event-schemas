@@ -181,6 +181,20 @@ export type PriceMode = "fixed" | "negotiable";
  */
 export type PaymentMethod = "cash" | "transfer" | "card" | "mixed";
 /**
+ * The side of the market the membership works on: the organization's kind. `platform` is GoWay's own staff.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "MembershipSide".
+ */
+export type MembershipSide = "shipper" | "carrier" | "platform";
+/**
+ * What the person is inside the organization: `owner` for the account that opened it, `member` otherwise.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "OrgRole".
+ */
+export type OrgRole = "owner" | "member";
+/**
  * Who made the offer and how.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -2378,6 +2392,103 @@ export interface LocationSampled {
    * When the position was sampled, RFC 3339 UTC with milliseconds.
    */
   recorded_at: string;
+}
+/**
+ * A person joined an organization on one side of the market, or a removed membership came back. A person holds at most one live membership per side. The full state is sent, so a consumer upserts it.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "MembershipCreated".
+ */
+export interface MembershipCreated {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  /**
+   * Stable id of the membership; every later event about it carries the same one.
+   */
+  membership_id: string;
+  /**
+   * The person.
+   */
+  user_id: string;
+  /**
+   * The organization the person works in on this side.
+   */
+  org_id: string;
+  side: MembershipSide;
+  /**
+   * The role the side's tokens carry, for example `carrier`, `shipper` or `superadmin`.
+   */
+  role: string;
+  org_role: OrgRole;
+  /**
+   * When it was created or came back. ISO 8601 with offset.
+   */
+  created_at: string;
+}
+/**
+ * A membership ended: the person closed that side or the account was deleted. Keep it as a tombstone; a later `membership.created` with the same id brings it back.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "MembershipRemoved".
+ */
+export interface MembershipRemoved {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  /**
+   * Stable id of the membership; every later event about it carries the same one.
+   */
+  membership_id: string;
+  /**
+   * The person.
+   */
+  user_id: string;
+  /**
+   * The organization the person works in on this side.
+   */
+  org_id: string;
+  side: MembershipSide;
+  /**
+   * When it ended. ISO 8601 with offset.
+   */
+  removed_at: string;
+}
+/**
+ * A live membership changed its organization's side, its role or the person's role inside the organization. The full state is sent; keep the newest by `updated_at`.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "MembershipUpdated".
+ */
+export interface MembershipUpdated {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  /**
+   * Stable id of the membership; every later event about it carries the same one.
+   */
+  membership_id: string;
+  /**
+   * The person.
+   */
+  user_id: string;
+  /**
+   * The organization the person works in on this side.
+   */
+  org_id: string;
+  side: MembershipSide;
+  /**
+   * The role the side's tokens carry, for example `carrier`, `shipper` or `superadmin`.
+   */
+  role: string;
+  org_role: OrgRole;
+  /**
+   * When it changed. ISO 8601 with offset.
+   */
+  updated_at: string;
 }
 /**
  * Something landed in the user's notification feed. `data` opens the right screen on tap and `unread` is the new badge. Copied from `notification.created`; a field that event lacked or sent empty arrives as null.

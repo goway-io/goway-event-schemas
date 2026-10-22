@@ -1023,6 +1023,16 @@ class LocationSampled(BaseModel):
     """
 
 
+class MembershipSide(StrEnum):
+    """
+    The side of the market the membership works on: the organization's kind. `platform` is GoWay's own staff.
+    """
+
+    SHIPPER = "shipper"
+    CARRIER = "carrier"
+    PLATFORM = "platform"
+
+
 class Notification(BaseModel):
     """
     Something landed in the user's notification feed. `data` opens the right screen on tap and `unread` is the new badge. Copied from `notification.created`; a field that event lacked or sent empty arrives as null.
@@ -1372,6 +1382,15 @@ class OnlineFrame(BaseModel):
     """
     When the server sent the frame, RFC 3339 UTC.
     """
+
+
+class OrgRole(StrEnum):
+    """
+    What the person is inside the organization: `owner` for the account that opened it, `member` otherwise.
+    """
+
+    OWNER = "owner"
+    MEMBER = "member"
 
 
 class OrgUpdated(BaseModel):
@@ -3644,6 +3663,109 @@ class LoadUpdated(BaseModel):
     plan: bool
     """
     The pickup is scheduled more than goway-loads' instant horizon ahead: drivers book it from the plan list, and dispatch makes no instant offers for it.
+    """
+
+
+class MembershipCreated(BaseModel):
+    """
+    A person joined an organization on one side of the market, or a removed membership came back. A person holds at most one live membership per side. The full state is sent, so a consumer upserts it.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    membership_id: UUID
+    """
+    Stable id of the membership; every later event about it carries the same one.
+    """
+    user_id: UUID
+    """
+    The person.
+    """
+    org_id: UUID
+    """
+    The organization the person works in on this side.
+    """
+    side: MembershipSide
+    role: str
+    """
+    The role the side's tokens carry, for example `carrier`, `shipper` or `superadmin`.
+    """
+    org_role: OrgRole
+    created_at: AwareDatetime
+    """
+    When it was created or came back. ISO 8601 with offset.
+    """
+
+
+class MembershipRemoved(BaseModel):
+    """
+    A membership ended: the person closed that side or the account was deleted. Keep it as a tombstone; a later `membership.created` with the same id brings it back.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    membership_id: UUID
+    """
+    Stable id of the membership; every later event about it carries the same one.
+    """
+    user_id: UUID
+    """
+    The person.
+    """
+    org_id: UUID
+    """
+    The organization the person works in on this side.
+    """
+    side: MembershipSide
+    removed_at: AwareDatetime
+    """
+    When it ended. ISO 8601 with offset.
+    """
+
+
+class MembershipUpdated(BaseModel):
+    """
+    A live membership changed its organization's side, its role or the person's role inside the organization. The full state is sent; keep the newest by `updated_at`.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    membership_id: UUID
+    """
+    Stable id of the membership; every later event about it carries the same one.
+    """
+    user_id: UUID
+    """
+    The person.
+    """
+    org_id: UUID
+    """
+    The organization the person works in on this side.
+    """
+    side: MembershipSide
+    role: str
+    """
+    The role the side's tokens carry, for example `carrier`, `shipper` or `superadmin`.
+    """
+    org_role: OrgRole
+    updated_at: AwareDatetime
+    """
+    When it changed. ISO 8601 with offset.
     """
 
 

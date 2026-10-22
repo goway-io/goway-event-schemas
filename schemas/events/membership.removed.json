@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MembershipRemoved",
+  "description": "A membership ended: the person closed that side or the account was deleted. Keep it as a tombstone; a later `membership.created` with the same id brings it back.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "membership_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Stable id of the membership; every later event about it carries the same one."
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person."
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The organization the person works in on this side."
+    },
+    "side": {
+      "title": "MembershipSide",
+      "type": "string",
+      "enum": [
+        "shipper",
+        "carrier",
+        "platform"
+      ],
+      "description": "The side of the market the membership works on: the organization's kind. `platform` is GoWay's own staff."
+    },
+    "removed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When it ended. ISO 8601 with offset."
+    }
+  },
+  "required": [
+    "event_id",
+    "membership_id",
+    "user_id",
+    "org_id",
+    "side",
+    "removed_at"
+  ]
+}
