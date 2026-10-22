@@ -2806,7 +2806,7 @@
     },
     "DeviceUpserted": {
       "title": "DeviceUpserted",
-      "description": "A device was registered or came back after removal, or its push token changed or was cleared (signing out clears it).",
+      "description": "A device was registered or came back after removal, or its push token changed or was cleared (signing out clears it). `side` is the side its app signed in to: a push for one side goes only to that side's devices; a device without it, not signed in since sides were kept, hears every side.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -2832,6 +2832,9 @@
             "null"
           ],
           "description": "FCM registration token; null when the device can no longer be pushed."
+        },
+        "side": {
+          "$ref": "#/definitions/MembershipSide"
         }
       },
       "required": [
@@ -4245,7 +4248,7 @@
         "carrier",
         "platform"
       ],
-      "description": "The side of the market the membership works on: the organization's kind. `platform` is GoWay's own staff."
+      "description": "A side of the market: `shipper`, `carrier`, or `platform` for GoWay's own staff."
     },
     "MembershipUpdated": {
       "title": "MembershipUpdated",
@@ -4362,7 +4365,7 @@
     },
     "NotificationCreated": {
       "title": "NotificationCreated",
-      "description": "A message landed in a user's notification feed: from an event, or from an admin announcement (`kind: announcement`).",
+      "description": "A message landed in a user's notification feed: from an event, or from an admin announcement (`kind: announcement`). `side` is the side the notice is for, shown only in that side's app; a notice about the person has none and every app shows it.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -4400,6 +4403,9 @@
           "type": "integer",
           "minimum": 0,
           "description": "The user's unread feed items, this one included, for the badge."
+        },
+        "side": {
+          "$ref": "#/definitions/MembershipSide"
         }
       },
       "required": [

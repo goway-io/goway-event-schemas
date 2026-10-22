@@ -33,7 +33,7 @@
         "carrier",
         "platform"
       ],
-      "description": "The side of the market the membership works on: the organization's kind. `platform` is GoWay's own staff."
+      "description": "A side of the market: `shipper`, `carrier`, or `platform` for GoWay's own staff."
     },
     "removed_at": {
       "type": "string",

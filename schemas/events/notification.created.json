@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "NotificationCreated",
-  "description": "A message landed in a user's notification feed: from an event, or from an admin announcement (`kind: announcement`).",
+  "description": "A message landed in a user's notification feed: from an event, or from an admin announcement (`kind: announcement`). `side` is the side the notice is for, shown only in that side's app; a notice about the person has none and every app shows it.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -39,6 +39,16 @@
       "type": "integer",
       "minimum": 0,
       "description": "The user's unread feed items, this one included, for the badge."
+    },
+    "side": {
+      "title": "MembershipSide",
+      "type": "string",
+      "enum": [
+        "shipper",
+        "carrier",
+        "platform"
+      ],
+      "description": "A side of the market: `shipper`, `carrier`, or `platform` for GoWay's own staff."
     }
   },
   "required": [

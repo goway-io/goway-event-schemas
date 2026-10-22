@@ -1,0 +1,14 @@
+{
+  "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+  "notification_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0e",
+  "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0c",
+  "kind": "driver_found",
+  "title": "Haydovchi topildi",
+  "body": "Yukingiz 4 350 000 so'mga band qilindi",
+  "data": {
+    "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e10",
+    "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e11"
+  },
+  "unread": 3,
+  "side": "shipper"
+}

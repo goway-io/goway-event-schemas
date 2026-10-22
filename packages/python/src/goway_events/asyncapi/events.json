@@ -1822,7 +1822,7 @@
         "carrier",
         "platform"
        ],
-       "description": "The side of the market the membership works on: the organization's kind. `platform` is GoWay's own staff."
+       "description": "A side of the market: `shipper`, `carrier`, or `platform` for GoWay's own staff."
       },
       "role": {
        "type": "string",
@@ -1907,7 +1907,7 @@
         "carrier",
         "platform"
        ],
-       "description": "The side of the market the membership works on: the organization's kind. `platform` is GoWay's own staff."
+       "description": "A side of the market: `shipper`, `carrier`, or `platform` for GoWay's own staff."
       },
       "role": {
        "type": "string",
@@ -1992,7 +1992,7 @@
         "carrier",
         "platform"
        ],
-       "description": "The side of the market the membership works on: the organization's kind. `platform` is GoWay's own staff."
+       "description": "A side of the market: `shipper`, `carrier`, or `platform` for GoWay's own staff."
       },
       "removed_at": {
        "type": "string",
@@ -2346,7 +2346,7 @@
     "title": "Device registered",
     "payload": {
      "title": "DeviceUpserted",
-     "description": "A device was registered or came back after removal, or its push token changed or was cleared (signing out clears it).",
+     "description": "A device was registered or came back after removal, or its push token changed or was cleared (signing out clears it). `side` is the side its app signed in to: a push for one side goes only to that side's devices; a device without it, not signed in since sides were kept, hears every side.",
      "type": "object",
      "additionalProperties": false,
      "properties": {
@@ -2378,6 +2378,16 @@
         "null"
        ],
        "description": "FCM registration token; null when the device can no longer be pushed."
+      },
+      "side": {
+       "title": "MembershipSide",
+       "type": "string",
+       "enum": [
+        "shipper",
+        "carrier",
+        "platform"
+       ],
+       "description": "A side of the market: `shipper`, `carrier`, or `platform` for GoWay's own staff."
       }
      },
      "required": [
@@ -2397,6 +2407,17 @@
        "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
        "platform": "ios",
        "push_token": "fcm:APA91bH-x7"
+      }
+     },
+     {
+      "name": "Driver app",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "device_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0d",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "platform": "ios",
+       "push_token": "fcm:APA91bH-x7",
+       "side": "carrier"
       }
      },
      {
@@ -5526,7 +5547,7 @@
     "title": "Notification created",
     "payload": {
      "title": "NotificationCreated",
-     "description": "A message landed in a user's notification feed: from an event, or from an admin announcement (`kind: announcement`).",
+     "description": "A message landed in a user's notification feed: from an event, or from an admin announcement (`kind: announcement`). `side` is the side the notice is for, shown only in that side's app; a notice about the person has none and every app shows it.",
      "type": "object",
      "additionalProperties": false,
      "properties": {
@@ -5564,6 +5585,16 @@
        "type": "integer",
        "minimum": 0,
        "description": "The user's unread feed items, this one included, for the badge."
+      },
+      "side": {
+       "title": "MembershipSide",
+       "type": "string",
+       "enum": [
+        "shipper",
+        "carrier",
+        "platform"
+       ],
+       "description": "A side of the market: `shipper`, `carrier`, or `platform` for GoWay's own staff."
       }
      },
      "required": [
@@ -5590,6 +5621,23 @@
         "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e11"
        },
        "unread": 3
+      }
+     },
+     {
+      "name": "For one side",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "notification_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0e",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0c",
+       "kind": "driver_found",
+       "title": "Haydovchi topildi",
+       "body": "Yukingiz 4 350 000 so'mga band qilindi",
+       "data": {
+        "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e10",
+        "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e11"
+       },
+       "unread": 3,
+       "side": "shipper"
       }
      }
     ]

@@ -503,27 +503,6 @@ class DeviceRemoved(BaseModel):
     """
 
 
-class DeviceUpserted(BaseModel):
-    """
-    A device was registered or came back after removal, or its push token changed or was cleared (signing out clears it).
-    """
-
-    model_config = ConfigDict(
-        extra="ignore",
-    )
-    event_id: UUID
-    """
-    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
-    """
-    device_id: UUID
-    user_id: UUID
-    platform: DevicePlatform
-    push_token: str | None
-    """
-    FCM registration token; null when the device can no longer be pushed.
-    """
-
-
 class DispatchExhausted(BaseModel):
     """
     An instant search ran for the whole search window and no driver took the load. The search goes on; the shipper is told so they can raise the price, move the pickup or cancel.
@@ -1025,7 +1004,7 @@ class LocationSampled(BaseModel):
 
 class MembershipSide(StrEnum):
     """
-    The side of the market the membership works on: the organization's kind. `platform` is GoWay's own staff.
+    A side of the market: `shipper`, `carrier`, or `platform` for GoWay's own staff.
     """
 
     SHIPPER = "shipper"
@@ -1066,7 +1045,7 @@ class Notification(BaseModel):
 
 class NotificationCreated(BaseModel):
     """
-    A message landed in a user's notification feed: from an event, or from an admin announcement (`kind: announcement`).
+    A message landed in a user's notification feed: from an event, or from an admin announcement (`kind: announcement`). `side` is the side the notice is for, shown only in that side's app; a notice about the person has none and every app shows it.
     """
 
     model_config = ConfigDict(
@@ -1098,6 +1077,7 @@ class NotificationCreated(BaseModel):
     """
     The user's unread feed items, this one included, for the badge.
     """
+    side: MembershipSide | None = None
 
 
 class NotificationFrame(BaseModel):
@@ -3408,6 +3388,28 @@ class ConnectedFrame(BaseModel):
     """
     When the server sent the frame, RFC 3339 UTC.
     """
+
+
+class DeviceUpserted(BaseModel):
+    """
+    A device was registered or came back after removal, or its push token changed or was cleared (signing out clears it). `side` is the side its app signed in to: a push for one side goes only to that side's devices; a device without it, not signed in since sides were kept, hears every side.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    device_id: UUID
+    user_id: UUID
+    platform: DevicePlatform
+    push_token: str | None
+    """
+    FCM registration token; null when the device can no longer be pushed.
+    """
+    side: MembershipSide | None = None
 
 
 class ErrorFrame(BaseModel):

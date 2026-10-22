@@ -1880,7 +1880,7 @@ pub struct DeviceRemoved {
     pub installation_id: ::std::string::String,
     pub user_id: ::uuid::Uuid,
 }
-#[doc = "A device was registered or came back after removal, or its push token changed or was cleared (signing out clears it)."]
+#[doc = "A device was registered or came back after removal, or its push token changed or was cleared (signing out clears it). `side` is the side its app signed in to: a push for one side goes only to that side's devices; a device without it, not signed in since sides were kept, hears every side."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct DeviceUpserted {
     pub device_id: ::uuid::Uuid,
@@ -1890,6 +1890,8 @@ pub struct DeviceUpserted {
     #[doc = "FCM registration token; null when the device can no longer be pushed."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub push_token: ::std::option::Option<::std::string::String>,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub side: ::std::option::Option<MembershipSide>,
     pub user_id: ::uuid::Uuid,
 }
 #[doc = "An instant search ran for the whole search window and no driver took the load. The search goes on; the shipper is told so they can raise the price, move the pickup or cancel."]
@@ -2974,7 +2976,7 @@ pub struct MembershipRemoved {
     #[doc = "The person."]
     pub user_id: ::uuid::Uuid,
 }
-#[doc = "The side of the market the membership works on: the organization's kind. `platform` is GoWay's own staff."]
+#[doc = "A side of the market: `shipper`, `carrier`, or `platform` for GoWay's own staff."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum MembershipSide {
     #[serde(rename = "shipper")]
@@ -3055,7 +3057,7 @@ pub struct Notification {
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub unread: ::std::option::Option<u64>,
 }
-#[doc = "A message landed in a user's notification feed: from an event, or from an admin announcement (`kind: announcement`)."]
+#[doc = "A message landed in a user's notification feed: from an event, or from an admin announcement (`kind: announcement`). `side` is the side the notice is for, shown only in that side's app; a notice about the person has none and every app shows it."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct NotificationCreated {
     #[doc = "Text in the user's language."]
@@ -3068,6 +3070,8 @@ pub struct NotificationCreated {
     #[doc = "Template kind, for example `driver_found`, `booking_status` or `announcement`."]
     pub kind: ::std::string::String,
     pub notification_id: ::uuid::Uuid,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub side: ::std::option::Option<MembershipSide>,
     #[doc = "Title in the user's language."]
     pub title: ::std::string::String,
     #[doc = "The user's unread feed items, this one included, for the badge."]

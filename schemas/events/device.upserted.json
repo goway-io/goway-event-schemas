@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "DeviceUpserted",
-  "description": "A device was registered or came back after removal, or its push token changed or was cleared (signing out clears it).",
+  "description": "A device was registered or came back after removal, or its push token changed or was cleared (signing out clears it). `side` is the side its app signed in to: a push for one side goes only to that side's devices; a device without it, not signed in since sides were kept, hears every side.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -33,6 +33,16 @@
         "null"
       ],
       "description": "FCM registration token; null when the device can no longer be pushed."
+    },
+    "side": {
+      "title": "MembershipSide",
+      "type": "string",
+      "enum": [
+        "shipper",
+        "carrier",
+        "platform"
+      ],
+      "description": "A side of the market: `shipper`, `carrier`, or `platform` for GoWay's own staff."
     }
   },
   "required": [

@@ -147,6 +147,13 @@ export type OfferAction = "accept" | "decline";
  */
 export type DevicePlatform = "android" | "ios" | "web";
 /**
+ * A side of the market: `shipper`, `carrier`, or `platform` for GoWay's own staff.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "MembershipSide".
+ */
+export type MembershipSide = "shipper" | "carrier" | "platform";
+/**
  * Display currency; charges stay in UZS.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -180,13 +187,6 @@ export type PriceMode = "fixed" | "negotiable";
  * via the `definition` "PaymentMethod".
  */
 export type PaymentMethod = "cash" | "transfer" | "card" | "mixed";
-/**
- * The side of the market the membership works on: the organization's kind. `platform` is GoWay's own staff.
- *
- * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
- * via the `definition` "MembershipSide".
- */
-export type MembershipSide = "shipper" | "carrier" | "platform";
 /**
  * What the person is inside the organization: `owner` for the account that opened it, `member` otherwise.
  *
@@ -1788,7 +1788,7 @@ export interface DeviceRemoved {
   installation_id: string;
 }
 /**
- * A device was registered or came back after removal, or its push token changed or was cleared (signing out clears it).
+ * A device was registered or came back after removal, or its push token changed or was cleared (signing out clears it). `side` is the side its app signed in to: a push for one side goes only to that side's devices; a device without it, not signed in since sides were kept, hears every side.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "DeviceUpserted".
@@ -1805,6 +1805,7 @@ export interface DeviceUpserted {
    * FCM registration token; null when the device can no longer be pushed.
    */
   push_token: string | null;
+  side?: MembershipSide;
 }
 /**
  * An instant search ran for the whole search window and no driver took the load. The search goes on; the shipper is told so they can raise the price, move the pickup or cancel.
@@ -2522,7 +2523,7 @@ export interface Notification {
   unread: number | null;
 }
 /**
- * A message landed in a user's notification feed: from an event, or from an admin announcement (`kind: announcement`).
+ * A message landed in a user's notification feed: from an event, or from an admin announcement (`kind: announcement`). `side` is the side the notice is for, shown only in that side's app; a notice about the person has none and every app shows it.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "NotificationCreated".
@@ -2556,6 +2557,7 @@ export interface NotificationCreated {
    * The user's unread feed items, this one included, for the badge.
    */
   unread?: number;
+  side?: MembershipSide;
 }
 /**
  * Frame `notification` goway-realtime sends to an app.
