@@ -906,7 +906,7 @@
    "channel": {
     "$ref": "#/channels/userCreated"
    },
-   "description": "Published by self-signup (with `account_type`), an admin create (with `first_name`, `last_name`) and an admin restore (with `updated_at`).",
+   "description": "Published by self-signup, an admin create (with `first_name`, `last_name`) and an admin restore (with `updated_at`); `membership.created` follows with the side.",
    "title": "goway-auth publishes"
   },
   "publishUserUpdated": {
@@ -914,7 +914,7 @@
    "channel": {
     "$ref": "#/channels/userUpdated"
    },
-   "description": "Published by a confirmed phone change, the account settings screen, a role switch, an admin edit and a profile edit, each with its own field set.",
+   "description": "Published by a confirmed phone change, the account settings screen, an admin edit and a profile edit, each with its own field set.",
    "title": "goway-auth publishes"
   },
   "publishUserDeleted": {
@@ -938,7 +938,7 @@
    "channel": {
     "$ref": "#/channels/membershipUpdated"
    },
-   "description": "Published by a role switch and by an admin role change.",
+   "description": "Published when a membership's role changes within its side, or its organization changes account type.",
    "title": "goway-auth publishes"
   },
   "publishMembershipRemoved": {
@@ -1437,7 +1437,7 @@
     "title": "User created",
     "payload": {
      "title": "UserCreated",
-     "description": "An account came into being. Three paths publish it with different fields: self-signup sends `account_type`; an admin create sends `first_name` and `last_name`, either of which may be null; an admin restore of a soft-deleted account sends `updated_at`. `user_id`, `org_id`, `role`, `phone` and `language` are always sent.",
+     "description": "A person's account was opened (self-signup, admin create) or restored (with `updated_at`). The account is the person; the organization and side they work in come in `membership.created`, sent with it.",
      "type": "object",
      "additionalProperties": false,
      "properties": {
@@ -1449,22 +1449,6 @@
       "user_id": {
        "type": "string",
        "format": "uuid"
-      },
-      "org_id": {
-       "type": "string",
-       "format": "uuid"
-      },
-      "role": {
-       "type": "string",
-       "description": "Role name. Self-signup sends `shipper` or `carrier`, an admin create the role it picked, a restore the stored role or an empty string when the user has none."
-      },
-      "account_type": {
-       "title": "AccountType",
-       "type": "string",
-       "enum": [
-        "individual",
-        "business"
-       ]
       },
       "phone": {
        "type": "string",
@@ -1497,8 +1481,6 @@
      "required": [
       "event_id",
       "user_id",
-      "org_id",
-      "role",
       "phone",
       "language"
      ]
@@ -1509,8 +1491,6 @@
       "payload": {
        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
        "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e14",
-       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e15",
-       "role": "operator",
        "phone": "+998935551122",
        "language": "ru",
        "first_name": "Dilnoza",
@@ -1522,9 +1502,7 @@
       "payload": {
        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
        "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e14",
-       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e15",
        "phone": "+998901234567",
-       "role": "shipper",
        "language": "uzc",
        "updated_at": "2026-10-14T09:30:00.123456+00:00"
       }
@@ -1534,9 +1512,6 @@
       "payload": {
        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
        "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e14",
-       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e15",
-       "role": "carrier",
-       "account_type": "individual",
        "phone": "+998901234567",
        "language": "uz"
       }
@@ -1548,7 +1523,7 @@
     "title": "User updated",
     "payload": {
      "title": "UserUpdated",
-     "description": "Something about an account changed. Only what changed is sent, besides `user_id` and `updated_at`, and five paths send five field sets: a confirmed phone change sends `phone`; the account settings screen any of `language`, `currency`, `theme`, `notification_prefs`; a role switch `role`; an admin edit any of `phone`, `language`, `first_name`, `last_name`, plus `role` whenever the admin named one; a profile edit `first_name`, `last_name`, `email` and `avatar_url` together, each of them possibly null.",
+     "description": "Something about an account changed. Only what changed is sent, besides `user_id` and `updated_at`, and four paths send four field sets: a confirmed phone change sends `phone`; the account settings screen any of `language`, `currency`, `theme`, `notification_prefs`; an admin edit any of `phone`, `language`, `first_name`, `last_name`; a profile edit `first_name`, `last_name`, `email` and `avatar_url` together, each of them possibly null. A change of side or role is a `membership.*` event.",
      "type": "object",
      "additionalProperties": false,
      "properties": {
@@ -1625,10 +1600,6 @@
         "chat"
        ]
       },
-      "role": {
-       "type": "string",
-       "description": "Role name: `shipper` or `carrier` from a role switch, any role from an admin edit."
-      },
       "first_name": {
        "type": [
         "string",
@@ -1677,7 +1648,6 @@
        "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
        "phone": "+998977001122",
        "first_name": "Sardor",
-       "role": "carrier",
        "updated_at": "2026-10-14T09:30:00.123456+00:00"
       }
      },
@@ -1699,15 +1669,6 @@
        "last_name": "Rahimov",
        "email": null,
        "avatar_url": null,
-       "updated_at": "2026-10-14T09:30:00.123456+00:00"
-      }
-     },
-     {
-      "name": "Role switch",
-      "payload": {
-       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
-       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
-       "role": "shipper",
        "updated_at": "2026-10-14T09:30:00.123456+00:00"
       }
      },
@@ -1736,7 +1697,7 @@
     "title": "User deleted",
     "payload": {
      "title": "UserDeleted",
-     "description": "An account was deleted: by its owner, without `updated_at`, or by an admin, soft or hard, with `updated_at`.",
+     "description": "An account was deleted: by its owner, without `updated_at`, or by an admin, soft or hard, with `updated_at`. Each side the person held ends with its own `membership.removed`.",
      "type": "object",
      "additionalProperties": false,
      "properties": {
@@ -1749,10 +1710,6 @@
        "type": "string",
        "format": "uuid"
       },
-      "org_id": {
-       "type": "string",
-       "format": "uuid"
-      },
       "updated_at": {
        "type": "string",
        "format": "date-time",
@@ -1761,8 +1718,7 @@
      },
      "required": [
       "event_id",
-      "user_id",
-      "org_id"
+      "user_id"
      ]
     },
     "examples": [
@@ -1771,7 +1727,6 @@
       "payload": {
        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
        "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
-       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
        "updated_at": "2026-10-14T09:30:00.123456+00:00"
       }
      },
@@ -1779,8 +1734,7 @@
       "name": "By owner",
       "payload": {
        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
-       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
-       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05"
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06"
       }
      }
     ]

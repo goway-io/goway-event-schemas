@@ -3310,7 +3310,7 @@ export interface UserBlocked {
   blocked_at: string;
 }
 /**
- * An account came into being. Three paths publish it with different fields: self-signup sends `account_type`; an admin create sends `first_name` and `last_name`, either of which may be null; an admin restore of a soft-deleted account sends `updated_at`. `user_id`, `org_id`, `role`, `phone` and `language` are always sent.
+ * A person's account was opened (self-signup, admin create) or restored (with `updated_at`). The account is the person; the organization and side they work in come in `membership.created`, sent with it.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "UserCreated".
@@ -3321,12 +3321,6 @@ export interface UserCreated {
    */
   event_id: string;
   user_id: string;
-  org_id: string;
-  /**
-   * Role name. Self-signup sends `shipper` or `carrier`, an admin create the role it picked, a restore the stored role or an empty string when the user has none.
-   */
-  role: string;
-  account_type?: AccountType;
   /**
    * E.164 number, `+998…`. A restore sends the stored value, which is `del:…` for an account its owner deleted.
    */
@@ -3349,7 +3343,7 @@ export interface UserCreated {
   updated_at?: string;
 }
 /**
- * An account was deleted: by its owner, without `updated_at`, or by an admin, soft or hard, with `updated_at`.
+ * An account was deleted: by its owner, without `updated_at`, or by an admin, soft or hard, with `updated_at`. Each side the person held ends with its own `membership.removed`.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "UserDeleted".
@@ -3360,7 +3354,6 @@ export interface UserDeleted {
    */
   event_id: string;
   user_id: string;
-  org_id: string;
   /**
    * Admin deletes only: when the account was deleted. ISO 8601 with offset, as Python's `isoformat()` writes it.
    */
@@ -3456,7 +3449,7 @@ export interface UserUnblocked {
   unblocked_at: string;
 }
 /**
- * Something about an account changed. Only what changed is sent, besides `user_id` and `updated_at`, and five paths send five field sets: a confirmed phone change sends `phone`; the account settings screen any of `language`, `currency`, `theme`, `notification_prefs`; a role switch `role`; an admin edit any of `phone`, `language`, `first_name`, `last_name`, plus `role` whenever the admin named one; a profile edit `first_name`, `last_name`, `email` and `avatar_url` together, each of them possibly null.
+ * Something about an account changed. Only what changed is sent, besides `user_id` and `updated_at`, and four paths send four field sets: a confirmed phone change sends `phone`; the account settings screen any of `language`, `currency`, `theme`, `notification_prefs`; an admin edit any of `phone`, `language`, `first_name`, `last_name`; a profile edit `first_name`, `last_name`, `email` and `avatar_url` together, each of them possibly null. A change of side or role is a `membership.*` event.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "UserUpdated".
@@ -3478,10 +3471,6 @@ export interface UserUpdated {
   currency?: DisplayCurrency;
   theme?: Theme;
   notification_prefs?: NotificationPrefs;
-  /**
-   * Role name: `shipper` or `carrier` from a role switch, any role from an admin edit.
-   */
-  role?: string;
   /**
    * Null only from a profile edit, when the profile has no first name.
    */

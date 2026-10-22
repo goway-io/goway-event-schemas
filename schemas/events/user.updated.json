@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "UserUpdated",
-  "description": "Something about an account changed. Only what changed is sent, besides `user_id` and `updated_at`, and five paths send five field sets: a confirmed phone change sends `phone`; the account settings screen any of `language`, `currency`, `theme`, `notification_prefs`; a role switch `role`; an admin edit any of `phone`, `language`, `first_name`, `last_name`, plus `role` whenever the admin named one; a profile edit `first_name`, `last_name`, `email` and `avatar_url` together, each of them possibly null.",
+  "description": "Something about an account changed. Only what changed is sent, besides `user_id` and `updated_at`, and four paths send four field sets: a confirmed phone change sends `phone`; the account settings screen any of `language`, `currency`, `theme`, `notification_prefs`; an admin edit any of `phone`, `language`, `first_name`, `last_name`; a profile edit `first_name`, `last_name`, `email` and `avatar_url` together, each of them possibly null. A change of side or role is a `membership.*` event.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -77,10 +77,6 @@
         "sms",
         "chat"
       ]
-    },
-    "role": {
-      "type": "string",
-      "description": "Role name: `shipper` or `carrier` from a role switch, any role from an admin edit."
     },
     "first_name": {
       "type": [

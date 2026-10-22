@@ -5026,11 +5026,9 @@ impl<'de> ::serde::Deserialize<'de> for UserBlockedReason {
             .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
     }
 }
-#[doc = "An account came into being. Three paths publish it with different fields: self-signup sends `account_type`; an admin create sends `first_name` and `last_name`, either of which may be null; an admin restore of a soft-deleted account sends `updated_at`. `user_id`, `org_id`, `role`, `phone` and `language` are always sent."]
+#[doc = "A person's account was opened (self-signup, admin create) or restored (with `updated_at`). The account is the person; the organization and side they work in come in `membership.created`, sent with it."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct UserCreated {
-    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
-    pub account_type: ::std::option::Option<AccountType>,
     #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
     pub event_id: ::uuid::Uuid,
     #[doc = "Admin create only; null when the admin gave none."]
@@ -5041,22 +5039,18 @@ pub struct UserCreated {
     #[doc = "Admin create only; null when the admin gave none."]
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub last_name: ::std::option::Option<::std::string::String>,
-    pub org_id: ::uuid::Uuid,
     #[doc = "E.164 number, `+998…`. A restore sends the stored value, which is `del:…` for an account its owner deleted."]
     pub phone: ::std::string::String,
-    #[doc = "Role name. Self-signup sends `shipper` or `carrier`, an admin create the role it picked, a restore the stored role or an empty string when the user has none."]
-    pub role: ::std::string::String,
     #[doc = "Admin restore only: when the account came back. ISO 8601 with offset, as Python's `isoformat()` writes it."]
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub updated_at: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
     pub user_id: ::uuid::Uuid,
 }
-#[doc = "An account was deleted: by its owner, without `updated_at`, or by an admin, soft or hard, with `updated_at`."]
+#[doc = "An account was deleted: by its owner, without `updated_at`, or by an admin, soft or hard, with `updated_at`. Each side the person held ends with its own `membership.removed`."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct UserDeleted {
     #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
     pub event_id: ::uuid::Uuid,
-    pub org_id: ::uuid::Uuid,
     #[doc = "Admin deletes only: when the account was deleted. ISO 8601 with offset, as Python's `isoformat()` writes it."]
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub updated_at: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
@@ -5114,7 +5108,7 @@ pub struct UserUnblocked {
     pub unblocked_at: ::chrono::DateTime<::chrono::offset::Utc>,
     pub user_id: ::uuid::Uuid,
 }
-#[doc = "Something about an account changed. Only what changed is sent, besides `user_id` and `updated_at`, and five paths send five field sets: a confirmed phone change sends `phone`; the account settings screen any of `language`, `currency`, `theme`, `notification_prefs`; a role switch `role`; an admin edit any of `phone`, `language`, `first_name`, `last_name`, plus `role` whenever the admin named one; a profile edit `first_name`, `last_name`, `email` and `avatar_url` together, each of them possibly null."]
+#[doc = "Something about an account changed. Only what changed is sent, besides `user_id` and `updated_at`, and four paths send four field sets: a confirmed phone change sends `phone`; the account settings screen any of `language`, `currency`, `theme`, `notification_prefs`; an admin edit any of `phone`, `language`, `first_name`, `last_name`; a profile edit `first_name`, `last_name`, `email` and `avatar_url` together, each of them possibly null. A change of side or role is a `membership.*` event."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct UserUpdated {
     #[doc = "Profile edit only. Public avatar address; null when there is none or it would expire."]
@@ -5141,9 +5135,6 @@ pub struct UserUpdated {
     #[doc = "New E.164 number, `+998…`."]
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub phone: ::std::option::Option<::std::string::String>,
-    #[doc = "Role name: `shipper` or `carrier` from a role switch, any role from an admin edit."]
-    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
-    pub role: ::std::option::Option<::std::string::String>,
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub theme: ::std::option::Option<Theme>,
     #[doc = "When the change was made. ISO 8601 with offset, as Python's `isoformat()` writes it."]

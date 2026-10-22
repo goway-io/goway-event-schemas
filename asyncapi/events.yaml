@@ -549,12 +549,12 @@ operations:
     action: send
     channel:
       $ref: '#/channels/userCreated'
-    description: Published by self-signup (with `account_type`), an admin create (with `first_name`, `last_name`) and an admin restore (with `updated_at`).
+    description: Published by self-signup, an admin create (with `first_name`, `last_name`) and an admin restore (with `updated_at`); `membership.created` follows with the side.
   publishUserUpdated:
     action: send
     channel:
       $ref: '#/channels/userUpdated'
-    description: Published by a confirmed phone change, the account settings screen, a role switch, an admin edit and a profile edit, each with its own field set.
+    description: Published by a confirmed phone change, the account settings screen, an admin edit and a profile edit, each with its own field set.
   publishUserDeleted:
     action: send
     channel:
@@ -569,7 +569,7 @@ operations:
     action: send
     channel:
       $ref: '#/channels/membershipUpdated'
-    description: Published by a role switch and by an admin role change.
+    description: Published when a membership's role changes within its side, or its organization changes account type.
   publishMembershipRemoved:
     action: send
     channel:

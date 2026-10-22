@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "UserCreated",
-  "description": "An account came into being. Three paths publish it with different fields: self-signup sends `account_type`; an admin create sends `first_name` and `last_name`, either of which may be null; an admin restore of a soft-deleted account sends `updated_at`. `user_id`, `org_id`, `role`, `phone` and `language` are always sent.",
+  "description": "A person's account was opened (self-signup, admin create) or restored (with `updated_at`). The account is the person; the organization and side they work in come in `membership.created`, sent with it.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -13,22 +13,6 @@
     "user_id": {
       "type": "string",
       "format": "uuid"
-    },
-    "org_id": {
-      "type": "string",
-      "format": "uuid"
-    },
-    "role": {
-      "type": "string",
-      "description": "Role name. Self-signup sends `shipper` or `carrier`, an admin create the role it picked, a restore the stored role or an empty string when the user has none."
-    },
-    "account_type": {
-      "title": "AccountType",
-      "type": "string",
-      "enum": [
-        "individual",
-        "business"
-      ]
     },
     "phone": {
       "type": "string",
@@ -61,8 +45,6 @@
   "required": [
     "event_id",
     "user_id",
-    "org_id",
-    "role",
     "phone",
     "language"
   ]

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "UserDeleted",
-  "description": "An account was deleted: by its owner, without `updated_at`, or by an admin, soft or hard, with `updated_at`.",
+  "description": "An account was deleted: by its owner, without `updated_at`, or by an admin, soft or hard, with `updated_at`. Each side the person held ends with its own `membership.removed`.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -14,10 +14,6 @@
       "type": "string",
       "format": "uuid"
     },
-    "org_id": {
-      "type": "string",
-      "format": "uuid"
-    },
     "updated_at": {
       "type": "string",
       "format": "date-time",
@@ -26,7 +22,6 @@
   },
   "required": [
     "event_id",
-    "user_id",
-    "org_id"
+    "user_id"
   ]
 }
