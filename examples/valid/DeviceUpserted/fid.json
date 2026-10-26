@@ -1,0 +1,11 @@
+{
+  "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+  "device_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0e",
+  "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+  "platform": "android",
+  "push_token": "cXs3GqY1Rk2bVnT8mA0pLw",
+  "push_kind": "fid",
+  "notifications_enabled": true,
+  "push_updated_at": "2026-10-26T09:30:00Z",
+  "side": "shipper"
+}

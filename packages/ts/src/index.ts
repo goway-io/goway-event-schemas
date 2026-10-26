@@ -147,6 +147,13 @@ export type OfferAction = "accept" | "decline";
  */
 export type DevicePlatform = "android" | "ios" | "web";
 /**
+ * What `push_token` holds: `token`, an FCM registration token (sent as `message.token`), or `fid`, a Firebase Installation ID (sent as `message.fid`). Absent on events from before it was kept: `token`.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "PushKind".
+ */
+export type PushKind = "token" | "fid";
+/**
  * A side of the market: `shipper`, `carrier`, or `platform` for GoWay's own staff.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -1788,7 +1795,7 @@ export interface DeviceRemoved {
   installation_id: string;
 }
 /**
- * A device was registered or came back after removal, or its push token changed or was cleared (signing out clears it). `side` is the side its app signed in to: a push for one side goes only to that side's devices; a device without it, not signed in since sides were kept, hears every side.
+ * A device was registered or came back after removal, or its push registration changed or was cleared (signing out clears it). `side` is the side its app signed in to: a push for one side goes only to that side's devices; a device without it, not signed in since sides were kept, hears every side.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "DeviceUpserted".
@@ -1802,9 +1809,18 @@ export interface DeviceUpserted {
   user_id: string;
   platform: DevicePlatform;
   /**
-   * FCM registration token; null when the device can no longer be pushed.
+   * Where FCM delivers this device's pushes: a registration token or a Firebase Installation ID, as `push_kind` says; null when the device can no longer be pushed.
    */
   push_token: string | null;
+  push_kind?: PushKind;
+  /**
+   * Whether the phone lets the app show notifications, as the app last said; null when it has not said. FCM accepts a push the phone will not show, so `false` counts the device as unreachable.
+   */
+  notifications_enabled?: boolean | null;
+  /**
+   * When the app last uploaded its push registration; a registration not renewed for long is stale.
+   */
+  push_updated_at?: string | null;
   side?: MembershipSide;
 }
 /**

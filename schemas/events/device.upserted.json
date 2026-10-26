@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "DeviceUpserted",
-  "description": "A device was registered or came back after removal, or its push token changed or was cleared (signing out clears it). `side` is the side its app signed in to: a push for one side goes only to that side's devices; a device without it, not signed in since sides were kept, hears every side.",
+  "description": "A device was registered or came back after removal, or its push registration changed or was cleared (signing out clears it). `side` is the side its app signed in to: a push for one side goes only to that side's devices; a device without it, not signed in since sides were kept, hears every side.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -32,7 +32,31 @@
         "string",
         "null"
       ],
-      "description": "FCM registration token; null when the device can no longer be pushed."
+      "description": "Where FCM delivers this device's pushes: a registration token or a Firebase Installation ID, as `push_kind` says; null when the device can no longer be pushed."
+    },
+    "push_kind": {
+      "title": "PushKind",
+      "type": "string",
+      "enum": [
+        "token",
+        "fid"
+      ],
+      "description": "What `push_token` holds: `token`, an FCM registration token (sent as `message.token`), or `fid`, a Firebase Installation ID (sent as `message.fid`). Absent on events from before it was kept: `token`."
+    },
+    "notifications_enabled": {
+      "type": [
+        "boolean",
+        "null"
+      ],
+      "description": "Whether the phone lets the app show notifications, as the app last said; null when it has not said. FCM accepts a push the phone will not show, so `false` counts the device as unreachable."
+    },
+    "push_updated_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "When the app last uploaded its push registration; a registration not renewed for long is stale."
     },
     "side": {
       "title": "MembershipSide",

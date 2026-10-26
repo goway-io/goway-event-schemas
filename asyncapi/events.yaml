@@ -106,7 +106,7 @@ channels:
     x-consumers: [goway-realtime]
   deviceUpserted:
     address: device.upserted
-    description: A device was registered, came back, or its push token changed or was cleared.
+    description: A device was registered, came back, or its push registration changed or was cleared.
     messages:
       deviceUpserted:
         $ref: '#/components/messages/deviceUpserted'
@@ -604,7 +604,7 @@ operations:
     action: send
     channel:
       $ref: '#/channels/deviceUpserted'
-    description: Published on a new device, a restored device, a new push token, and on sign-out, which clears the token.
+    description: Published on a new device, a restored device, a changed push registration or notification permission, and on sign-out, which clears the token.
   publishDeviceRemoved:
     action: send
     channel:

@@ -173,7 +173,7 @@
   },
   "deviceUpserted": {
    "address": "device.upserted",
-   "description": "A device was registered, came back, or its push token changed or was cleared.\n\nPublished by `goway-auth`; consumed by `goway-notify`.",
+   "description": "A device was registered, came back, or its push registration changed or was cleared.\n\nPublished by `goway-auth`; consumed by `goway-notify`.",
    "messages": {
     "deviceUpserted": {
      "$ref": "#/components/messages/deviceUpserted"
@@ -994,7 +994,7 @@
    "channel": {
     "$ref": "#/channels/deviceUpserted"
    },
-   "description": "Published on a new device, a restored device, a new push token, and on sign-out, which clears the token.",
+   "description": "Published on a new device, a restored device, a changed push registration or notification permission, and on sign-out, which clears the token.",
    "title": "goway-auth publishes"
   },
   "publishDeviceRemoved": {
@@ -2300,7 +2300,7 @@
     "title": "Device registered",
     "payload": {
      "title": "DeviceUpserted",
-     "description": "A device was registered or came back after removal, or its push token changed or was cleared (signing out clears it). `side` is the side its app signed in to: a push for one side goes only to that side's devices; a device without it, not signed in since sides were kept, hears every side.",
+     "description": "A device was registered or came back after removal, or its push registration changed or was cleared (signing out clears it). `side` is the side its app signed in to: a push for one side goes only to that side's devices; a device without it, not signed in since sides were kept, hears every side.",
      "type": "object",
      "additionalProperties": false,
      "properties": {
@@ -2331,7 +2331,31 @@
         "string",
         "null"
        ],
-       "description": "FCM registration token; null when the device can no longer be pushed."
+       "description": "Where FCM delivers this device's pushes: a registration token or a Firebase Installation ID, as `push_kind` says; null when the device can no longer be pushed."
+      },
+      "push_kind": {
+       "title": "PushKind",
+       "type": "string",
+       "enum": [
+        "token",
+        "fid"
+       ],
+       "description": "What `push_token` holds: `token`, an FCM registration token (sent as `message.token`), or `fid`, a Firebase Installation ID (sent as `message.fid`). Absent on events from before it was kept: `token`."
+      },
+      "notifications_enabled": {
+       "type": [
+        "boolean",
+        "null"
+       ],
+       "description": "Whether the phone lets the app show notifications, as the app last said; null when it has not said. FCM accepts a push the phone will not show, so `false` counts the device as unreachable."
+      },
+      "push_updated_at": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "format": "date-time",
+       "description": "When the app last uploaded its push registration; a registration not renewed for long is stale."
       },
       "side": {
        "title": "MembershipSide",
@@ -2372,6 +2396,20 @@
        "platform": "ios",
        "push_token": "fcm:APA91bH-x7",
        "side": "carrier"
+      }
+     },
+     {
+      "name": "Fid",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+       "device_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0e",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+       "platform": "android",
+       "push_token": "cXs3GqY1Rk2bVnT8mA0pLw",
+       "push_kind": "fid",
+       "notifications_enabled": true,
+       "push_updated_at": "2026-10-26T09:30:00Z",
+       "side": "shipper"
       }
      },
      {

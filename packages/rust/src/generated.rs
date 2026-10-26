@@ -1880,16 +1880,24 @@ pub struct DeviceRemoved {
     pub installation_id: ::std::string::String,
     pub user_id: ::uuid::Uuid,
 }
-#[doc = "A device was registered or came back after removal, or its push token changed or was cleared (signing out clears it). `side` is the side its app signed in to: a push for one side goes only to that side's devices; a device without it, not signed in since sides were kept, hears every side."]
+#[doc = "A device was registered or came back after removal, or its push registration changed or was cleared (signing out clears it). `side` is the side its app signed in to: a push for one side goes only to that side's devices; a device without it, not signed in since sides were kept, hears every side."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct DeviceUpserted {
     pub device_id: ::uuid::Uuid,
     #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
     pub event_id: ::uuid::Uuid,
+    #[doc = "Whether the phone lets the app show notifications, as the app last said; null when it has not said. FCM accepts a push the phone will not show, so `false` counts the device as unreachable."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub notifications_enabled: ::std::option::Option<bool>,
     pub platform: DevicePlatform,
-    #[doc = "FCM registration token; null when the device can no longer be pushed."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub push_kind: ::std::option::Option<PushKind>,
+    #[doc = "Where FCM delivers this device's pushes: a registration token or a Firebase Installation ID, as `push_kind` says; null when the device can no longer be pushed."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub push_token: ::std::option::Option<::std::string::String>,
+    #[doc = "When the app last uploaded its push registration; a registration not renewed for long is stale."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub push_updated_at: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
     #[serde(skip_serializing_if = "::std::option::Option::is_none")]
     pub side: ::std::option::Option<MembershipSide>,
     pub user_id: ::uuid::Uuid,
@@ -3966,6 +3974,44 @@ impl ::std::convert::TryFrom<&str> for PriceMode {
     }
 }
 impl ::std::convert::TryFrom<::std::string::String> for PriceMode {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "What `push_token` holds: `token`, an FCM registration token (sent as `message.token`), or `fid`, a Firebase Installation ID (sent as `message.fid`). Absent on events from before it was kept: `token`."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum PushKind {
+    #[serde(rename = "token")]
+    Token,
+    #[serde(rename = "fid")]
+    Fid,
+}
+impl ::std::fmt::Display for PushKind {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Token => f.write_str("token"),
+            Self::Fid => f.write_str("fid"),
+        }
+    }
+}
+impl ::std::str::FromStr for PushKind {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "token" => Ok(Self::Token),
+            "fid" => Ok(Self::Fid),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for PushKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for PushKind {
     type Error = self::error::ConversionError;
     fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
