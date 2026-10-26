@@ -1333,7 +1333,7 @@ impl ::std::convert::TryFrom<::std::string::String> for CancelledBy {
         value.parse()
     }
 }
-#[doc = "A carrier's document passed its expiry date; the hourly sweep marked it expired."]
+#[doc = "A carrier's document passed its expiry date; the hourly sweep marked it expired. A person paper names `subject_user_id`, a vehicle paper `vehicle_id`; an organization's own names neither."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct CarrierDocumentExpired {
     #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
@@ -1342,8 +1342,14 @@ pub struct CarrierDocumentExpired {
     pub expired_at: ::chrono::DateTime<::chrono::offset::Utc>,
     pub kind: DocumentKind,
     pub org_id: ::uuid::Uuid,
+    #[doc = "The person a person paper (passport, driving licence) is about."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub subject_user_id: ::std::option::Option<::uuid::Uuid>,
+    #[doc = "The truck a vehicle paper (registration, power of attorney) is about."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub vehicle_id: ::std::option::Option<::uuid::Uuid>,
 }
-#[doc = "A carrier's document expires within the warning window; sent once per document."]
+#[doc = "A carrier's document expires within the warning window; sent once per document. A person paper names `subject_user_id`, a vehicle paper `vehicle_id`; an organization's own names neither."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct CarrierDocumentExpiring {
     #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
@@ -1352,8 +1358,14 @@ pub struct CarrierDocumentExpiring {
     pub expires_at: ::chrono::DateTime<::chrono::offset::Utc>,
     pub kind: DocumentKind,
     pub org_id: ::uuid::Uuid,
+    #[doc = "The person a person paper (passport, driving licence) is about."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub subject_user_id: ::std::option::Option<::uuid::Uuid>,
+    #[doc = "The truck a vehicle paper (registration, power of attorney) is about."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub vehicle_id: ::std::option::Option<::uuid::Uuid>,
 }
-#[doc = "An operator approved or rejected a carrier's document."]
+#[doc = "An operator approved or rejected a carrier's document. A person paper names `subject_user_id`, a vehicle paper `vehicle_id`; an organization's own names neither."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct CarrierDocumentReviewed {
     #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
@@ -1364,8 +1376,14 @@ pub struct CarrierDocumentReviewed {
     pub note: ::std::option::Option<::std::string::String>,
     pub org_id: ::uuid::Uuid,
     pub status: ReviewDecision,
+    #[doc = "The person a person paper (passport, driving licence) is about."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub subject_user_id: ::std::option::Option<::uuid::Uuid>,
+    #[doc = "The truck a vehicle paper (registration, power of attorney) is about."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub vehicle_id: ::std::option::Option<::uuid::Uuid>,
 }
-#[doc = "A carrier submitted a new version of a document; it waits for review."]
+#[doc = "A carrier submitted a new version of a document; it waits for review. A person paper names `subject_user_id`, a vehicle paper `vehicle_id`; an organization's own names neither."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct CarrierDocumentUpdated {
     #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
@@ -1373,6 +1391,12 @@ pub struct CarrierDocumentUpdated {
     pub kind: DocumentKind,
     pub org_id: ::uuid::Uuid,
     pub status: SubmittedDocumentStatus,
+    #[doc = "The person a person paper (passport, driving licence) is about."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub subject_user_id: ::std::option::Option<::uuid::Uuid>,
+    #[doc = "The truck a vehicle paper (registration, power of attorney) is about."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub vehicle_id: ::std::option::Option<::uuid::Uuid>,
     #[doc = "Version of this document kind, from 1."]
     pub version: ::std::num::NonZeroU64,
 }
@@ -1393,6 +1417,22 @@ pub struct CarrierLineChanged {
     #[doc = "The truck for the line; null after it was removed."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub vehicle_id: ::std::option::Option<::uuid::Uuid>,
+}
+#[doc = "One truck's review moved: sent, approved, rejected, expired or back to review after a change. `user_ids` are the organization's members, to tell them."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct CarrierVehicleReviewed {
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "The operator's reason, or what sent the truck back to review."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub note: ::std::option::Option<::std::string::String>,
+    pub org_id: ::uuid::Uuid,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub plate_number: ::std::option::Option<::std::string::String>,
+    pub status: VehicleStatus,
+    #[serde(default, skip_serializing_if = "::std::vec::Vec::is_empty")]
+    pub user_ids: ::std::vec::Vec<::uuid::Uuid>,
+    pub vehicle_id: ::uuid::Uuid,
 }
 #[doc = "A carrier organization's verification moved: submitted or reopened by a replaced document (`pending`), or decided by an operator."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
@@ -5416,7 +5456,57 @@ pub struct VehicleRemoved {
     pub org_id: ::uuid::Uuid,
     pub vehicle_id: ::uuid::Uuid,
 }
-#[doc = "A fleet vehicle was added or changed; the whole vehicle is sent every time."]
+#[doc = "The truck's own review: `none` until its papers are sent, `pending`, `approved`, `rejected`, or `expired` when an approved paper ran out. Only `approved` works."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum VehicleStatus {
+    #[serde(rename = "none")]
+    None,
+    #[serde(rename = "pending")]
+    Pending,
+    #[serde(rename = "approved")]
+    Approved,
+    #[serde(rename = "rejected")]
+    Rejected,
+    #[serde(rename = "expired")]
+    Expired,
+}
+impl ::std::fmt::Display for VehicleStatus {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::None => f.write_str("none"),
+            Self::Pending => f.write_str("pending"),
+            Self::Approved => f.write_str("approved"),
+            Self::Rejected => f.write_str("rejected"),
+            Self::Expired => f.write_str("expired"),
+        }
+    }
+}
+impl ::std::str::FromStr for VehicleStatus {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "none" => Ok(Self::None),
+            "pending" => Ok(Self::Pending),
+            "approved" => Ok(Self::Approved),
+            "rejected" => Ok(Self::Rejected),
+            "expired" => Ok(Self::Expired),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for VehicleStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for VehicleStatus {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "A fleet vehicle was added or changed; the whole vehicle is sent every time. `status` is the truck's review; an event without it, from before trucks were reviewed one by one, reads as `approved`."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct VehicleUpserted {
     #[doc = "Make, as the driver entered it."]
@@ -5439,6 +5529,8 @@ pub struct VehicleUpserted {
     pub org_id: ::uuid::Uuid,
     #[doc = "Normalized plate: no spaces, upper case."]
     pub plate_number: ::std::string::String,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub status: ::std::option::Option<VehicleStatus>,
     #[doc = "Truck class code from the reference list."]
     pub truck_class: ::std::string::String,
     #[doc = "When the vehicle was saved. ISO 8601 with offset, as Python's `isoformat()` writes it."]

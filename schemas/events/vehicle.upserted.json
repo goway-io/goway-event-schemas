@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "VehicleUpserted",
-  "description": "A fleet vehicle was added or changed; the whole vehicle is sent every time.",
+  "description": "A fleet vehicle was added or changed; the whole vehicle is sent every time. `status` is the truck's review; an event without it, from before trucks were reviewed one by one, reads as `approved`.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -115,6 +115,18 @@
       "type": "string",
       "format": "date-time",
       "description": "When the vehicle was saved. ISO 8601 with offset, as Python's `isoformat()` writes it."
+    },
+    "status": {
+      "title": "VehicleStatus",
+      "type": "string",
+      "enum": [
+        "none",
+        "pending",
+        "approved",
+        "rejected",
+        "expired"
+      ],
+      "description": "The truck's own review: `none` until its papers are sent, `pending`, `approved`, `rejected`, or `expired` when an approved paper ran out. Only `approved` works."
     }
   },
   "required": [

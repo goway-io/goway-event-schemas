@@ -1,0 +1,20 @@
+{
+  "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e26",
+  "vehicle_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e09",
+  "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+  "plate_number": "01A777AA",
+  "truck_class": "tent_20t",
+  "capabilities": [
+    "side_curtain",
+    "tail_lift"
+  ],
+  "loading_method": "both",
+  "capacity_kg": 20000,
+  "brand": "Isuzu",
+  "model": "Elf",
+  "color": "white",
+  "year": 2019,
+  "volume_m3": 8.0,
+  "updated_at": "2026-10-14T09:30:00.123456+00:00",
+  "status": "pending"
+}

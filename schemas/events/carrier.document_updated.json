@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "CarrierDocumentUpdated",
-  "description": "A carrier submitted a new version of a document; it waits for review.",
+  "description": "A carrier submitted a new version of a document; it waits for review. A person paper names `subject_user_id`, a vehicle paper `vehicle_id`; an organization's own names neither.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -37,6 +37,16 @@
       "type": "integer",
       "minimum": 1,
       "description": "Version of this document kind, from 1."
+    },
+    "subject_user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person a person paper (passport, driving licence) is about."
+    },
+    "vehicle_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The truck a vehicle paper (registration, power of attorney) is about."
     }
   },
   "required": [

@@ -315,6 +315,19 @@
     "goway-realtime"
    ]
   },
+  "carrierVehicleReviewed": {
+   "address": "carrier.vehicle_reviewed",
+   "description": "One truck's review moved; its status also rides on vehicle.upserted.\n\nPublished by `goway-auth`; consumed by `goway-notify`.",
+   "messages": {
+    "carrierVehicleReviewed": {
+     "$ref": "#/components/messages/carrierVehicleReviewed"
+    }
+   },
+   "x-publisher": "goway-auth",
+   "x-consumers": [
+    "goway-notify"
+   ]
+  },
   "supportTicketCreated": {
    "address": "support.ticket_created",
    "description": "A user opened a support ticket.\n\nPublished by `goway-auth`; consumed by no service yet.",
@@ -1090,6 +1103,14 @@
     "$ref": "#/channels/carrierVerificationChanged"
    },
    "description": "Published when a carrier submits for verification, when a replaced document reopens it, and on an operator's decision.",
+   "title": "goway-auth publishes"
+  },
+  "publishCarrierVehicleReviewed": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/carrierVehicleReviewed"
+   },
+   "description": "Published whenever a truck's review status changes.",
    "title": "goway-auth publishes"
   },
   "publishSupportTicketCreated": {
@@ -2583,7 +2604,7 @@
     "title": "Vehicle saved",
     "payload": {
      "title": "VehicleUpserted",
-     "description": "A fleet vehicle was added or changed; the whole vehicle is sent every time.",
+     "description": "A fleet vehicle was added or changed; the whole vehicle is sent every time. `status` is the truck's review; an event without it, from before trucks were reviewed one by one, reads as `approved`.",
      "type": "object",
      "additionalProperties": false,
      "properties": {
@@ -2697,6 +2718,18 @@
        "type": "string",
        "format": "date-time",
        "description": "When the vehicle was saved. ISO 8601 with offset, as Python's `isoformat()` writes it."
+      },
+      "status": {
+       "title": "VehicleStatus",
+       "type": "string",
+       "enum": [
+        "none",
+        "pending",
+        "approved",
+        "rejected",
+        "expired"
+       ],
+       "description": "The truck's own review: `none` until its papers are sent, `pending`, `approved`, `rejected`, or `expired` when an approved paper ran out. Only `approved` works."
       }
      },
      "required": [
@@ -2732,6 +2765,29 @@
        "year": 2019,
        "volume_m3": 8.0,
        "updated_at": "2026-10-14T09:30:00.123456+00:00"
+      }
+     },
+     {
+      "name": "Reviewed",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e26",
+       "vehicle_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e09",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "plate_number": "01A777AA",
+       "truck_class": "tent_20t",
+       "capabilities": [
+        "side_curtain",
+        "tail_lift"
+       ],
+       "loading_method": "both",
+       "capacity_kg": 20000,
+       "brand": "Isuzu",
+       "model": "Elf",
+       "color": "white",
+       "year": 2019,
+       "volume_m3": 8.0,
+       "updated_at": "2026-10-14T09:30:00.123456+00:00",
+       "status": "pending"
       }
      }
     ]
@@ -2781,7 +2837,7 @@
     "title": "Document submitted",
     "payload": {
      "title": "CarrierDocumentUpdated",
-     "description": "A carrier submitted a new version of a document; it waits for review.",
+     "description": "A carrier submitted a new version of a document; it waits for review. A person paper names `subject_user_id`, a vehicle paper `vehicle_id`; an organization's own names neither.",
      "type": "object",
      "additionalProperties": false,
      "properties": {
@@ -2817,6 +2873,16 @@
        "type": "integer",
        "minimum": 1,
        "description": "Version of this document kind, from 1."
+      },
+      "subject_user_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The person a person paper (passport, driving licence) is about."
+      },
+      "vehicle_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The truck a vehicle paper (registration, power of attorney) is about."
       }
      },
      "required": [
@@ -2837,6 +2903,17 @@
        "status": "pending",
        "version": 2
       }
+     },
+     {
+      "name": "Vehicle paper",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e27",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "kind": "tech_passport",
+       "status": "pending",
+       "version": 2,
+       "vehicle_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e23"
+      }
      }
     ]
    },
@@ -2845,7 +2922,7 @@
     "title": "Document reviewed",
     "payload": {
      "title": "CarrierDocumentReviewed",
-     "description": "An operator approved or rejected a carrier's document.",
+     "description": "An operator approved or rejected a carrier's document. A person paper names `subject_user_id`, a vehicle paper `vehicle_id`; an organization's own names neither.",
      "type": "object",
      "additionalProperties": false,
      "properties": {
@@ -2884,6 +2961,16 @@
         "null"
        ],
        "description": "What the operator wrote; a rejection always has one."
+      },
+      "subject_user_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The person a person paper (passport, driving licence) is about."
+      },
+      "vehicle_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The truck a vehicle paper (registration, power of attorney) is about."
       }
      },
      "required": [
@@ -2922,7 +3009,7 @@
     "title": "Document expired",
     "payload": {
      "title": "CarrierDocumentExpired",
-     "description": "A carrier's document passed its expiry date; the hourly sweep marked it expired.",
+     "description": "A carrier's document passed its expiry date; the hourly sweep marked it expired. A person paper names `subject_user_id`, a vehicle paper `vehicle_id`; an organization's own names neither.",
      "type": "object",
      "additionalProperties": false,
      "properties": {
@@ -2950,6 +3037,16 @@
        "type": "string",
        "format": "date-time",
        "description": "The document's expiry date. ISO 8601 with offset, as Python's `isoformat()` writes it."
+      },
+      "subject_user_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The person a person paper (passport, driving licence) is about."
+      },
+      "vehicle_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The truck a vehicle paper (registration, power of attorney) is about."
       }
      },
      "required": [
@@ -2976,7 +3073,7 @@
     "title": "Document expiring",
     "payload": {
      "title": "CarrierDocumentExpiring",
-     "description": "A carrier's document expires within the warning window; sent once per document.",
+     "description": "A carrier's document expires within the warning window; sent once per document. A person paper names `subject_user_id`, a vehicle paper `vehicle_id`; an organization's own names neither.",
      "type": "object",
      "additionalProperties": false,
      "properties": {
@@ -3004,6 +3101,16 @@
        "type": "string",
        "format": "date-time",
        "description": "The document's expiry date. ISO 8601 with offset, as Python's `isoformat()` writes it."
+      },
+      "subject_user_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The person a person paper (passport, driving licence) is about."
+      },
+      "vehicle_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "The truck a vehicle paper (registration, power of attorney) is about."
       }
      },
      "required": [
@@ -3176,6 +3283,82 @@
        "status": "expired",
        "user_ids": [
         "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06"
+       ]
+      }
+     }
+    ]
+   },
+   "carrierVehicleReviewed": {
+    "name": "carrier.vehicle_reviewed",
+    "title": "Vehicle review moved",
+    "payload": {
+     "title": "CarrierVehicleReviewed",
+     "description": "One truck's review moved: sent, approved, rejected, expired or back to review after a change. `user_ids` are the organization's members, to tell them.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "org_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "vehicle_id": {
+       "type": "string",
+       "format": "uuid"
+      },
+      "plate_number": {
+       "type": "string"
+      },
+      "status": {
+       "title": "VehicleStatus",
+       "type": "string",
+       "enum": [
+        "none",
+        "pending",
+        "approved",
+        "rejected",
+        "expired"
+       ],
+       "description": "The truck's own review: `none` until its papers are sent, `pending`, `approved`, `rejected`, or `expired` when an approved paper ran out. Only `approved` works."
+      },
+      "note": {
+       "type": [
+        "string",
+        "null"
+       ],
+       "description": "The operator's reason, or what sent the truck back to review."
+      },
+      "user_ids": {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "format": "uuid"
+       }
+      }
+     },
+     "required": [
+      "event_id",
+      "org_id",
+      "vehicle_id",
+      "status"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Approved",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e21",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e22",
+       "vehicle_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e23",
+       "plate_number": "01A123BC",
+       "status": "approved",
+       "note": null,
+       "user_ids": [
+        "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e24"
        ]
       }
      }

@@ -95,6 +95,7 @@ fn through(title: &str, value: &Value) -> Result<Value, serde_json::Error> {
         "NotificationCreated" => round_trip::<goway_events::NotificationCreated>(value),
         "DevicePushFailed" => round_trip::<goway_events::DevicePushFailed>(value),
         "InterestOpened" => round_trip::<goway_events::InterestOpened>(value),
+        "CarrierVehicleReviewed" => round_trip::<goway_events::CarrierVehicleReviewed>(value),
         "RegionChanged" => round_trip::<goway_events::RegionChanged>(value),
         "SettingsChanged" => round_trip::<goway_events::SettingsChanged>(value),
         "DriverOnline" => round_trip::<goway_events::DriverOnline>(value),

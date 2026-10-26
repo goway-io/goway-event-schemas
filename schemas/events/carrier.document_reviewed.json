@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "CarrierDocumentReviewed",
-  "description": "An operator approved or rejected a carrier's document.",
+  "description": "An operator approved or rejected a carrier's document. A person paper names `subject_user_id`, a vehicle paper `vehicle_id`; an organization's own names neither.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -40,6 +40,16 @@
         "null"
       ],
       "description": "What the operator wrote; a rejection always has one."
+    },
+    "subject_user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person a person paper (passport, driving licence) is about."
+    },
+    "vehicle_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The truck a vehicle paper (registration, power of attorney) is about."
     }
   },
   "required": [

@@ -100,6 +100,13 @@ export type ReviewDecision = "approved" | "rejected";
  */
 export type SubmittedDocumentStatus = "pending";
 /**
+ * The truck's own review: `none` until its papers are sent, `pending`, `approved`, `rejected`, or `expired` when an approved paper ran out. Only `approved` works.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "VehicleStatus".
+ */
+export type VehicleStatus = "none" | "pending" | "approved" | "rejected" | "expired";
+/**
  * The new verification status; `expired` when an approved document ran out.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -1241,7 +1248,7 @@ export interface BookingWaitingStarted {
   currency: string;
 }
 /**
- * A carrier's document passed its expiry date; the hourly sweep marked it expired.
+ * A carrier's document passed its expiry date; the hourly sweep marked it expired. A person paper names `subject_user_id`, a vehicle paper `vehicle_id`; an organization's own names neither.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "CarrierDocumentExpired".
@@ -1257,9 +1264,17 @@ export interface CarrierDocumentExpired {
    * The document's expiry date. ISO 8601 with offset, as Python's `isoformat()` writes it.
    */
   expired_at: string;
+  /**
+   * The person a person paper (passport, driving licence) is about.
+   */
+  subject_user_id?: string;
+  /**
+   * The truck a vehicle paper (registration, power of attorney) is about.
+   */
+  vehicle_id?: string;
 }
 /**
- * A carrier's document expires within the warning window; sent once per document.
+ * A carrier's document expires within the warning window; sent once per document. A person paper names `subject_user_id`, a vehicle paper `vehicle_id`; an organization's own names neither.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "CarrierDocumentExpiring".
@@ -1275,9 +1290,17 @@ export interface CarrierDocumentExpiring {
    * The document's expiry date. ISO 8601 with offset, as Python's `isoformat()` writes it.
    */
   expires_at: string;
+  /**
+   * The person a person paper (passport, driving licence) is about.
+   */
+  subject_user_id?: string;
+  /**
+   * The truck a vehicle paper (registration, power of attorney) is about.
+   */
+  vehicle_id?: string;
 }
 /**
- * An operator approved or rejected a carrier's document.
+ * An operator approved or rejected a carrier's document. A person paper names `subject_user_id`, a vehicle paper `vehicle_id`; an organization's own names neither.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "CarrierDocumentReviewed".
@@ -1294,9 +1317,17 @@ export interface CarrierDocumentReviewed {
    * What the operator wrote; a rejection always has one.
    */
   note: string | null;
+  /**
+   * The person a person paper (passport, driving licence) is about.
+   */
+  subject_user_id?: string;
+  /**
+   * The truck a vehicle paper (registration, power of attorney) is about.
+   */
+  vehicle_id?: string;
 }
 /**
- * A carrier submitted a new version of a document; it waits for review.
+ * A carrier submitted a new version of a document; it waits for review. A person paper names `subject_user_id`, a vehicle paper `vehicle_id`; an organization's own names neither.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "CarrierDocumentUpdated".
@@ -1313,6 +1344,14 @@ export interface CarrierDocumentUpdated {
    * Version of this document kind, from 1.
    */
   version: number;
+  /**
+   * The person a person paper (passport, driving licence) is about.
+   */
+  subject_user_id?: string;
+  /**
+   * The truck a vehicle paper (registration, power of attorney) is about.
+   */
+  vehicle_id?: string;
 }
 /**
  * A driver opened or changed their line, its return direction or its truck.
@@ -1344,6 +1383,27 @@ export interface CarrierLineChanged {
    */
   vehicle_id: string | null;
   changed_at: string;
+}
+/**
+ * One truck's review moved: sent, approved, rejected, expired or back to review after a change. `user_ids` are the organization's members, to tell them.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "CarrierVehicleReviewed".
+ */
+export interface CarrierVehicleReviewed {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  org_id: string;
+  vehicle_id: string;
+  plate_number?: string;
+  status: VehicleStatus;
+  /**
+   * The operator's reason, or what sent the truck back to review.
+   */
+  note?: string | null;
+  user_ids?: string[];
 }
 /**
  * A carrier organization's verification moved: submitted or reopened by a replaced document (`pending`), or decided by an operator.
@@ -3562,7 +3622,7 @@ export interface VehicleRemoved {
   org_id: string;
 }
 /**
- * A fleet vehicle was added or changed; the whole vehicle is sent every time.
+ * A fleet vehicle was added or changed; the whole vehicle is sent every time. `status` is the truck's review; an event without it, from before trucks were reviewed one by one, reads as `approved`.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "VehicleUpserted".
@@ -3615,6 +3675,7 @@ export interface VehicleUpserted {
    * When the vehicle was saved. ISO 8601 with offset, as Python's `isoformat()` writes it.
    */
   updated_at: string;
+  status?: VehicleStatus;
 }
 /**
  * An organization's wallet started or stopped being allowed to receive offers. One event per user of the organization, or a single event with a null `user_id` when billing knows no user of it yet. `side` says which: realtime acts only on carriers, goway-loads refuses posting for shippers.

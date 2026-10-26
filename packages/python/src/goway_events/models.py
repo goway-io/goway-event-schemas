@@ -2232,9 +2232,21 @@ class VehicleRemoved(BaseModel):
     org_id: UUID
 
 
+class VehicleStatus(StrEnum):
+    """
+    The truck's own review: `none` until its papers are sent, `pending`, `approved`, `rejected`, or `expired` when an approved paper ran out. Only `approved` works.
+    """
+
+    NONE = "none"
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    EXPIRED = "expired"
+
+
 class VehicleUpserted(BaseModel):
     """
-    A fleet vehicle was added or changed; the whole vehicle is sent every time.
+    A fleet vehicle was added or changed; the whole vehicle is sent every time. `status` is the truck's review; an event without it, from before trucks were reviewed one by one, reads as `approved`.
     """
 
     model_config = ConfigDict(
@@ -2287,6 +2299,7 @@ class VehicleUpserted(BaseModel):
     """
     When the vehicle was saved. ISO 8601 with offset, as Python's `isoformat()` writes it.
     """
+    status: VehicleStatus | None = None
 
 
 class VerificationStatus(StrEnum):
@@ -3079,7 +3092,7 @@ class BookingPlanDue(BaseModel):
 
 class CarrierDocumentExpired(BaseModel):
     """
-    A carrier's document passed its expiry date; the hourly sweep marked it expired.
+    A carrier's document passed its expiry date; the hourly sweep marked it expired. A person paper names `subject_user_id`, a vehicle paper `vehicle_id`; an organization's own names neither.
     """
 
     model_config = ConfigDict(
@@ -3095,11 +3108,19 @@ class CarrierDocumentExpired(BaseModel):
     """
     The document's expiry date. ISO 8601 with offset, as Python's `isoformat()` writes it.
     """
+    subject_user_id: UUID | None = None
+    """
+    The person a person paper (passport, driving licence) is about.
+    """
+    vehicle_id: UUID | None = None
+    """
+    The truck a vehicle paper (registration, power of attorney) is about.
+    """
 
 
 class CarrierDocumentExpiring(BaseModel):
     """
-    A carrier's document expires within the warning window; sent once per document.
+    A carrier's document expires within the warning window; sent once per document. A person paper names `subject_user_id`, a vehicle paper `vehicle_id`; an organization's own names neither.
     """
 
     model_config = ConfigDict(
@@ -3115,11 +3136,19 @@ class CarrierDocumentExpiring(BaseModel):
     """
     The document's expiry date. ISO 8601 with offset, as Python's `isoformat()` writes it.
     """
+    subject_user_id: UUID | None = None
+    """
+    The person a person paper (passport, driving licence) is about.
+    """
+    vehicle_id: UUID | None = None
+    """
+    The truck a vehicle paper (registration, power of attorney) is about.
+    """
 
 
 class CarrierDocumentReviewed(BaseModel):
     """
-    An operator approved or rejected a carrier's document.
+    An operator approved or rejected a carrier's document. A person paper names `subject_user_id`, a vehicle paper `vehicle_id`; an organization's own names neither.
     """
 
     model_config = ConfigDict(
@@ -3136,11 +3165,19 @@ class CarrierDocumentReviewed(BaseModel):
     """
     What the operator wrote; a rejection always has one.
     """
+    subject_user_id: UUID | None = None
+    """
+    The person a person paper (passport, driving licence) is about.
+    """
+    vehicle_id: UUID | None = None
+    """
+    The truck a vehicle paper (registration, power of attorney) is about.
+    """
 
 
 class CarrierDocumentUpdated(BaseModel):
     """
-    A carrier submitted a new version of a document; it waits for review.
+    A carrier submitted a new version of a document; it waits for review. A person paper names `subject_user_id`, a vehicle paper `vehicle_id`; an organization's own names neither.
     """
 
     model_config = ConfigDict(
@@ -3157,6 +3194,37 @@ class CarrierDocumentUpdated(BaseModel):
     """
     Version of this document kind, from 1.
     """
+    subject_user_id: UUID | None = None
+    """
+    The person a person paper (passport, driving licence) is about.
+    """
+    vehicle_id: UUID | None = None
+    """
+    The truck a vehicle paper (registration, power of attorney) is about.
+    """
+
+
+class CarrierVehicleReviewed(BaseModel):
+    """
+    One truck's review moved: sent, approved, rejected, expired or back to review after a change. `user_ids` are the organization's members, to tell them.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    org_id: UUID
+    vehicle_id: UUID
+    plate_number: str | None = None
+    status: VehicleStatus
+    note: str | None = None
+    """
+    The operator's reason, or what sent the truck back to review.
+    """
+    user_ids: list[UUID] | None = None
 
 
 class CarrierVerificationChanged(BaseModel):

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "CarrierDocumentExpired",
-  "description": "A carrier's document passed its expiry date; the hourly sweep marked it expired.",
+  "description": "A carrier's document passed its expiry date; the hourly sweep marked it expired. A person paper names `subject_user_id`, a vehicle paper `vehicle_id`; an organization's own names neither.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -29,6 +29,16 @@
       "type": "string",
       "format": "date-time",
       "description": "The document's expiry date. ISO 8601 with offset, as Python's `isoformat()` writes it."
+    },
+    "subject_user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person a person paper (passport, driving licence) is about."
+    },
+    "vehicle_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The truck a vehicle paper (registration, power of attorney) is about."
     }
   },
   "required": [

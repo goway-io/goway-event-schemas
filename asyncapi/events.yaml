@@ -192,6 +192,14 @@ channels:
         $ref: '#/components/messages/carrierVerificationChanged'
     x-publisher: goway-auth
     x-consumers: [goway-loads, goway-notify, goway-realtime]
+  carrierVehicleReviewed:
+    address: carrier.vehicle_reviewed
+    description: One truck's review moved; its status also rides on vehicle.upserted.
+    messages:
+      carrierVehicleReviewed:
+        $ref: '#/components/messages/carrierVehicleReviewed'
+    x-publisher: goway-auth
+    x-consumers: [goway-notify]
   supportTicketCreated:
     address: support.ticket_created
     description: A user opened a support ticket.
@@ -663,6 +671,11 @@ operations:
     channel:
       $ref: '#/channels/carrierVerificationChanged'
     description: Published when a carrier submits for verification, when a replaced document reopens it, and on an operator's decision.
+  publishCarrierVehicleReviewed:
+    action: send
+    channel:
+      $ref: '#/channels/carrierVehicleReviewed'
+    description: Published whenever a truck's review status changes.
   publishSupportTicketCreated:
     action: send
     channel:
@@ -1000,6 +1013,11 @@ components:
       title: Verification changed
       payload:
         $ref: '../schemas/events/carrier.verification_changed.json'
+    carrierVehicleReviewed:
+      name: carrier.vehicle_reviewed
+      title: Vehicle review moved
+      payload:
+        $ref: '../schemas/events/carrier.vehicle_reviewed.json'
     supportTicketCreated:
       name: support.ticket_created
       title: Ticket opened
