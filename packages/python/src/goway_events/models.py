@@ -4003,6 +4003,10 @@ class SupportTicketCreated(BaseModel):
     """
     The haul the ticket is about; null when none was named.
     """
+    load_id: UUID | None = None
+    """
+    The load it is about when no driver has booked it yet; `order_id` names a booked haul.
+    """
 
 
 class SupportTicketReplied(BaseModel):

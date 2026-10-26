@@ -6128,6 +6128,14 @@
           ],
           "format": "uuid",
           "description": "The haul the ticket is about; null when none was named."
+        },
+        "load_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "The load it is about when no driver has booked it yet; `order_id` names a booked haul."
         }
       },
       "required": [

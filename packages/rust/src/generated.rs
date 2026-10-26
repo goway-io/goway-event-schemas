@@ -4809,6 +4809,9 @@ pub struct SupportMessageFrame {
 pub struct SupportTicketCreated {
     #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
     pub event_id: ::uuid::Uuid,
+    #[doc = "The load it is about when no driver has booked it yet; `order_id` names a booked haul."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub load_id: ::std::option::Option<::uuid::Uuid>,
     #[doc = "Reference the user sees: `T-` and six characters, for example `T-7KQ2MZ`."]
     pub number: ::std::string::String,
     #[doc = "The haul the ticket is about; null when none was named."]

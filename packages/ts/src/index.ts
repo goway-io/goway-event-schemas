@@ -3284,6 +3284,10 @@ export interface SupportTicketCreated {
    * The haul the ticket is about; null when none was named.
    */
   order_id: string | null;
+  /**
+   * The load it is about when no driver has booked it yet; `order_id` names a booked haul.
+   */
+  load_id?: string | null;
 }
 /**
  * Support answered or closed a ticket.
