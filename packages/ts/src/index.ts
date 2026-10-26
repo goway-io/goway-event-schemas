@@ -174,6 +174,11 @@ export type DisplayCurrency = "UZS" | "USD" | "RUB" | "KZT";
 export type IneligibleReason = "debt" | "subscription";
 /**
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "InterestTargetKind".
+ */
+export type InterestTargetKind = "service" | "region";
+/**
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "LoadChangedField".
  */
 export type LoadChangedField = "asking_amount" | "pickup_from" | "pickup_to" | "note" | "plan";
@@ -2058,6 +2063,36 @@ export interface FrameError {
   params?: {
     [k: string]: unknown;
   };
+}
+/**
+ * A coming service or a closed region that people voted for has opened. `user_ids` are the voters who asked to hear and were not told yet; a long list is split across several events with the same target. `name` is the service or region name in every language loads has it in.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "InterestOpened".
+ */
+export interface InterestOpened {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  target_kind: InterestTargetKind;
+  /**
+   * The service code (`taxi`, `parcel`) or the region id.
+   */
+  target_key: string;
+  /**
+   * The target's name by language code; may be empty.
+   */
+  name: {
+    [k: string]: string;
+  };
+  /**
+   * Who to tell, at most 500 per event.
+   *
+   * @maxItems 500
+   */
+  user_ids: string[];
+  opened_at: string;
 }
 /**
  * This socket is being closed by the server; sign in again.

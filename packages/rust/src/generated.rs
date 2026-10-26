@@ -2390,6 +2390,104 @@ impl ::std::convert::TryFrom<::std::string::String> for IneligibleReason {
         value.parse()
     }
 }
+#[doc = "A coming service or a closed region that people voted for has opened. `user_ids` are the voters who asked to hear and were not told yet; a long list is split across several events with the same target. `name` is the service or region name in every language loads has it in."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct InterestOpened {
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "The target's name by language code; may be empty."]
+    pub name: ::std::collections::HashMap<::std::string::String, ::std::string::String>,
+    pub opened_at: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[doc = "The service code (`taxi`, `parcel`) or the region id."]
+    pub target_key: InterestOpenedTargetKey,
+    pub target_kind: InterestTargetKind,
+    #[doc = "Who to tell, at most 500 per event."]
+    pub user_ids: ::std::vec::Vec<::uuid::Uuid>,
+}
+#[doc = "The service code (`taxi`, `parcel`) or the region id."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct InterestOpenedTargetKey(::std::string::String);
+impl ::std::ops::Deref for InterestOpenedTargetKey {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<InterestOpenedTargetKey> for ::std::string::String {
+    fn from(value: InterestOpenedTargetKey) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for InterestOpenedTargetKey {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 40usize {
+            return Err("longer than 40 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for InterestOpenedTargetKey {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for InterestOpenedTargetKey {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for InterestOpenedTargetKey {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+#[doc = "`InterestTargetKind`"]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum InterestTargetKind {
+    #[serde(rename = "service")]
+    Service,
+    #[serde(rename = "region")]
+    Region,
+}
+impl ::std::fmt::Display for InterestTargetKind {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Service => f.write_str("service"),
+            Self::Region => f.write_str("region"),
+        }
+    }
+}
+impl ::std::str::FromStr for InterestTargetKind {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "service" => Ok(Self::Service),
+            "region" => Ok(Self::Region),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for InterestTargetKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for InterestTargetKind {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
 #[doc = "`continue`: the haul goes on as it was. `cancel`: cancelled without penalty to either side (a `booking.cancelled` follows). `reprice`: the price was recalculated. `waiting_fee`: a waiting charge was added."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum IssueResolution {

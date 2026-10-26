@@ -812,6 +812,11 @@ class IneligibleReason(StrEnum):
     SUBSCRIPTION = "subscription"
 
 
+class InterestTargetKind(StrEnum):
+    SERVICE = "service"
+    REGION = "region"
+
+
 class IssueResolution(StrEnum):
     """
     `continue`: the haul goes on as it was. `cancel`: cancelled without penalty to either side (a `booking.cancelled` follows). `reprice`: the price was recalculated. `waiting_fee`: a waiting charge was added.
@@ -3433,6 +3438,34 @@ class ErrorFrame(BaseModel):
     """
     When the server sent the frame, RFC 3339 UTC.
     """
+
+
+class InterestOpened(BaseModel):
+    """
+    A coming service or a closed region that people voted for has opened. `user_ids` are the voters who asked to hear and were not told yet; a long list is split across several events with the same target. `name` is the service or region name in every language loads has it in.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    target_kind: InterestTargetKind
+    target_key: Annotated[str, Field(max_length=40)]
+    """
+    The service code (`taxi`, `parcel`) or the region id.
+    """
+    name: dict[str, str]
+    """
+    The target's name by language code; may be empty.
+    """
+    user_ids: Annotated[list[UUID], Field(max_length=500)]
+    """
+    Who to tell, at most 500 per event.
+    """
+    opened_at: AwareDatetime
 
 
 class LoadPosted(BaseModel):

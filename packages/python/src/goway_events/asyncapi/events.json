@@ -612,14 +612,29 @@
   },
   "regionChanged": {
    "address": "region.changed",
-   "description": "An admin opened or closed a region for the marketplace.\n\nPublished by `goway-geo`; consumed by no service yet.",
+   "description": "An admin opened or closed a region for the marketplace.\n\nPublished by `goway-geo`; consumed by `goway-loads`.",
    "messages": {
     "regionChanged": {
      "$ref": "#/components/messages/regionChanged"
     }
    },
    "x-publisher": "goway-geo",
-   "x-consumers": []
+   "x-consumers": [
+    "goway-loads"
+   ]
+  },
+  "interestOpened": {
+   "address": "interest.opened",
+   "description": "A coming service or a closed region people voted for has opened; its voters are told.\n\nPublished by `goway-loads`; consumed by `goway-notify`.",
+   "messages": {
+    "interestOpened": {
+     "$ref": "#/components/messages/interestOpened"
+    }
+   },
+   "x-publisher": "goway-loads",
+   "x-consumers": [
+    "goway-notify"
+   ]
   },
   "settingsChanged": {
    "address": "settings.changed",
@@ -1260,6 +1275,14 @@
    },
    "description": "Published when an admin sets a region's active flag.",
    "title": "goway-geo publishes"
+  },
+  "publishInterestOpened": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/interestOpened"
+   },
+   "description": "Published when an operator opens a coming service or geo opens a region, once per 500 voters.",
+   "title": "goway-loads publishes"
   },
   "publishSettingsChanged": {
    "action": "send",
@@ -3247,6 +3270,18 @@
        "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0c",
        "topic": "app",
        "order_id": null
+      }
+     },
+     {
+      "name": "Unbooked load",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e09",
+       "ticket_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e11",
+       "number": "T-7KQ2MZ",
+       "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0c",
+       "topic": "app",
+       "order_id": null,
+       "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e10"
       }
      }
     ]
@@ -5717,6 +5752,93 @@
        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
        "region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e16",
        "is_active": true
+      }
+     }
+    ]
+   },
+   "interestOpened": {
+    "name": "interest.opened",
+    "title": "What people voted for opened",
+    "payload": {
+     "title": "InterestOpened",
+     "description": "A coming service or a closed region that people voted for has opened. `user_ids` are the voters who asked to hear and were not told yet; a long list is split across several events with the same target. `name` is the service or region name in every language loads has it in.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "target_kind": {
+       "title": "InterestTargetKind",
+       "type": "string",
+       "enum": [
+        "service",
+        "region"
+       ]
+      },
+      "target_key": {
+       "type": "string",
+       "maxLength": 40,
+       "description": "The service code (`taxi`, `parcel`) or the region id."
+      },
+      "name": {
+       "type": "object",
+       "additionalProperties": {
+        "type": "string"
+       },
+       "description": "The target's name by language code; may be empty."
+      },
+      "user_ids": {
+       "type": "array",
+       "items": {
+        "type": "string",
+        "format": "uuid"
+       },
+       "maxItems": 500,
+       "description": "Who to tell, at most 500 per event."
+      },
+      "opened_at": {
+       "type": "string",
+       "format": "date-time"
+      }
+     },
+     "required": [
+      "event_id",
+      "target_kind",
+      "target_key",
+      "name",
+      "user_ids",
+      "opened_at"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Region",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e12",
+       "target_kind": "region",
+       "target_key": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e13",
+       "name": {},
+       "user_ids": [],
+       "opened_at": "2026-10-26T12:00:00Z"
+      }
+     },
+     {
+      "name": "Service",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e11",
+       "target_kind": "service",
+       "target_key": "taxi",
+       "name": {
+        "uz": "Taksi",
+        "ru": "Такси"
+       },
+       "user_ids": [
+        "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06"
+       ],
+       "opened_at": "2026-10-26T12:00:00Z"
       }
      }
     ]

@@ -1,0 +1,13 @@
+{
+  "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e11",
+  "target_kind": "service",
+  "target_key": "taxi",
+  "name": {
+    "uz": "Taksi",
+    "ru": "Такси"
+  },
+  "user_ids": [
+    "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06"
+  ],
+  "opened_at": "2026-10-26T12:00:00Z"
+}

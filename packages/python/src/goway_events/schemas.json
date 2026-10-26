@@ -33,6 +33,7 @@
     "driver.offline": "DriverOffline",
     "driver.online": "DriverOnline",
     "driver.stats_changed": "DriverStatsChanged",
+    "interest.opened": "InterestOpened",
     "load.cancelled": "LoadCancelled",
     "load.expired": "LoadExpired",
     "load.plan_unclaimed": "LoadPlanUnclaimed",
@@ -3381,6 +3382,63 @@
       "enum": [
         "debt",
         "subscription"
+      ]
+    },
+    "InterestOpened": {
+      "title": "InterestOpened",
+      "description": "A coming service or a closed region that people voted for has opened. `user_ids` are the voters who asked to hear and were not told yet; a long list is split across several events with the same target. `name` is the service or region name in every language loads has it in.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "target_kind": {
+          "$ref": "#/definitions/InterestTargetKind"
+        },
+        "target_key": {
+          "type": "string",
+          "maxLength": 40,
+          "description": "The service code (`taxi`, `parcel`) or the region id."
+        },
+        "name": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "The target's name by language code; may be empty."
+        },
+        "user_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "maxItems": 500,
+          "description": "Who to tell, at most 500 per event."
+        },
+        "opened_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "event_id",
+        "target_kind",
+        "target_key",
+        "name",
+        "user_ids",
+        "opened_at"
+      ]
+    },
+    "InterestTargetKind": {
+      "title": "InterestTargetKind",
+      "type": "string",
+      "enum": [
+        "service",
+        "region"
       ]
     },
     "IssueResolution": {

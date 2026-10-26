@@ -375,7 +375,15 @@ channels:
       regionChanged:
         $ref: '#/components/messages/regionChanged'
     x-publisher: goway-geo
-    x-consumers: []
+    x-consumers: [goway-loads]
+  interestOpened:
+    address: interest.opened
+    description: A coming service or a closed region people voted for has opened; its voters are told.
+    messages:
+      interestOpened:
+        $ref: '#/components/messages/interestOpened'
+    x-publisher: goway-loads
+    x-consumers: [goway-notify]
   settingsChanged:
     address: settings.changed
     description: An admin changed or reset runtime settings of one service.
@@ -770,6 +778,11 @@ operations:
     channel:
       $ref: '#/channels/regionChanged'
     description: Published when an admin sets a region's active flag.
+  publishInterestOpened:
+    action: send
+    channel:
+      $ref: '#/channels/interestOpened'
+    description: Published when an operator opens a coming service or geo opens a region, once per 500 voters.
   publishSettingsChanged:
     action: send
     channel:
@@ -1102,6 +1115,11 @@ components:
       title: Region opened or closed
       payload:
         $ref: '../schemas/events/region.changed.json'
+    interestOpened:
+      name: interest.opened
+      title: What people voted for opened
+      payload:
+        $ref: '../schemas/events/interest.opened.json'
     settingsChanged:
       name: settings.changed
       title: Runtime settings changed
