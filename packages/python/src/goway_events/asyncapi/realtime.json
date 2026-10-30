@@ -8,7 +8,7 @@
  "defaultContentType": "application/json",
  "servers": {
   "production": {
-   "host": "api.goroute.uz",
+   "host": "api.goway.uz",
    "pathname": "/realtime",
    "protocol": "wss",
    "description": "Public entry; the proxy forwards `/realtime/v1/ws` to goway-realtime."
