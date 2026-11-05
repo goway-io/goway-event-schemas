@@ -1,0 +1,43 @@
+{
+  "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+  "computed_at": "2026-11-05T09:00:00Z",
+  "window_weeks": 12,
+  "rates": [
+    {
+      "origin_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e16",
+      "destination_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e17",
+      "origin_area": "UZ-TK",
+      "destination_area": "UZ-AN",
+      "vehicle_class": "fura",
+      "low_uzs": 4500000,
+      "median_uzs": 5000000,
+      "high_uzs": 5500000,
+      "per_km_uzs": 13966,
+      "route_km": 358,
+      "sample": 16,
+      "posters": 8
+    }
+  ],
+  "curves": [
+    {
+      "vehicle_class": "fura",
+      "base_uzs": 175770,
+      "per_km_uzs": 13917,
+      "taper_after_km": 2000,
+      "taper_ratio": 0.649,
+      "low_ratio": 0.767,
+      "high_ratio": 1.612,
+      "sample": 834
+    },
+    {
+      "vehicle_class": "container",
+      "base_uzs": 0,
+      "per_km_uzs": 18309,
+      "taper_after_km": 300,
+      "taper_ratio": null,
+      "low_ratio": 0.928,
+      "high_ratio": 2.716,
+      "sample": 35
+    }
+  ]
+}

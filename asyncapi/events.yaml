@@ -384,6 +384,14 @@ channels:
         $ref: '#/components/messages/regionChanged'
     x-publisher: goway-geo
     x-consumers: [goway-loads]
+  marketLaneRatesPublished:
+    address: market.lane_rates.published
+    description: goway-market published a new snapshot of going lane prices and class curves.
+    messages:
+      marketLaneRatesPublished:
+        $ref: '#/components/messages/marketLaneRatesPublished'
+    x-publisher: goway-market
+    x-consumers: [goway-loads]
   interestOpened:
     address: interest.opened
     description: A coming service or a closed region people voted for has opened; its voters are told.
@@ -791,6 +799,11 @@ operations:
     channel:
       $ref: '#/channels/regionChanged'
     description: Published when an admin sets a region's active flag.
+  publishMarketLaneRatesPublished:
+    action: send
+    channel:
+      $ref: '#/channels/marketLaneRatesPublished'
+    description: Published when a snapshot moves a price or a curve past the change threshold, and at least daily.
   publishInterestOpened:
     action: send
     channel:
@@ -1133,6 +1146,11 @@ components:
       title: Region opened or closed
       payload:
         $ref: '../schemas/events/region.changed.json'
+    marketLaneRatesPublished:
+      name: market.lane_rates.published
+      title: Market lane prices published
+      payload:
+        $ref: '../schemas/events/market.lane_rates.published.json'
     interestOpened:
       name: interest.opened
       title: What people voted for opened

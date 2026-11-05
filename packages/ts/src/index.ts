@@ -2506,6 +2506,113 @@ export interface LocationSampled {
   recorded_at: string;
 }
 /**
+ * A trip price of base_uzs + per_km_uzs × (km up to taper_after_km + taper_ratio × the km past it).
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "MarketClassCurve".
+ */
+export interface MarketClassCurve {
+  vehicle_class: string;
+  base_uzs: number;
+  per_km_uzs: number;
+  taper_after_km: number;
+  /**
+   * Share of the per-km rate past taper_after_km; null means the full rate all the way.
+   */
+  taper_ratio: number | null;
+  /**
+   * 25th percentile of offer ÷ curve: the low end of the usual range.
+   */
+  low_ratio: number;
+  /**
+   * 75th percentile of offer ÷ curve.
+   */
+  high_ratio: number;
+  sample: number;
+}
+/**
+ * The going trip price between two regions for one vehicle class.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "MarketLaneRate".
+ */
+export interface MarketLaneRate {
+  /**
+   * geo's region the loads leave from.
+   */
+  origin_region_id: string;
+  destination_region_id: string;
+  /**
+   * The region's ISO 3166-2 code, for logs and people.
+   */
+  origin_area: string;
+  destination_area: string;
+  /**
+   * goway-market's vehicle class (`fura`, `isuzu_5t`, `ref`, ...); each consumer maps it to its own classes.
+   */
+  vehicle_class: string;
+  /**
+   * 25th percentile trip price, whole so'm.
+   */
+  low_uzs: number;
+  /**
+   * Median trip price, whole so'm.
+   */
+  median_uzs: number;
+  /**
+   * 75th percentile trip price, whole so'm.
+   */
+  high_uzs: number;
+  /**
+   * Median so'm per km; null when no offer had a road distance.
+   */
+  per_km_uzs: number | null;
+  /**
+   * Median road distance of the offers; null when none had one.
+   */
+  route_km: number | null;
+  /**
+   * Offers behind the price, reposts counted once.
+   */
+  sample: number;
+  /**
+   * Distinct people who posted them.
+   */
+  posters: number;
+}
+/**
+ * goway-market's going prices for Uzbek lanes, read from freight offers: one whole snapshot. A newer version replaces every row of an older one, so a consumer keeps only the latest.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "MarketLaneRatesPublished".
+ */
+export interface MarketLaneRatesPublished {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  /**
+   * The snapshot's number; it only grows. A consumer ignores a version at or below the one it holds.
+   */
+  version: number;
+  /**
+   * When the snapshot was computed. Prices older than the consumer's limit are not used.
+   */
+  computed_at: string;
+  /**
+   * Weeks of offers the prices could reach back.
+   */
+  window_weeks: number;
+  /**
+   * Region pairs inside Uzbekistan with enough offers of their own, per market vehicle class.
+   */
+  rates: MarketLaneRate[];
+  /**
+   * Every vehicle class's price by road distance, for lanes without enough offers of their own.
+   */
+  curves: MarketClassCurve[];
+}
+/**
  * A person joined an organization on one side of the market, or a removed membership came back. A person holds at most one live membership per side. The full state is sent, so a consumer upserts it.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema

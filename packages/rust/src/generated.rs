@@ -3089,6 +3089,164 @@ pub struct LocationSampled {
     #[doc = "When the position was sampled, RFC 3339 UTC with milliseconds."]
     pub recorded_at: ::chrono::DateTime<::chrono::offset::Utc>,
 }
+#[doc = "A trip price of base_uzs + per_km_uzs × (km up to taper_after_km + taper_ratio × the km past it)."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MarketClassCurve {
+    pub base_uzs: u64,
+    #[doc = "75th percentile of offer ÷ curve."]
+    pub high_ratio: f64,
+    #[doc = "25th percentile of offer ÷ curve: the low end of the usual range."]
+    pub low_ratio: f64,
+    pub per_km_uzs: u64,
+    pub sample: u64,
+    pub taper_after_km: u64,
+    #[doc = "Share of the per-km rate past taper_after_km; null means the full rate all the way."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub taper_ratio: ::std::option::Option<f64>,
+    pub vehicle_class: MarketClassCurveVehicleClass,
+}
+#[doc = "`MarketClassCurveVehicleClass`"]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct MarketClassCurveVehicleClass(::std::string::String);
+impl ::std::ops::Deref for MarketClassCurveVehicleClass {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<MarketClassCurveVehicleClass> for ::std::string::String {
+    fn from(value: MarketClassCurveVehicleClass) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for MarketClassCurveVehicleClass {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 20usize {
+            return Err("longer than 20 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for MarketClassCurveVehicleClass {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MarketClassCurveVehicleClass {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for MarketClassCurveVehicleClass {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+#[doc = "The going trip price between two regions for one vehicle class."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MarketLaneRate {
+    pub destination_area: ::std::string::String,
+    pub destination_region_id: ::uuid::Uuid,
+    #[doc = "75th percentile trip price, whole so'm."]
+    pub high_uzs: u64,
+    #[doc = "25th percentile trip price, whole so'm."]
+    pub low_uzs: u64,
+    #[doc = "Median trip price, whole so'm."]
+    pub median_uzs: u64,
+    #[doc = "The region's ISO 3166-2 code, for logs and people."]
+    pub origin_area: ::std::string::String,
+    #[doc = "geo's region the loads leave from."]
+    pub origin_region_id: ::uuid::Uuid,
+    #[doc = "Median so'm per km; null when no offer had a road distance."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub per_km_uzs: ::std::option::Option<u64>,
+    #[doc = "Distinct people who posted them."]
+    pub posters: u64,
+    #[doc = "Median road distance of the offers; null when none had one."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub route_km: ::std::option::Option<u64>,
+    #[doc = "Offers behind the price, reposts counted once."]
+    pub sample: ::std::num::NonZeroU64,
+    #[doc = "goway-market's vehicle class (`fura`, `isuzu_5t`, `ref`, ...); each consumer maps it to its own classes."]
+    pub vehicle_class: MarketLaneRateVehicleClass,
+}
+#[doc = "goway-market's vehicle class (`fura`, `isuzu_5t`, `ref`, ...); each consumer maps it to its own classes."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct MarketLaneRateVehicleClass(::std::string::String);
+impl ::std::ops::Deref for MarketLaneRateVehicleClass {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<MarketLaneRateVehicleClass> for ::std::string::String {
+    fn from(value: MarketLaneRateVehicleClass) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for MarketLaneRateVehicleClass {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 20usize {
+            return Err("longer than 20 characters".into());
+        }
+        if value.chars().count() < 1usize {
+            return Err("shorter than 1 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for MarketLaneRateVehicleClass {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for MarketLaneRateVehicleClass {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for MarketLaneRateVehicleClass {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+#[doc = "goway-market's going prices for Uzbek lanes, read from freight offers: one whole snapshot. A newer version replaces every row of an older one, so a consumer keeps only the latest."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct MarketLaneRatesPublished {
+    #[doc = "When the snapshot was computed. Prices older than the consumer's limit are not used."]
+    pub computed_at: ::chrono::DateTime<::chrono::offset::Utc>,
+    #[doc = "Every vehicle class's price by road distance, for lanes without enough offers of their own."]
+    pub curves: ::std::vec::Vec<MarketClassCurve>,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "Region pairs inside Uzbekistan with enough offers of their own, per market vehicle class."]
+    pub rates: ::std::vec::Vec<MarketLaneRate>,
+    #[doc = "The snapshot's number; it only grows. A consumer ignores a version at or below the one it holds."]
+    pub version: ::std::num::NonZeroU64,
+    #[doc = "Weeks of offers the prices could reach back."]
+    pub window_weeks: ::std::num::NonZeroU64,
+}
 #[doc = "A person joined an organization on one side of the market, or a removed membership came back. A person holds at most one live membership per side. The full state is sent, so a consumer upserts it."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct MembershipCreated {

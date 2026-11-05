@@ -1007,6 +1007,119 @@ class LocationSampled(BaseModel):
     """
 
 
+class MarketClassCurve(BaseModel):
+    """
+    A trip price of base_uzs + per_km_uzs × (km up to taper_after_km + taper_ratio × the km past it).
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    vehicle_class: Annotated[str, Field(max_length=20, min_length=1)]
+    base_uzs: Annotated[int, Field(ge=0)]
+    per_km_uzs: Annotated[int, Field(ge=0)]
+    taper_after_km: Annotated[int, Field(ge=0)]
+    taper_ratio: Annotated[float | None, Field(ge=0.0)]
+    """
+    Share of the per-km rate past taper_after_km; null means the full rate all the way.
+    """
+    low_ratio: Annotated[float, Field(ge=0.0)]
+    """
+    25th percentile of offer ÷ curve: the low end of the usual range.
+    """
+    high_ratio: Annotated[float, Field(ge=0.0)]
+    """
+    75th percentile of offer ÷ curve.
+    """
+    sample: Annotated[int, Field(ge=0)]
+
+
+class MarketLaneRate(BaseModel):
+    """
+    The going trip price between two regions for one vehicle class.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    origin_region_id: UUID
+    """
+    geo's region the loads leave from.
+    """
+    destination_region_id: UUID
+    origin_area: str
+    """
+    The region's ISO 3166-2 code, for logs and people.
+    """
+    destination_area: str
+    vehicle_class: Annotated[str, Field(max_length=20, min_length=1)]
+    """
+    goway-market's vehicle class (`fura`, `isuzu_5t`, `ref`, ...); each consumer maps it to its own classes.
+    """
+    low_uzs: Annotated[int, Field(ge=0)]
+    """
+    25th percentile trip price, whole so'm.
+    """
+    median_uzs: Annotated[int, Field(ge=0)]
+    """
+    Median trip price, whole so'm.
+    """
+    high_uzs: Annotated[int, Field(ge=0)]
+    """
+    75th percentile trip price, whole so'm.
+    """
+    per_km_uzs: Annotated[int | None, Field(ge=0)]
+    """
+    Median so'm per km; null when no offer had a road distance.
+    """
+    route_km: Annotated[int | None, Field(ge=0)]
+    """
+    Median road distance of the offers; null when none had one.
+    """
+    sample: Annotated[int, Field(ge=1)]
+    """
+    Offers behind the price, reposts counted once.
+    """
+    posters: Annotated[int, Field(ge=0)]
+    """
+    Distinct people who posted them.
+    """
+
+
+class MarketLaneRatesPublished(BaseModel):
+    """
+    goway-market's going prices for Uzbek lanes, read from freight offers: one whole snapshot. A newer version replaces every row of an older one, so a consumer keeps only the latest.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    version: Annotated[int, Field(ge=1)]
+    """
+    The snapshot's number; it only grows. A consumer ignores a version at or below the one it holds.
+    """
+    computed_at: AwareDatetime
+    """
+    When the snapshot was computed. Prices older than the consumer's limit are not used.
+    """
+    window_weeks: Annotated[int, Field(ge=1)]
+    """
+    Weeks of offers the prices could reach back.
+    """
+    rates: list[MarketLaneRate]
+    """
+    Region pairs inside Uzbekistan with enough offers of their own, per market vehicle class.
+    """
+    curves: list[MarketClassCurve]
+    """
+    Every vehicle class's price by road distance, for lanes without enough offers of their own.
+    """
+
+
 class MembershipSide(StrEnum):
     """
     A side of the market: `shipper`, `carrier`, or `platform` for GoWay's own staff.

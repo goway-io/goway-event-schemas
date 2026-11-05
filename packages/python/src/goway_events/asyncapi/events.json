@@ -636,6 +636,19 @@
     "goway-loads"
    ]
   },
+  "marketLaneRatesPublished": {
+   "address": "market.lane_rates.published",
+   "description": "goway-market published a new snapshot of going lane prices and class curves.\n\nPublished by `goway-market`; consumed by `goway-loads`.",
+   "messages": {
+    "marketLaneRatesPublished": {
+     "$ref": "#/components/messages/marketLaneRatesPublished"
+    }
+   },
+   "x-publisher": "goway-market",
+   "x-consumers": [
+    "goway-loads"
+   ]
+  },
   "interestOpened": {
    "address": "interest.opened",
    "description": "A coming service or a closed region people voted for has opened; its voters are told.\n\nPublished by `goway-loads`; consumed by `goway-notify`.",
@@ -1296,6 +1309,14 @@
    },
    "description": "Published when an admin sets a region's active flag.",
    "title": "goway-geo publishes"
+  },
+  "publishMarketLaneRatesPublished": {
+   "action": "send",
+   "channel": {
+    "$ref": "#/channels/marketLaneRatesPublished"
+   },
+   "description": "Published when a snapshot moves a price or a curve past the change threshold, and at least daily.",
+   "title": "goway-market publishes"
   },
   "publishInterestOpened": {
    "action": "send",
@@ -5935,6 +5956,245 @@
        "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
        "region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e16",
        "is_active": true
+      }
+     }
+    ]
+   },
+   "marketLaneRatesPublished": {
+    "name": "market.lane_rates.published",
+    "title": "Market lane prices published",
+    "payload": {
+     "title": "MarketLaneRatesPublished",
+     "description": "goway-market's going prices for Uzbek lanes, read from freight offers: one whole snapshot. A newer version replaces every row of an older one, so a consumer keeps only the latest.",
+     "type": "object",
+     "additionalProperties": false,
+     "properties": {
+      "event_id": {
+       "type": "string",
+       "format": "uuid",
+       "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+      },
+      "version": {
+       "type": "integer",
+       "minimum": 1,
+       "description": "The snapshot's number; it only grows. A consumer ignores a version at or below the one it holds."
+      },
+      "computed_at": {
+       "type": "string",
+       "format": "date-time",
+       "description": "When the snapshot was computed. Prices older than the consumer's limit are not used."
+      },
+      "window_weeks": {
+       "type": "integer",
+       "minimum": 1,
+       "description": "Weeks of offers the prices could reach back."
+      },
+      "rates": {
+       "type": "array",
+       "description": "Region pairs inside Uzbekistan with enough offers of their own, per market vehicle class.",
+       "items": {
+        "title": "MarketLaneRate",
+        "description": "The going trip price between two regions for one vehicle class.",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+         "origin_region_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "geo's region the loads leave from."
+         },
+         "destination_region_id": {
+          "type": "string",
+          "format": "uuid"
+         },
+         "origin_area": {
+          "type": "string",
+          "description": "The region's ISO 3166-2 code, for logs and people."
+         },
+         "destination_area": {
+          "type": "string"
+         },
+         "vehicle_class": {
+          "type": "string",
+          "description": "goway-market's vehicle class (`fura`, `isuzu_5t`, `ref`, ...); each consumer maps it to its own classes.",
+          "minLength": 1,
+          "maxLength": 20
+         },
+         "low_uzs": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "25th percentile trip price, whole so'm."
+         },
+         "median_uzs": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Median trip price, whole so'm."
+         },
+         "high_uzs": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "75th percentile trip price, whole so'm."
+         },
+         "per_km_uzs": {
+          "type": [
+           "integer",
+           "null"
+          ],
+          "minimum": 0,
+          "description": "Median so'm per km; null when no offer had a road distance."
+         },
+         "route_km": {
+          "type": [
+           "integer",
+           "null"
+          ],
+          "minimum": 0,
+          "description": "Median road distance of the offers; null when none had one."
+         },
+         "sample": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Offers behind the price, reposts counted once."
+         },
+         "posters": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Distinct people who posted them."
+         }
+        },
+        "required": [
+         "origin_region_id",
+         "destination_region_id",
+         "origin_area",
+         "destination_area",
+         "vehicle_class",
+         "low_uzs",
+         "median_uzs",
+         "high_uzs",
+         "per_km_uzs",
+         "route_km",
+         "sample",
+         "posters"
+        ]
+       }
+      },
+      "curves": {
+       "type": "array",
+       "description": "Every vehicle class's price by road distance, for lanes without enough offers of their own.",
+       "items": {
+        "title": "MarketClassCurve",
+        "description": "A trip price of base_uzs + per_km_uzs × (km up to taper_after_km + taper_ratio × the km past it).",
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+         "vehicle_class": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 20
+         },
+         "base_uzs": {
+          "type": "integer",
+          "minimum": 0
+         },
+         "per_km_uzs": {
+          "type": "integer",
+          "minimum": 0
+         },
+         "taper_after_km": {
+          "type": "integer",
+          "minimum": 0
+         },
+         "taper_ratio": {
+          "type": [
+           "number",
+           "null"
+          ],
+          "minimum": 0,
+          "description": "Share of the per-km rate past taper_after_km; null means the full rate all the way."
+         },
+         "low_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "description": "25th percentile of offer ÷ curve: the low end of the usual range."
+         },
+         "high_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "description": "75th percentile of offer ÷ curve."
+         },
+         "sample": {
+          "type": "integer",
+          "minimum": 0
+         }
+        },
+        "required": [
+         "vehicle_class",
+         "base_uzs",
+         "per_km_uzs",
+         "taper_after_km",
+         "taper_ratio",
+         "low_ratio",
+         "high_ratio",
+         "sample"
+        ]
+       }
+      }
+     },
+     "required": [
+      "event_id",
+      "version",
+      "computed_at",
+      "window_weeks",
+      "rates",
+      "curves"
+     ]
+    },
+    "examples": [
+     {
+      "name": "Basic",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "version": 12,
+       "computed_at": "2026-11-05T09:00:00Z",
+       "window_weeks": 12,
+       "rates": [
+        {
+         "origin_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e16",
+         "destination_region_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e17",
+         "origin_area": "UZ-TK",
+         "destination_area": "UZ-AN",
+         "vehicle_class": "fura",
+         "low_uzs": 4500000,
+         "median_uzs": 5000000,
+         "high_uzs": 5500000,
+         "per_km_uzs": 13966,
+         "route_km": 358,
+         "sample": 16,
+         "posters": 8
+        }
+       ],
+       "curves": [
+        {
+         "vehicle_class": "fura",
+         "base_uzs": 175770,
+         "per_km_uzs": 13917,
+         "taper_after_km": 2000,
+         "taper_ratio": 0.649,
+         "low_ratio": 0.767,
+         "high_ratio": 1.612,
+         "sample": 834
+        },
+        {
+         "vehicle_class": "container",
+         "base_uzs": 0,
+         "per_km_uzs": 18309,
+         "taper_after_km": 300,
+         "taper_ratio": null,
+         "low_ratio": 0.928,
+         "high_ratio": 2.716,
+         "sample": 35
+        }
+       ]
       }
      }
     ]
