@@ -22,7 +22,7 @@ PATH="$PWD/.tools/bin:$PATH" cargo typify --no-builder "$CODEGEN" -o packages/ru
 frames=$(python3 -c "import json; d=json.load(open('build/schemas.json'))['x-frames']; \
 print(' '.join(f'$CODEGEN#/definitions/{t}' for side in ('client', 'server') for t in d[side].values()))")
 # shellcheck disable=SC2086
-"$BIN/quicktype" -s schema --lang dart --use-json-annotation --part-name models -o build/models.dart $frames >/dev/null
-{ printf '// ignore_for_file: constant_identifier_names\n'; cat build/models.dart; } > packages/dart/lib/src/models.dart
+{ printf '// ignore_for_file: constant_identifier_names\n'
+  "$BIN/quicktype" -s schema --lang dart --use-json-annotation --part-name models $frames; } > packages/dart/lib/src/models.dart
 (cd packages/dart && dart run build_runner build --delete-conflicting-outputs >/dev/null)
 echo "generated python, rust, typescript and dart"

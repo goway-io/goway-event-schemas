@@ -1,0 +1,5 @@
+# The Dart package has its own options in packages/dart. This file only keeps the analyzer out of
+# npm dependencies, which ship sample .dart files that do not compile on their own.
+analyzer:
+  exclude:
+    - node_modules/**
