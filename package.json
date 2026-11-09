@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "devDependencies": {
-    "@asyncapi/cli": "6.2.2",
+    "@asyncapi/cli": "6.2.3",
     "@asyncapi/html-template": "3.5.6",
     "@stoplight/spectral-cli": "6.17.0",
     "json-schema-to-typescript": "16.0.0",
