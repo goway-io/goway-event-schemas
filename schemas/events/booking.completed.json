@@ -120,6 +120,21 @@
     "load_code": {
       "type": "string",
       "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
+    },
+    "payment_method": {
+      "title": "PaymentMethod",
+      "type": "string",
+      "enum": [
+        "cash",
+        "transfer",
+        "card",
+        "mixed"
+      ]
+    },
+    "client_pays": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "What the shipper pays for the haul, the total less their bonus, whole so'm (a bare integer; `currency` is UZS today). On a card haul this is what the card is charged."
     }
   },
   "required": [

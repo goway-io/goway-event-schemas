@@ -79,6 +79,16 @@
     "load_code": {
       "type": "string",
       "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
+    },
+    "payment_method": {
+      "title": "PaymentMethod",
+      "type": "string",
+      "enum": [
+        "cash",
+        "transfer",
+        "card",
+        "mixed"
+      ]
     }
   },
   "required": [

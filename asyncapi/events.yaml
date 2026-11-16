@@ -568,6 +568,46 @@ channels:
         $ref: '#/components/messages/walletLowBalance'
     x-publisher: goway-billing
     x-consumers: [goway-notify]
+  paymentAuthorized:
+    address: payment.authorized
+    description: "Payment authorized."
+    messages:
+      paymentAuthorized:
+        $ref: '#/components/messages/paymentAuthorized'
+    x-publisher: goway-billing
+    x-consumers: [goway-loads]
+  paymentDeclined:
+    address: payment.declined
+    description: "Payment declined."
+    messages:
+      paymentDeclined:
+        $ref: '#/components/messages/paymentDeclined'
+    x-publisher: goway-billing
+    x-consumers: [goway-loads]
+  paymentVoided:
+    address: payment.voided
+    description: "Payment voided."
+    messages:
+      paymentVoided:
+        $ref: '#/components/messages/paymentVoided'
+    x-publisher: goway-billing
+    x-consumers: [goway-loads]
+  paymentCaptured:
+    address: payment.captured
+    description: "Payment captured."
+    messages:
+      paymentCaptured:
+        $ref: '#/components/messages/paymentCaptured'
+    x-publisher: goway-billing
+    x-consumers: [goway-loads]
+  paymentCaptureFailed:
+    address: payment.capture_failed
+    description: "Payment capture failed."
+    messages:
+      paymentCaptureFailed:
+        $ref: '#/components/messages/paymentCaptureFailed'
+    x-publisher: goway-billing
+    x-consumers: []
 operations:
   publishUserCreated:
     action: send
@@ -914,6 +954,31 @@ operations:
     channel:
       $ref: '#/channels/walletLowBalance'
     description: "Published once when the headroom falls below `low_balance_warning`."
+  publishPaymentAuthorized:
+    action: send
+    channel:
+      $ref: '#/channels/paymentAuthorized'
+    description: "Published when a hold on the shipper's card is confirmed; `authorized` is the whole sum blocked for the load."
+  publishPaymentDeclined:
+    action: send
+    channel:
+      $ref: '#/channels/paymentDeclined'
+    description: "Published when the card or the bank refuses a hold for a load."
+  publishPaymentVoided:
+    action: send
+    channel:
+      $ref: '#/channels/paymentVoided'
+    description: "Published when every hold of a load's payment is released."
+  publishPaymentCaptured:
+    action: send
+    channel:
+      $ref: '#/channels/paymentCaptured'
+    description: "Published when a completed haul or a late cancellation is settled on the shipper's card."
+  publishPaymentCaptureFailed:
+    action: send
+    channel:
+      $ref: '#/channels/paymentCaptureFailed'
+    description: "Published with `payment.captured` when the card gave less than it was asked for."
 components:
   messages:
     userCreated:
@@ -1261,3 +1326,28 @@ components:
       title: Low balance
       payload:
         $ref: '../schemas/events/wallet.low_balance.json'
+    paymentAuthorized:
+      name: payment.authorized
+      title: Payment authorized
+      payload:
+        $ref: '../schemas/events/payment.authorized.json'
+    paymentDeclined:
+      name: payment.declined
+      title: Payment declined
+      payload:
+        $ref: '../schemas/events/payment.declined.json'
+    paymentVoided:
+      name: payment.voided
+      title: Payment voided
+      payload:
+        $ref: '../schemas/events/payment.voided.json'
+    paymentCaptured:
+      name: payment.captured
+      title: Payment captured
+      payload:
+        $ref: '../schemas/events/payment.captured.json'
+    paymentCaptureFailed:
+      name: payment.capture_failed
+      title: Payment capture failed
+      payload:
+        $ref: '../schemas/events/payment.capture_failed.json'

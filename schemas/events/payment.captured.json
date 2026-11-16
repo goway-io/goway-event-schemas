@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PaymentCaptured",
+  "description": "A card payment was settled: what the shipper owed for a completed haul, or for cancelling one late, was taken from the card. `shortfall` is what the card did not give and the shipper now owes.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "payment_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The card payment of the load."
+    },
+    "load_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The load the payment is for."
+    },
+    "booking_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The haul the payment settled."
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The shipper organization that pays."
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person whose card pays."
+    },
+    "authorized": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "What stands blocked on the card for the load after this event, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3,
+      "description": "ISO 4217 code; `UZS` today."
+    },
+    "shipper_org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The shipper organization."
+    },
+    "carrier_org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The carrier organization of the haul."
+    },
+    "purpose": {
+      "title": "PaymentPurpose",
+      "type": "string",
+      "enum": [
+        "haul",
+        "cancel_fee"
+      ],
+      "description": "`haul`: a completed haul was charged; `cancel_fee`: the fee of a late cancellation."
+    },
+    "amount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "What was taken from the card, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "commission": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The platform's commission on the haul, whole so'm (a bare integer; `currency` is UZS today); 0 for a cancellation fee. The carrier is credited `amount` less the part of it the card covered."
+    },
+    "shortfall": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "What the card was asked for and did not give, whole so'm (a bare integer; `currency` is UZS today)."
+    }
+  },
+  "required": [
+    "event_id",
+    "payment_id",
+    "load_id",
+    "booking_id",
+    "org_id",
+    "user_id",
+    "authorized",
+    "currency",
+    "shipper_org_id",
+    "carrier_org_id",
+    "purpose",
+    "amount",
+    "commission",
+    "shortfall"
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PaymentCaptureFailed",
+  "description": "A card did not give all of what a finished haul or a late cancellation cost. The missing sum is the shipper's debt; an operator follows it up.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "payment_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The card payment of the load."
+    },
+    "load_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The load the payment is for."
+    },
+    "booking_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The haul the payment settled."
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The shipper organization that pays."
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person whose card pays."
+    },
+    "authorized": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "What stands blocked on the card for the load after this event, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3,
+      "description": "ISO 4217 code; `UZS` today."
+    },
+    "shipper_org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The shipper organization."
+    },
+    "carrier_org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The carrier organization of the haul."
+    },
+    "purpose": {
+      "title": "PaymentPurpose",
+      "type": "string",
+      "enum": [
+        "haul",
+        "cancel_fee"
+      ],
+      "description": "`haul`: a completed haul was charged; `cancel_fee`: the fee of a late cancellation."
+    },
+    "shortfall": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "What the card did not give, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "reason": {
+      "type": "string",
+      "description": "Why, as a stable code (`INSUFFICIENT_FUNDS`, `CARD_EXPIRED`, `BANK_DECLINED`, ...)."
+    }
+  },
+  "required": [
+    "event_id",
+    "payment_id",
+    "load_id",
+    "booking_id",
+    "org_id",
+    "user_id",
+    "authorized",
+    "currency",
+    "shipper_org_id",
+    "carrier_org_id",
+    "purpose",
+    "shortfall",
+    "reason"
+  ]
+}

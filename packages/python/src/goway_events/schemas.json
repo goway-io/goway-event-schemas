@@ -50,6 +50,11 @@
     "offer.created": "OfferCreated",
     "offer.resolved": "OfferResolved",
     "org.updated": "OrgUpdated",
+    "payment.authorized": "PaymentAuthorized",
+    "payment.capture_failed": "PaymentCaptureFailed",
+    "payment.captured": "PaymentCaptured",
+    "payment.declined": "PaymentDeclined",
+    "payment.voided": "PaymentVoided",
     "rating.created": "RatingCreated",
     "region.changed": "RegionChanged",
     "settings.changed": "SettingsChanged",
@@ -585,6 +590,9 @@
         "load_code": {
           "type": "string",
           "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
+        },
+        "payment_method": {
+          "$ref": "#/definitions/PaymentMethod"
         }
       },
       "required": [
@@ -775,6 +783,14 @@
         "load_code": {
           "type": "string",
           "description": "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."
+        },
+        "payment_method": {
+          "$ref": "#/definitions/PaymentMethod"
+        },
+        "client_pays": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "What the shipper pays for the haul, the total less their bonus, whole so'm (a bare integer; `currency` is UZS today). On a card haul this is what the card is charged."
         }
       },
       "required": [
@@ -3594,7 +3610,7 @@
     },
     "LoadCancelled": {
       "title": "LoadCancelled",
-      "description": "The shipper withdrew an open load.",
+      "description": "An open load left the market: its shipper or an operator withdrew it, or its haul was cancelled and it was not posted again.",
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -3611,6 +3627,14 @@
           "type": "string",
           "format": "uuid",
           "description": "The shipper organization."
+        },
+        "fee_booking_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "Set when the load closed because its shipper cancelled this haul late: a card payment of the load is then settled by that haul's fee, not released."
         }
       },
       "required": [
@@ -5589,6 +5613,314 @@
         "passed_at"
       ]
     },
+    "PaymentAuthorized": {
+      "title": "PaymentAuthorized",
+      "description": "A sum was blocked on a shipper's card for a load: the load's price when it was posted, or a rise of it.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "payment_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The card payment of the load."
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The load the payment is for."
+        },
+        "booking_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "The haul the payment settled; null while the load has none yet."
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The shipper organization that pays."
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The person whose card pays."
+        },
+        "authorized": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "What stands blocked on the card for the load after this event, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3,
+          "description": "ISO 4217 code; `UZS` today."
+        }
+      },
+      "required": [
+        "event_id",
+        "payment_id",
+        "load_id",
+        "booking_id",
+        "org_id",
+        "user_id",
+        "authorized",
+        "currency"
+      ]
+    },
+    "PaymentCaptureFailed": {
+      "title": "PaymentCaptureFailed",
+      "description": "A card did not give all of what a finished haul or a late cancellation cost. The missing sum is the shipper's debt; an operator follows it up.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "payment_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The card payment of the load."
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The load the payment is for."
+        },
+        "booking_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The haul the payment settled."
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The shipper organization that pays."
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The person whose card pays."
+        },
+        "authorized": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "What stands blocked on the card for the load after this event, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3,
+          "description": "ISO 4217 code; `UZS` today."
+        },
+        "shipper_org_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The shipper organization."
+        },
+        "carrier_org_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The carrier organization of the haul."
+        },
+        "purpose": {
+          "$ref": "#/definitions/PaymentPurpose"
+        },
+        "shortfall": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "What the card did not give, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, as a stable code (`INSUFFICIENT_FUNDS`, `CARD_EXPIRED`, `BANK_DECLINED`, ...)."
+        }
+      },
+      "required": [
+        "event_id",
+        "payment_id",
+        "load_id",
+        "booking_id",
+        "org_id",
+        "user_id",
+        "authorized",
+        "currency",
+        "shipper_org_id",
+        "carrier_org_id",
+        "purpose",
+        "shortfall",
+        "reason"
+      ]
+    },
+    "PaymentCaptured": {
+      "title": "PaymentCaptured",
+      "description": "A card payment was settled: what the shipper owed for a completed haul, or for cancelling one late, was taken from the card. `shortfall` is what the card did not give and the shipper now owes.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "payment_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The card payment of the load."
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The load the payment is for."
+        },
+        "booking_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The haul the payment settled."
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The shipper organization that pays."
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The person whose card pays."
+        },
+        "authorized": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "What stands blocked on the card for the load after this event, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3,
+          "description": "ISO 4217 code; `UZS` today."
+        },
+        "shipper_org_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The shipper organization."
+        },
+        "carrier_org_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The carrier organization of the haul."
+        },
+        "purpose": {
+          "$ref": "#/definitions/PaymentPurpose"
+        },
+        "amount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "What was taken from the card, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "commission": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "The platform's commission on the haul, whole so'm (a bare integer; `currency` is UZS today); 0 for a cancellation fee. The carrier is credited `amount` less the part of it the card covered."
+        },
+        "shortfall": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "What the card was asked for and did not give, whole so'm (a bare integer; `currency` is UZS today)."
+        }
+      },
+      "required": [
+        "event_id",
+        "payment_id",
+        "load_id",
+        "booking_id",
+        "org_id",
+        "user_id",
+        "authorized",
+        "currency",
+        "shipper_org_id",
+        "carrier_org_id",
+        "purpose",
+        "amount",
+        "commission",
+        "shortfall"
+      ]
+    },
+    "PaymentDeclined": {
+      "title": "PaymentDeclined",
+      "description": "The card refused to block a sum for a load. `authorized` 0 means the load has no payment; above 0, an earlier block still stands and only a rise was refused.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "payment_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The card payment of the load."
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The load the payment is for."
+        },
+        "booking_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "The haul the payment settled; null while the load has none yet."
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The shipper organization that pays."
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The person whose card pays."
+        },
+        "authorized": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "What stands blocked on the card for the load after this event, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3,
+          "description": "ISO 4217 code; `UZS` today."
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why, as a stable code (`INSUFFICIENT_FUNDS`, `CARD_EXPIRED`, `BANK_DECLINED`, ...)."
+        }
+      },
+      "required": [
+        "event_id",
+        "payment_id",
+        "load_id",
+        "booking_id",
+        "org_id",
+        "user_id",
+        "authorized",
+        "currency",
+        "reason"
+      ]
+    },
     "PaymentMethod": {
       "title": "PaymentMethod",
       "type": "string",
@@ -5597,6 +5929,85 @@
         "transfer",
         "card",
         "mixed"
+      ]
+    },
+    "PaymentPurpose": {
+      "title": "PaymentPurpose",
+      "type": "string",
+      "enum": [
+        "haul",
+        "cancel_fee"
+      ],
+      "description": "`haul`: a completed haul was charged; `cancel_fee`: the fee of a late cancellation."
+    },
+    "PaymentVoided": {
+      "title": "PaymentVoided",
+      "description": "The sum blocked for a load was released without anything being taken: the load closed without a haul to pay for.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+        },
+        "payment_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The card payment of the load."
+        },
+        "load_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The load the payment is for."
+        },
+        "booking_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "The haul the payment settled; null while the load has none yet."
+        },
+        "org_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The shipper organization that pays."
+        },
+        "user_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "The person whose card pays."
+        },
+        "authorized": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "What stands blocked on the card for the load after this event, whole so'm (a bare integer; `currency` is UZS today)."
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3,
+          "description": "ISO 4217 code; `UZS` today."
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Why the block was released; null when nobody said."
+        }
+      },
+      "required": [
+        "event_id",
+        "payment_id",
+        "load_id",
+        "booking_id",
+        "org_id",
+        "user_id",
+        "authorized",
+        "currency",
+        "reason"
       ]
     },
     "Ping": {
@@ -7304,6 +7715,7 @@
         "cash_topup",
         "cash_void",
         "card_topup",
+        "card_debt",
         "adjustment",
         "subscription_fee",
         "promo",
@@ -7314,7 +7726,7 @@
         "cancel_fee",
         "cancel_fee_share"
       ],
-      "description": "Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it. `card_topup`: the wallet was filled from a bank card, by hand or by its automatic top-up."
+      "description": "Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it. `card_topup`: the wallet was filled from a bank card, by hand or by its automatic top-up. `card_debt`: a card did not give all of a finished haul's price; the shipper owes the rest."
     },
     "WalletEntryPosted": {
       "title": "WalletEntryPosted",

@@ -319,6 +319,8 @@ pub struct BookingCancelled {
     #[doc = "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."]
     pub load_code: ::std::string::String,
     pub load_id: ::uuid::Uuid,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub payment_method: ::std::option::Option<PaymentMethod>,
     #[doc = "The cancellation counts against the driver's acceptance rate: the driver's own cancellation of an instant haul, or of a plan later than goway-loads' free-cancel window before pickup, or an operator's cancellation of a booking whose driver never showed up. False for every other shipper and operator cancellation."]
     pub penalized: bool,
     #[doc = "The cancelled booking was a plan."]
@@ -455,6 +457,9 @@ pub struct BookingCompleted {
     pub carrier_org_id: ::uuid::Uuid,
     #[doc = "Price lines; the first is always the agreed tariff."]
     pub charges: ::std::vec::Vec<ChargeLine>,
+    #[doc = "What the shipper pays for the haul, the total less their bonus, whole so'm (a bare integer; `currency` is UZS today). On a card haul this is what the card is charged."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub client_pays: ::std::option::Option<u64>,
     #[doc = "When the haul was closed; the code allows null, it is always set. ISO 8601 with offset, as Python's `isoformat()` writes it."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub completed_at: ::std::option::Option<::chrono::DateTime<::chrono::offset::Utc>>,
@@ -467,6 +472,8 @@ pub struct BookingCompleted {
     #[doc = "The load's short code, for example `GW-7F3K2M`; wallets and receipts show it."]
     pub load_code: ::std::string::String,
     pub load_id: ::uuid::Uuid,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub payment_method: ::std::option::Option<PaymentMethod>,
     #[doc = "What the haul actually settled at: the agreed price unless another sum was confirmed, whole so'm (a bare integer; `currency` is UZS today)."]
     pub settled_amount: u64,
     pub shipper_org_id: ::uuid::Uuid,
@@ -2628,11 +2635,14 @@ pub struct KickedFrame {
     #[serde(rename = "type")]
     pub type_: ::std::string::String,
 }
-#[doc = "The shipper withdrew an open load."]
+#[doc = "An open load left the market: its shipper or an operator withdrew it, or its haul was cancelled and it was not posted again."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct LoadCancelled {
     #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
     pub event_id: ::uuid::Uuid,
+    #[doc = "Set when the load closed because its shipper cancelled this haul late: a card payment of the load is then settled by that haul's fee, not released."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub fee_booking_id: ::std::option::Option<::uuid::Uuid>,
     pub load_id: ::uuid::Uuid,
     #[doc = "The shipper organization."]
     pub org_id: ::uuid::Uuid,
@@ -4092,6 +4102,306 @@ pub struct PassedWaypoint {
     pub passed_at: ::chrono::DateTime<::chrono::offset::Utc>,
     pub region_id: ::uuid::Uuid,
 }
+#[doc = "A sum was blocked on a shipper's card for a load: the load's price when it was posted, or a rise of it."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct PaymentAuthorized {
+    #[doc = "What stands blocked on the card for the load after this event, whole so'm (a bare integer; `currency` is UZS today)."]
+    pub authorized: u64,
+    #[doc = "The haul the payment settled; null while the load has none yet."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub booking_id: ::std::option::Option<::uuid::Uuid>,
+    #[doc = "ISO 4217 code; `UZS` today."]
+    pub currency: PaymentAuthorizedCurrency,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "The load the payment is for."]
+    pub load_id: ::uuid::Uuid,
+    #[doc = "The shipper organization that pays."]
+    pub org_id: ::uuid::Uuid,
+    #[doc = "The card payment of the load."]
+    pub payment_id: ::uuid::Uuid,
+    #[doc = "The person whose card pays."]
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "ISO 4217 code; `UZS` today."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct PaymentAuthorizedCurrency(::std::string::String);
+impl ::std::ops::Deref for PaymentAuthorizedCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<PaymentAuthorizedCurrency> for ::std::string::String {
+    fn from(value: PaymentAuthorizedCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for PaymentAuthorizedCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 3usize {
+            return Err("longer than 3 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for PaymentAuthorizedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for PaymentAuthorizedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for PaymentAuthorizedCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+#[doc = "A card did not give all of what a finished haul or a late cancellation cost. The missing sum is the shipper's debt; an operator follows it up."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct PaymentCaptureFailed {
+    #[doc = "What stands blocked on the card for the load after this event, whole so'm (a bare integer; `currency` is UZS today)."]
+    pub authorized: u64,
+    #[doc = "The haul the payment settled."]
+    pub booking_id: ::uuid::Uuid,
+    #[doc = "The carrier organization of the haul."]
+    pub carrier_org_id: ::uuid::Uuid,
+    #[doc = "ISO 4217 code; `UZS` today."]
+    pub currency: PaymentCaptureFailedCurrency,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "The load the payment is for."]
+    pub load_id: ::uuid::Uuid,
+    #[doc = "The shipper organization that pays."]
+    pub org_id: ::uuid::Uuid,
+    #[doc = "The card payment of the load."]
+    pub payment_id: ::uuid::Uuid,
+    pub purpose: PaymentPurpose,
+    #[doc = "Why, as a stable code (`INSUFFICIENT_FUNDS`, `CARD_EXPIRED`, `BANK_DECLINED`, ...)."]
+    pub reason: ::std::string::String,
+    #[doc = "The shipper organization."]
+    pub shipper_org_id: ::uuid::Uuid,
+    #[doc = "What the card did not give, whole so'm (a bare integer; `currency` is UZS today)."]
+    pub shortfall: ::std::num::NonZeroU64,
+    #[doc = "The person whose card pays."]
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "ISO 4217 code; `UZS` today."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct PaymentCaptureFailedCurrency(::std::string::String);
+impl ::std::ops::Deref for PaymentCaptureFailedCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<PaymentCaptureFailedCurrency> for ::std::string::String {
+    fn from(value: PaymentCaptureFailedCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for PaymentCaptureFailedCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 3usize {
+            return Err("longer than 3 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for PaymentCaptureFailedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for PaymentCaptureFailedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for PaymentCaptureFailedCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+#[doc = "A card payment was settled: what the shipper owed for a completed haul, or for cancelling one late, was taken from the card. `shortfall` is what the card did not give and the shipper now owes."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct PaymentCaptured {
+    #[doc = "What was taken from the card, whole so'm (a bare integer; `currency` is UZS today)."]
+    pub amount: u64,
+    #[doc = "What stands blocked on the card for the load after this event, whole so'm (a bare integer; `currency` is UZS today)."]
+    pub authorized: u64,
+    #[doc = "The haul the payment settled."]
+    pub booking_id: ::uuid::Uuid,
+    #[doc = "The carrier organization of the haul."]
+    pub carrier_org_id: ::uuid::Uuid,
+    #[doc = "The platform's commission on the haul, whole so'm (a bare integer; `currency` is UZS today); 0 for a cancellation fee. The carrier is credited `amount` less the part of it the card covered."]
+    pub commission: u64,
+    #[doc = "ISO 4217 code; `UZS` today."]
+    pub currency: PaymentCapturedCurrency,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "The load the payment is for."]
+    pub load_id: ::uuid::Uuid,
+    #[doc = "The shipper organization that pays."]
+    pub org_id: ::uuid::Uuid,
+    #[doc = "The card payment of the load."]
+    pub payment_id: ::uuid::Uuid,
+    pub purpose: PaymentPurpose,
+    #[doc = "The shipper organization."]
+    pub shipper_org_id: ::uuid::Uuid,
+    #[doc = "What the card was asked for and did not give, whole so'm (a bare integer; `currency` is UZS today)."]
+    pub shortfall: u64,
+    #[doc = "The person whose card pays."]
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "ISO 4217 code; `UZS` today."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct PaymentCapturedCurrency(::std::string::String);
+impl ::std::ops::Deref for PaymentCapturedCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<PaymentCapturedCurrency> for ::std::string::String {
+    fn from(value: PaymentCapturedCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for PaymentCapturedCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 3usize {
+            return Err("longer than 3 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for PaymentCapturedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for PaymentCapturedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for PaymentCapturedCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
+#[doc = "The card refused to block a sum for a load. `authorized` 0 means the load has no payment; above 0, an earlier block still stands and only a rise was refused."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct PaymentDeclined {
+    #[doc = "What stands blocked on the card for the load after this event, whole so'm (a bare integer; `currency` is UZS today)."]
+    pub authorized: u64,
+    #[doc = "The haul the payment settled; null while the load has none yet."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub booking_id: ::std::option::Option<::uuid::Uuid>,
+    #[doc = "ISO 4217 code; `UZS` today."]
+    pub currency: PaymentDeclinedCurrency,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "The load the payment is for."]
+    pub load_id: ::uuid::Uuid,
+    #[doc = "The shipper organization that pays."]
+    pub org_id: ::uuid::Uuid,
+    #[doc = "The card payment of the load."]
+    pub payment_id: ::uuid::Uuid,
+    #[doc = "Why, as a stable code (`INSUFFICIENT_FUNDS`, `CARD_EXPIRED`, `BANK_DECLINED`, ...)."]
+    pub reason: ::std::string::String,
+    #[doc = "The person whose card pays."]
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "ISO 4217 code; `UZS` today."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct PaymentDeclinedCurrency(::std::string::String);
+impl ::std::ops::Deref for PaymentDeclinedCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<PaymentDeclinedCurrency> for ::std::string::String {
+    fn from(value: PaymentDeclinedCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for PaymentDeclinedCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 3usize {
+            return Err("longer than 3 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for PaymentDeclinedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for PaymentDeclinedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for PaymentDeclinedCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
+    }
+}
 #[doc = "`PaymentMethod`"]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum PaymentMethod {
@@ -4136,6 +4446,117 @@ impl ::std::convert::TryFrom<::std::string::String> for PaymentMethod {
     type Error = self::error::ConversionError;
     fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
         value.parse()
+    }
+}
+#[doc = "`haul`: a completed haul was charged; `cancel_fee`: the fee of a late cancellation."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum PaymentPurpose {
+    #[serde(rename = "haul")]
+    Haul,
+    #[serde(rename = "cancel_fee")]
+    CancelFee,
+}
+impl ::std::fmt::Display for PaymentPurpose {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Haul => f.write_str("haul"),
+            Self::CancelFee => f.write_str("cancel_fee"),
+        }
+    }
+}
+impl ::std::str::FromStr for PaymentPurpose {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "haul" => Ok(Self::Haul),
+            "cancel_fee" => Ok(Self::CancelFee),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for PaymentPurpose {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for PaymentPurpose {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+#[doc = "The sum blocked for a load was released without anything being taken: the load closed without a haul to pay for."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
+pub struct PaymentVoided {
+    #[doc = "What stands blocked on the card for the load after this event, whole so'm (a bare integer; `currency` is UZS today)."]
+    pub authorized: u64,
+    #[doc = "The haul the payment settled; null while the load has none yet."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub booking_id: ::std::option::Option<::uuid::Uuid>,
+    #[doc = "ISO 4217 code; `UZS` today."]
+    pub currency: PaymentVoidedCurrency,
+    #[doc = "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."]
+    pub event_id: ::uuid::Uuid,
+    #[doc = "The load the payment is for."]
+    pub load_id: ::uuid::Uuid,
+    #[doc = "The shipper organization that pays."]
+    pub org_id: ::uuid::Uuid,
+    #[doc = "The card payment of the load."]
+    pub payment_id: ::uuid::Uuid,
+    #[doc = "Why the block was released; null when nobody said."]
+    #[serde(deserialize_with = "::std::option::Option::deserialize")]
+    pub reason: ::std::option::Option<::std::string::String>,
+    #[doc = "The person whose card pays."]
+    pub user_id: ::uuid::Uuid,
+}
+#[doc = "ISO 4217 code; `UZS` today."]
+#[derive(:: serde :: Serialize, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[serde(transparent)]
+pub struct PaymentVoidedCurrency(::std::string::String);
+impl ::std::ops::Deref for PaymentVoidedCurrency {
+    type Target = ::std::string::String;
+    fn deref(&self) -> &::std::string::String {
+        &self.0
+    }
+}
+impl ::std::convert::From<PaymentVoidedCurrency> for ::std::string::String {
+    fn from(value: PaymentVoidedCurrency) -> Self {
+        value.0
+    }
+}
+impl ::std::str::FromStr for PaymentVoidedCurrency {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        if value.chars().count() > 3usize {
+            return Err("longer than 3 characters".into());
+        }
+        if value.chars().count() < 3usize {
+            return Err("shorter than 3 characters".into());
+        }
+        Ok(Self(value.to_string()))
+    }
+}
+impl ::std::convert::TryFrom<&str> for PaymentVoidedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for PaymentVoidedCurrency {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl<'de> ::serde::Deserialize<'de> for PaymentVoidedCurrency {
+    fn deserialize<D>(deserializer: D) -> ::std::result::Result<Self, D::Error>
+    where
+        D: ::serde::Deserializer<'de>,
+    {
+        ::std::string::String::deserialize(deserializer)?
+            .parse()
+            .map_err(|e: self::error::ConversionError| <D::Error as ::serde::de::Error>::custom(e.to_string()))
     }
 }
 #[doc = "Nothing: an empty object, or no `data` at all."]
@@ -5872,7 +6293,7 @@ pub struct WalletEligibilityChanged {
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub user_id: ::std::option::Option<::uuid::Uuid>,
 }
-#[doc = "Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it. `card_topup`: the wallet was filled from a bank card, by hand or by its automatic top-up."]
+#[doc = "Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it. `card_topup`: the wallet was filled from a bank card, by hand or by its automatic top-up. `card_debt`: a card did not give all of a finished haul's price; the shipper owes the rest."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum WalletEntryKind {
     #[serde(rename = "commission")]
@@ -5885,6 +6306,8 @@ pub enum WalletEntryKind {
     CashVoid,
     #[serde(rename = "card_topup")]
     CardTopup,
+    #[serde(rename = "card_debt")]
+    CardDebt,
     #[serde(rename = "adjustment")]
     Adjustment,
     #[serde(rename = "subscription_fee")]
@@ -5912,6 +6335,7 @@ impl ::std::fmt::Display for WalletEntryKind {
             Self::CashTopup => f.write_str("cash_topup"),
             Self::CashVoid => f.write_str("cash_void"),
             Self::CardTopup => f.write_str("card_topup"),
+            Self::CardDebt => f.write_str("card_debt"),
             Self::Adjustment => f.write_str("adjustment"),
             Self::SubscriptionFee => f.write_str("subscription_fee"),
             Self::Promo => f.write_str("promo"),
@@ -5933,6 +6357,7 @@ impl ::std::str::FromStr for WalletEntryKind {
             "cash_topup" => Ok(Self::CashTopup),
             "cash_void" => Ok(Self::CashVoid),
             "card_topup" => Ok(Self::CardTopup),
+            "card_debt" => Ok(Self::CardDebt),
             "adjustment" => Ok(Self::Adjustment),
             "subscription_fee" => Ok(Self::SubscriptionFee),
             "promo" => Ok(Self::Promo),

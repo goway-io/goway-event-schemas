@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PaymentAuthorized",
+  "description": "A sum was blocked on a shipper's card for a load: the load's price when it was posted, or a rise of it.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "payment_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The card payment of the load."
+    },
+    "load_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The load the payment is for."
+    },
+    "booking_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "The haul the payment settled; null while the load has none yet."
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The shipper organization that pays."
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person whose card pays."
+    },
+    "authorized": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "What stands blocked on the card for the load after this event, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3,
+      "description": "ISO 4217 code; `UZS` today."
+    }
+  },
+  "required": [
+    "event_id",
+    "payment_id",
+    "load_id",
+    "booking_id",
+    "org_id",
+    "user_id",
+    "authorized",
+    "currency"
+  ]
+}

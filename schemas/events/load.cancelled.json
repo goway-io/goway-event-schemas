@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "LoadCancelled",
-  "description": "The shipper withdrew an open load.",
+  "description": "An open load left the market: its shipper or an operator withdrew it, or its haul was cancelled and it was not posted again.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -18,6 +18,14 @@
       "type": "string",
       "format": "uuid",
       "description": "The shipper organization."
+    },
+    "fee_booking_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid",
+      "description": "Set when the load closed because its shipper cancelled this haul late: a card payment of the load is then settled by that haul's fee, not released."
     }
   },
   "required": [
