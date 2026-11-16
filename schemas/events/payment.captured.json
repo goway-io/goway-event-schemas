@@ -20,6 +20,13 @@
       "format": "uuid",
       "description": "The load the payment is for."
     },
+    "load_code": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The load's short code, for example `GW-7F3K2M`; null when billing was not told it."
+    },
     "booking_id": {
       "type": "string",
       "format": "uuid",
@@ -73,7 +80,7 @@
     "commission": {
       "type": "integer",
       "minimum": 0,
-      "description": "The platform's commission on the haul, whole so'm (a bare integer; `currency` is UZS today); 0 for a cancellation fee. The carrier is credited `amount` less the part of it the card covered."
+      "description": "The part of the platform's commission on the haul that the card covered, whole so'm (a bare integer; `currency` is UZS today); 0 for a cancellation fee. The carrier is credited `amount` less it."
     },
     "shortfall": {
       "type": "integer",

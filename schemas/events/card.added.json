@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CardAdded",
+  "description": "A person linked a bank card and the bank confirmed it.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "card_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The card, as billing's `/v1/cards` names it."
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The organization the card was linked for."
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person who linked it."
+    },
+    "brand": {
+      "type": "string",
+      "description": "The card's network: `HUMO`, `UZCARD`, ..."
+    },
+    "last4": {
+      "type": "string",
+      "minLength": 4,
+      "maxLength": 4,
+      "description": "The last four digits, to name the card to its owner."
+    }
+  },
+  "required": [
+    "event_id",
+    "card_id",
+    "org_id",
+    "user_id",
+    "brand",
+    "last4"
+  ]
+}

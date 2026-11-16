@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EarningsReleased",
+  "description": "A carrier's income from hauls paid by card finished its wait and may now be withdrawn.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The carrier organization."
+    },
+    "amount": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "What became available just now, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "available": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "What may be withdrawn after it, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3,
+      "description": "ISO 4217 code; `UZS` today."
+    }
+  },
+  "required": [
+    "event_id",
+    "org_id",
+    "amount",
+    "available",
+    "currency"
+  ]
+}

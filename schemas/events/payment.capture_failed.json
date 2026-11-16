@@ -20,6 +20,13 @@
       "format": "uuid",
       "description": "The load the payment is for."
     },
+    "load_code": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The load's short code, for example `GW-7F3K2M`; null when billing was not told it."
+    },
     "booking_id": {
       "type": "string",
       "format": "uuid",

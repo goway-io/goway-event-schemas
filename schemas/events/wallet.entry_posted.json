@@ -28,6 +28,8 @@
         "cash_void",
         "card_topup",
         "card_debt",
+        "card_refund",
+        "refund_payout",
         "adjustment",
         "subscription_fee",
         "promo",
@@ -38,7 +40,7 @@
         "cancel_fee",
         "cancel_fee_share"
       ],
-      "description": "Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it. `card_topup`: the wallet was filled from a bank card, by hand or by its automatic top-up. `card_debt`: a card did not give all of a finished haul's price; the shipper owes the rest."
+      "description": "Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it. `card_topup`: the wallet was filled from a bank card, by hand or by its automatic top-up. `card_debt`: a card did not give all of a finished haul's price; the shipper owes the rest. `card_refund`: a card payment gave money back, to the shipper's wallet (positive), or took back from a carrier what they had already withdrawn (negative). `refund_payout`: a wallet credit was sent on to the shipper's card (negative), or came back when that payout failed (positive)."
     },
     "amount": {
       "type": "integer",

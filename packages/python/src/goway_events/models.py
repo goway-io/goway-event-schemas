@@ -47,6 +47,16 @@ class AuthFrame(BaseModel):
     data: Auth
 
 
+class AutoTopupOffReason(StrEnum):
+    """
+    `DECLINED`: the bank declined too many times in a row; `CARD_REMOVED`: the card it charged is gone; `AMOUNT`: its sum is outside what a top-up may carry now.
+    """
+
+    DECLINED = "DECLINED"
+    CARD_REMOVED = "CARD_REMOVED"
+    AMOUNT = "AMOUNT"
+
+
 class BoardLoadAdded(BaseModel):
     """
     A load appeared on a subscribed lane: newly posted or back after a cancelled booking. A signal; the app reads the list again over REST.
@@ -330,6 +340,74 @@ class CancelledBy(StrEnum):
     SHIPPER = "shipper"
     CARRIER = "carrier"
     OPERATOR = "operator"
+
+
+class CardAdded(BaseModel):
+    """
+    A person linked a bank card and the bank confirmed it.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    card_id: UUID
+    """
+    The card, as billing's `/v1/cards` names it.
+    """
+    org_id: UUID
+    """
+    The organization the card was linked for.
+    """
+    user_id: UUID
+    """
+    The person who linked it.
+    """
+    brand: str
+    """
+    The card's network: `HUMO`, `UZCARD`, ...
+    """
+    last4: Annotated[str, Field(max_length=4, min_length=4)]
+    """
+    The last four digits, to name the card to its owner.
+    """
+
+
+class CardRemoved(BaseModel):
+    """
+    A linked card was removed, by its owner or by an operator.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    card_id: UUID
+    """
+    The card, as billing's `/v1/cards` names it.
+    """
+    org_id: UUID
+    """
+    The organization the card was linked for.
+    """
+    user_id: UUID
+    """
+    The person who linked it.
+    """
+    brand: str
+    """
+    The card's network: `HUMO`, `UZCARD`, ...
+    """
+    last4: Annotated[str, Field(max_length=4, min_length=4)]
+    """
+    The last four digits, to name the card to its owner.
+    """
 
 
 class CarrierLineChanged(BaseModel):
@@ -724,6 +802,36 @@ class DriverStatsChanged(BaseModel):
     Null until the first rating.
     """
     rating_count: Annotated[int, Field(ge=0)]
+
+
+class EarningsReleased(BaseModel):
+    """
+    A carrier's income from hauls paid by card finished its wait and may now be withdrawn.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    org_id: UUID
+    """
+    The carrier organization.
+    """
+    amount: Annotated[int, Field(ge=1)]
+    """
+    What became available just now, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    available: Annotated[int, Field(ge=0)]
+    """
+    What may be withdrawn after it, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    """
+    ISO 4217 code; `UZS` today.
+    """
 
 
 class EtaStop(StrEnum):
@@ -1544,6 +1652,84 @@ class PassedWaypoint(BaseModel):
     passed_at: AwareDatetime
 
 
+class PaymentAdjusted(BaseModel):
+    """
+    A haul's sum was settled again after its card payment was charged. A lower sum went back to the shipper's wallet (`delta` negative); a higher one was charged to the card (`delta` positive, what the card gave of it). `captured`, `refunded` and `shortfall` are the payment's totals after it.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    payment_id: UUID
+    """
+    The card payment of the load.
+    """
+    load_id: UUID
+    """
+    The load the payment is for.
+    """
+    load_code: str | None = None
+    """
+    The load's short code, for example `GW-7F3K2M`; null when billing was not told it.
+    """
+    booking_id: UUID
+    """
+    The haul the payment settled.
+    """
+    org_id: UUID
+    """
+    The shipper organization that pays.
+    """
+    user_id: UUID
+    """
+    The person whose card pays.
+    """
+    authorized: Annotated[int, Field(ge=0)]
+    """
+    What stands blocked on the card for the load, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    """
+    ISO 4217 code; `UZS` today.
+    """
+    shipper_org_id: UUID
+    """
+    The shipper organization.
+    """
+    carrier_org_id: UUID
+    """
+    The carrier organization of the haul.
+    """
+    adjustment_id: UUID
+    """
+    What tells this adjustment from another of the same payment.
+    """
+    delta: int
+    """
+    What the shipper paid more (positive) or got back (negative), whole so'm (a bare integer; `currency` is UZS today).
+    """
+    commission_delta: int
+    """
+    How the platform's commission on the haul moved with it, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    captured: Annotated[int, Field(ge=0)]
+    """
+    Taken from the card in all, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    refunded: Annotated[int, Field(ge=0)]
+    """
+    Given back in all, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    shortfall: Annotated[int, Field(ge=0)]
+    """
+    What the card did not give in all, whole so'm (a bare integer; `currency` is UZS today).
+    """
+
+
 class PaymentAuthorized(BaseModel):
     """
     A sum was blocked on a shipper's card for a load: the load's price when it was posted, or a rise of it.
@@ -1563,6 +1749,10 @@ class PaymentAuthorized(BaseModel):
     load_id: UUID
     """
     The load the payment is for.
+    """
+    load_code: str | None = None
+    """
+    The load's short code, for example `GW-7F3K2M`; null when billing was not told it.
     """
     booking_id: UUID | None
     """
@@ -1606,6 +1796,10 @@ class PaymentDeclined(BaseModel):
     """
     The load the payment is for.
     """
+    load_code: str | None = None
+    """
+    The load's short code, for example `GW-7F3K2M`; null when billing was not told it.
+    """
     booking_id: UUID | None
     """
     The haul the payment settled; null while the load has none yet.
@@ -1648,6 +1842,68 @@ class PaymentPurpose(StrEnum):
     CANCEL_FEE = "cancel_fee"
 
 
+class PaymentRefunded(BaseModel):
+    """
+    Everything a card payment had taken was given back to the shipper's card. The carrier's part came out of their card income, the platform's out of its revenue.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    payment_id: UUID
+    """
+    The card payment of the load.
+    """
+    load_id: UUID
+    """
+    The load the payment is for.
+    """
+    load_code: str | None = None
+    """
+    The load's short code, for example `GW-7F3K2M`; null when billing was not told it.
+    """
+    booking_id: UUID
+    """
+    The haul the payment settled.
+    """
+    org_id: UUID
+    """
+    The shipper organization that pays.
+    """
+    user_id: UUID
+    """
+    The person whose card pays.
+    """
+    authorized: Annotated[int, Field(ge=0)]
+    """
+    What stands blocked on the card for the load, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    """
+    ISO 4217 code; `UZS` today.
+    """
+    shipper_org_id: UUID
+    """
+    The shipper organization.
+    """
+    carrier_org_id: UUID
+    """
+    The carrier organization of the haul.
+    """
+    amount: Annotated[int, Field(ge=1)]
+    """
+    What went back to the card, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    commission: Annotated[int, Field(ge=0)]
+    """
+    The platform's part of it, whole so'm (a bare integer; `currency` is UZS today): the haul's commission is no longer charged.
+    """
+
+
 class PaymentVoided(BaseModel):
     """
     The sum blocked for a load was released without anything being taken: the load closed without a haul to pay for.
@@ -1667,6 +1923,10 @@ class PaymentVoided(BaseModel):
     load_id: UUID
     """
     The load the payment is for.
+    """
+    load_code: str | None = None
+    """
+    The load's short code, for example `GW-7F3K2M`; null when billing was not told it.
     """
     booking_id: UUID | None
     """
@@ -1691,6 +1951,136 @@ class PaymentVoided(BaseModel):
     reason: str | None
     """
     Why the block was released; null when nobody said.
+    """
+
+
+class PayoutFailed(BaseModel):
+    """
+    A payout did not go through. The whole sum, fee included, is back in the carrier's available income.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    payout_id: UUID
+    """
+    The payout.
+    """
+    org_id: UUID
+    """
+    The carrier organization that withdraws.
+    """
+    user_id: UUID
+    """
+    The person who asked, to whose card the money goes.
+    """
+    amount: Annotated[int, Field(ge=1)]
+    """
+    What left the carrier's available card income, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    fee: Annotated[int, Field(ge=0)]
+    """
+    The transfer fee kept from it, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    net: Annotated[int, Field(ge=1)]
+    """
+    What the card receives, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    """
+    ISO 4217 code; `UZS` today.
+    """
+    reason: str
+    """
+    Why, as a stable code (`PAYOUT_FAILED`, `CARD_NOT_FOUND`, `BANK_DECLINED`, ...).
+    """
+
+
+class PayoutPaid(BaseModel):
+    """
+    A payout reached the carrier's card.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    payout_id: UUID
+    """
+    The payout.
+    """
+    org_id: UUID
+    """
+    The carrier organization that withdraws.
+    """
+    user_id: UUID
+    """
+    The person who asked, to whose card the money goes.
+    """
+    amount: Annotated[int, Field(ge=1)]
+    """
+    What left the carrier's available card income, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    fee: Annotated[int, Field(ge=0)]
+    """
+    The transfer fee kept from it, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    net: Annotated[int, Field(ge=1)]
+    """
+    What the card receives, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    """
+    ISO 4217 code; `UZS` today.
+    """
+
+
+class PayoutRequested(BaseModel):
+    """
+    A carrier asked to withdraw card income to a card. The sum is set aside and on its way.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    payout_id: UUID
+    """
+    The payout.
+    """
+    org_id: UUID
+    """
+    The carrier organization that withdraws.
+    """
+    user_id: UUID
+    """
+    The person who asked, to whose card the money goes.
+    """
+    amount: Annotated[int, Field(ge=1)]
+    """
+    What left the carrier's available card income, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    fee: Annotated[int, Field(ge=0)]
+    """
+    The transfer fee kept from it, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    net: Annotated[int, Field(ge=1)]
+    """
+    What the card receives, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    """
+    ISO 4217 code; `UZS` today.
     """
 
 
@@ -2573,9 +2963,132 @@ class VerificationStatus(StrEnum):
     EXPIRED = "expired"
 
 
+class WalletAutoTopupDisabled(BaseModel):
+    """
+    A wallet's automatic top-up switched itself off: the bank declined it too many times in a row, or its card was removed.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    org_id: UUID
+    """
+    The organization whose wallet it is.
+    """
+    user_id: UUID
+    """
+    The person who had set it up.
+    """
+    reason: AutoTopupOffReason
+
+
+class WalletCardToppedUp(BaseModel):
+    """
+    A wallet was filled from a linked card, by hand or by its automatic top-up.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    topup_id: UUID
+    """
+    The top-up, as `/v1/wallet/topups` names it.
+    """
+    org_id: UUID
+    """
+    The organization whose wallet it is.
+    """
+    user_id: UUID
+    """
+    The person whose card paid.
+    """
+    amount: Annotated[int, Field(ge=1)]
+    """
+    The sum of the top-up, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    """
+    ISO 4217 code; `UZS` today.
+    """
+    auto: bool
+    """
+    Started by the wallet's automatic top-up, not by the person.
+    """
+    card_brand: str | None
+    """
+    The network of the card that paid; null when the card is gone.
+    """
+    card_last4: str | None
+    """
+    Its last four digits; null when the card is gone.
+    """
+    balance: int
+    """
+    The wallet's balance after it, whole so'm (a bare integer; `currency` is UZS today); negative means debt.
+    """
+
+
+class WalletCardTopupFailed(BaseModel):
+    """
+    A top-up from a card did not go through; nothing was charged.
+    """
+
+    model_config = ConfigDict(
+        extra="ignore",
+    )
+    event_id: UUID
+    """
+    Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+    """
+    topup_id: UUID
+    """
+    The top-up, as `/v1/wallet/topups` names it.
+    """
+    org_id: UUID
+    """
+    The organization whose wallet it is.
+    """
+    user_id: UUID
+    """
+    The person whose card paid.
+    """
+    amount: Annotated[int, Field(ge=1)]
+    """
+    The sum of the top-up, whole so'm (a bare integer; `currency` is UZS today).
+    """
+    currency: Annotated[str, Field(max_length=3, min_length=3)]
+    """
+    ISO 4217 code; `UZS` today.
+    """
+    auto: bool
+    """
+    Started by the wallet's automatic top-up, not by the person.
+    """
+    card_brand: str | None
+    """
+    The network of the card that paid; null when the card is gone.
+    """
+    card_last4: str | None
+    """
+    Its last four digits; null when the card is gone.
+    """
+    reason: str
+    """
+    Why, as a stable code (`INSUFFICIENT_FUNDS`, `CARD_EXPIRED`, `BANK_DECLINED`, ...).
+    """
+
+
 class WalletEntryKind(StrEnum):
     """
-    Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it. `card_topup`: the wallet was filled from a bank card, by hand or by its automatic top-up. `card_debt`: a card did not give all of a finished haul's price; the shipper owes the rest.
+    Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it. `card_topup`: the wallet was filled from a bank card, by hand or by its automatic top-up. `card_debt`: a card did not give all of a finished haul's price; the shipper owes the rest. `card_refund`: a card payment gave money back, to the shipper's wallet (positive), or took back from a carrier what they had already withdrawn (negative). `refund_payout`: a wallet credit was sent on to the shipper's card (negative), or came back when that payout failed (positive).
     """
 
     COMMISSION = "commission"
@@ -2584,6 +3097,8 @@ class WalletEntryKind(StrEnum):
     CASH_VOID = "cash_void"
     CARD_TOPUP = "card_topup"
     CARD_DEBT = "card_debt"
+    CARD_REFUND = "card_refund"
+    REFUND_PAYOUT = "refund_payout"
     ADJUSTMENT = "adjustment"
     SUBSCRIPTION_FEE = "subscription_fee"
     PROMO = "promo"
@@ -4334,6 +4849,10 @@ class PaymentCaptureFailed(BaseModel):
     """
     The load the payment is for.
     """
+    load_code: str | None = None
+    """
+    The load's short code, for example `GW-7F3K2M`; null when billing was not told it.
+    """
     booking_id: UUID
     """
     The haul the payment settled.
@@ -4393,6 +4912,10 @@ class PaymentCaptured(BaseModel):
     """
     The load the payment is for.
     """
+    load_code: str | None = None
+    """
+    The load's short code, for example `GW-7F3K2M`; null when billing was not told it.
+    """
     booking_id: UUID
     """
     The haul the payment settled.
@@ -4428,7 +4951,7 @@ class PaymentCaptured(BaseModel):
     """
     commission: Annotated[int, Field(ge=0)]
     """
-    The platform's commission on the haul, whole so'm (a bare integer; `currency` is UZS today); 0 for a cancellation fee. The carrier is credited `amount` less the part of it the card covered.
+    The part of the platform's commission on the haul that the card covered, whole so'm (a bare integer; `currency` is UZS today); 0 for a cancellation fee. The carrier is credited `amount` less it.
     """
     shortfall: Annotated[int, Field(ge=0)]
     """

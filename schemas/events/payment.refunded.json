@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PaymentRefunded",
+  "description": "Everything a card payment had taken was given back to the shipper's card. The carrier's part came out of their card income, the platform's out of its revenue.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "payment_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The card payment of the load."
+    },
+    "load_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The load the payment is for."
+    },
+    "load_code": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The load's short code, for example `GW-7F3K2M`; null when billing was not told it."
+    },
+    "booking_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The haul the payment settled."
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The shipper organization that pays."
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person whose card pays."
+    },
+    "authorized": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "What stands blocked on the card for the load, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3,
+      "description": "ISO 4217 code; `UZS` today."
+    },
+    "shipper_org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The shipper organization."
+    },
+    "carrier_org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The carrier organization of the haul."
+    },
+    "amount": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "What went back to the card, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "commission": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The platform's part of it, whole so'm (a bare integer; `currency` is UZS today): the haul's commission is no longer charged."
+    }
+  },
+  "required": [
+    "event_id",
+    "payment_id",
+    "load_id",
+    "booking_id",
+    "org_id",
+    "user_id",
+    "authorized",
+    "currency",
+    "shipper_org_id",
+    "carrier_org_id",
+    "amount",
+    "commission"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+  "topup_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e71",
+  "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+  "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e07",
+  "amount": 200000,
+  "currency": "UZS",
+  "auto": true,
+  "card_brand": "HUMO",
+  "card_last4": "8802",
+  "reason": "INSUFFICIENT_FUNDS"
+}

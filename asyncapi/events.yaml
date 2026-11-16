@@ -608,6 +608,94 @@ channels:
         $ref: '#/components/messages/paymentCaptureFailed'
     x-publisher: goway-billing
     x-consumers: []
+  earningsReleased:
+    address: earnings.released
+    description: "Card income released."
+    messages:
+      earningsReleased:
+        $ref: '#/components/messages/earningsReleased'
+    x-publisher: goway-billing
+    x-consumers: [goway-notify]
+  payoutRequested:
+    address: payout.requested
+    description: "Payout requested."
+    messages:
+      payoutRequested:
+        $ref: '#/components/messages/payoutRequested'
+    x-publisher: goway-billing
+    x-consumers: [goway-notify]
+  payoutPaid:
+    address: payout.paid
+    description: "Payout paid."
+    messages:
+      payoutPaid:
+        $ref: '#/components/messages/payoutPaid'
+    x-publisher: goway-billing
+    x-consumers: [goway-notify]
+  payoutFailed:
+    address: payout.failed
+    description: "Payout failed."
+    messages:
+      payoutFailed:
+        $ref: '#/components/messages/payoutFailed'
+    x-publisher: goway-billing
+    x-consumers: [goway-notify]
+  paymentRefunded:
+    address: payment.refunded
+    description: "Payment refunded."
+    messages:
+      paymentRefunded:
+        $ref: '#/components/messages/paymentRefunded'
+    x-publisher: goway-billing
+    x-consumers: [goway-loads]
+  paymentAdjusted:
+    address: payment.adjusted
+    description: "Payment adjusted."
+    messages:
+      paymentAdjusted:
+        $ref: '#/components/messages/paymentAdjusted'
+    x-publisher: goway-billing
+    x-consumers: [goway-loads]
+  cardAdded:
+    address: card.added
+    description: "Card added."
+    messages:
+      cardAdded:
+        $ref: '#/components/messages/cardAdded'
+    x-publisher: goway-billing
+    x-consumers: [goway-notify]
+  cardRemoved:
+    address: card.removed
+    description: "Card removed."
+    messages:
+      cardRemoved:
+        $ref: '#/components/messages/cardRemoved'
+    x-publisher: goway-billing
+    x-consumers: [goway-notify]
+  walletCardToppedUp:
+    address: wallet.card_topped_up
+    description: "Wallet topped up from a card."
+    messages:
+      walletCardToppedUp:
+        $ref: '#/components/messages/walletCardToppedUp'
+    x-publisher: goway-billing
+    x-consumers: [goway-notify]
+  walletCardTopupFailed:
+    address: wallet.card_topup_failed
+    description: "Card top-up failed."
+    messages:
+      walletCardTopupFailed:
+        $ref: '#/components/messages/walletCardTopupFailed'
+    x-publisher: goway-billing
+    x-consumers: [goway-notify]
+  walletAutoTopupDisabled:
+    address: wallet.auto_topup_disabled
+    description: "Automatic top-up switched off."
+    messages:
+      walletAutoTopupDisabled:
+        $ref: '#/components/messages/walletAutoTopupDisabled'
+    x-publisher: goway-billing
+    x-consumers: [goway-notify]
 operations:
   publishUserCreated:
     action: send
@@ -979,6 +1067,61 @@ operations:
     channel:
       $ref: '#/channels/paymentCaptureFailed'
     description: "Published with `payment.captured` when the card gave less than it was asked for."
+  publishEarningsReleased:
+    action: send
+    channel:
+      $ref: '#/channels/earningsReleased'
+    description: "Published when the worker frees card income whose `payout_hold_hours` are over, once per organization and pass."
+  publishPayoutRequested:
+    action: send
+    channel:
+      $ref: '#/channels/payoutRequested'
+    description: "Published when a payout is accepted and its sum leaves the available income."
+  publishPayoutPaid:
+    action: send
+    channel:
+      $ref: '#/channels/payoutPaid'
+    description: "Published when the provider confirms the transfer to the card."
+  publishPayoutFailed:
+    action: send
+    channel:
+      $ref: '#/channels/payoutFailed'
+    description: "Published when the provider refuses a payout or an operator closes it as failed."
+  publishPaymentRefunded:
+    action: send
+    channel:
+      $ref: '#/channels/paymentRefunded'
+    description: "Published when an operator's full refund of a card payment has gone through."
+  publishPaymentAdjusted:
+    action: send
+    channel:
+      $ref: '#/channels/paymentAdjusted'
+    description: "Published when `booking.amount_settled` changes what a card-paid haul costs, or an operator grants part of a payment back."
+  publishCardAdded:
+    action: send
+    channel:
+      $ref: '#/channels/cardAdded'
+    description: "Published when a card becomes usable: the bank's code was confirmed."
+  publishCardRemoved:
+    action: send
+    channel:
+      $ref: '#/channels/cardRemoved'
+    description: "Published when a card that was in use is unlinked."
+  publishWalletCardToppedUp:
+    action: send
+    channel:
+      $ref: '#/channels/walletCardToppedUp'
+    description: "Published when a card top-up's charge goes through and the wallet is credited."
+  publishWalletCardTopupFailed:
+    action: send
+    channel:
+      $ref: '#/channels/walletCardTopupFailed'
+    description: "Published when the bank refuses a card top-up or it is closed as failed."
+  publishWalletAutoTopupDisabled:
+    action: send
+    channel:
+      $ref: '#/channels/walletAutoTopupDisabled'
+    description: "Published when a standing order stops by itself, never when its owner switches it off."
 components:
   messages:
     userCreated:
@@ -1351,3 +1494,58 @@ components:
       title: Payment capture failed
       payload:
         $ref: '../schemas/events/payment.capture_failed.json'
+    earningsReleased:
+      name: earnings.released
+      title: Card income released
+      payload:
+        $ref: '../schemas/events/earnings.released.json'
+    payoutRequested:
+      name: payout.requested
+      title: Payout requested
+      payload:
+        $ref: '../schemas/events/payout.requested.json'
+    payoutPaid:
+      name: payout.paid
+      title: Payout paid
+      payload:
+        $ref: '../schemas/events/payout.paid.json'
+    payoutFailed:
+      name: payout.failed
+      title: Payout failed
+      payload:
+        $ref: '../schemas/events/payout.failed.json'
+    paymentRefunded:
+      name: payment.refunded
+      title: Payment refunded
+      payload:
+        $ref: '../schemas/events/payment.refunded.json'
+    paymentAdjusted:
+      name: payment.adjusted
+      title: Payment adjusted
+      payload:
+        $ref: '../schemas/events/payment.adjusted.json'
+    cardAdded:
+      name: card.added
+      title: Card added
+      payload:
+        $ref: '../schemas/events/card.added.json'
+    cardRemoved:
+      name: card.removed
+      title: Card removed
+      payload:
+        $ref: '../schemas/events/card.removed.json'
+    walletCardToppedUp:
+      name: wallet.card_topped_up
+      title: Wallet topped up from a card
+      payload:
+        $ref: '../schemas/events/wallet.card_topped_up.json'
+    walletCardTopupFailed:
+      name: wallet.card_topup_failed
+      title: Card top-up failed
+      payload:
+        $ref: '../schemas/events/wallet.card_topup_failed.json'
+    walletAutoTopupDisabled:
+      name: wallet.auto_topup_disabled
+      title: Automatic top-up switched off
+      payload:
+        $ref: '../schemas/events/wallet.auto_topup_disabled.json'

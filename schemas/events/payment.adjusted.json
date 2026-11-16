@@ -1,0 +1,113 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PaymentAdjusted",
+  "description": "A haul's sum was settled again after its card payment was charged. A lower sum went back to the shipper's wallet (`delta` negative); a higher one was charged to the card (`delta` positive, what the card gave of it). `captured`, `refunded` and `shortfall` are the payment's totals after it.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "payment_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The card payment of the load."
+    },
+    "load_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The load the payment is for."
+    },
+    "load_code": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The load's short code, for example `GW-7F3K2M`; null when billing was not told it."
+    },
+    "booking_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The haul the payment settled."
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The shipper organization that pays."
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person whose card pays."
+    },
+    "authorized": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "What stands blocked on the card for the load, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3,
+      "description": "ISO 4217 code; `UZS` today."
+    },
+    "shipper_org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The shipper organization."
+    },
+    "carrier_org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The carrier organization of the haul."
+    },
+    "adjustment_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "What tells this adjustment from another of the same payment."
+    },
+    "delta": {
+      "type": "integer",
+      "description": "What the shipper paid more (positive) or got back (negative), whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "commission_delta": {
+      "type": "integer",
+      "description": "How the platform's commission on the haul moved with it, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "captured": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Taken from the card in all, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "refunded": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Given back in all, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "shortfall": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "What the card did not give in all, whole so'm (a bare integer; `currency` is UZS today)."
+    }
+  },
+  "required": [
+    "event_id",
+    "payment_id",
+    "load_id",
+    "booking_id",
+    "org_id",
+    "user_id",
+    "authorized",
+    "currency",
+    "shipper_org_id",
+    "carrier_org_id",
+    "adjustment_id",
+    "delta",
+    "commission_delta",
+    "captured",
+    "refunded",
+    "shortfall"
+  ]
+}

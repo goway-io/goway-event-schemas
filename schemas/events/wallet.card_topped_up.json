@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WalletCardToppedUp",
+  "description": "A wallet was filled from a linked card, by hand or by its automatic top-up.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "topup_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The top-up, as `/v1/wallet/topups` names it."
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The organization whose wallet it is."
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person whose card paid."
+    },
+    "amount": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The sum of the top-up, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3,
+      "description": "ISO 4217 code; `UZS` today."
+    },
+    "auto": {
+      "type": "boolean",
+      "description": "Started by the wallet's automatic top-up, not by the person."
+    },
+    "card_brand": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "The network of the card that paid; null when the card is gone."
+    },
+    "card_last4": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Its last four digits; null when the card is gone."
+    },
+    "balance": {
+      "type": "integer",
+      "description": "The wallet's balance after it, whole so'm (a bare integer; `currency` is UZS today); negative means debt."
+    }
+  },
+  "required": [
+    "event_id",
+    "topup_id",
+    "org_id",
+    "user_id",
+    "amount",
+    "currency",
+    "auto",
+    "card_brand",
+    "card_last4",
+    "balance"
+  ]
+}

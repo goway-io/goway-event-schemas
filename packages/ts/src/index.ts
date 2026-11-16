@@ -6,6 +6,13 @@
  */
 export type AccountType = "individual" | "business";
 /**
+ * `DECLINED`: the bank declined too many times in a row; `CARD_REMOVED`: the card it charged is gone; `AMOUNT`: its sum is outside what a top-up may carry now.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "AutoTopupOffReason".
+ */
+export type AutoTopupOffReason = "DECLINED" | "CARD_REMOVED" | "AMOUNT";
+/**
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "BoardRemovalReason".
  */
@@ -358,7 +365,7 @@ export type VehicleLoadingMethod = "top" | "rear" | "both";
  */
 export type WalletSide = "carrier" | "shipper";
 /**
- * Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it. `card_topup`: the wallet was filled from a bank card, by hand or by its automatic top-up. `card_debt`: a card did not give all of a finished haul's price; the shipper owes the rest.
+ * Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it. `card_topup`: the wallet was filled from a bank card, by hand or by its automatic top-up. `card_debt`: a card did not give all of a finished haul's price; the shipper owes the rest. `card_refund`: a card payment gave money back, to the shipper's wallet (positive), or took back from a carrier what they had already withdrawn (negative). `refund_payout`: a wallet credit was sent on to the shipper's card (negative), or came back when that payout failed (positive).
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "WalletEntryKind".
@@ -370,6 +377,8 @@ export type WalletEntryKind =
   | "cash_void"
   | "card_topup"
   | "card_debt"
+  | "card_refund"
+  | "refund_payout"
   | "adjustment"
   | "subscription_fee"
   | "promo"
@@ -1263,6 +1272,70 @@ export interface BookingWaitingStarted {
   currency: string;
 }
 /**
+ * A person linked a bank card and the bank confirmed it.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "CardAdded".
+ */
+export interface CardAdded {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  /**
+   * The card, as billing's `/v1/cards` names it.
+   */
+  card_id: string;
+  /**
+   * The organization the card was linked for.
+   */
+  org_id: string;
+  /**
+   * The person who linked it.
+   */
+  user_id: string;
+  /**
+   * The card's network: `HUMO`, `UZCARD`, ...
+   */
+  brand: string;
+  /**
+   * The last four digits, to name the card to its owner.
+   */
+  last4: string;
+}
+/**
+ * A linked card was removed, by its owner or by an operator.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "CardRemoved".
+ */
+export interface CardRemoved {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  /**
+   * The card, as billing's `/v1/cards` names it.
+   */
+  card_id: string;
+  /**
+   * The organization the card was linked for.
+   */
+  org_id: string;
+  /**
+   * The person who linked it.
+   */
+  user_id: string;
+  /**
+   * The card's network: `HUMO`, `UZCARD`, ...
+   */
+  brand: string;
+  /**
+   * The last four digits, to name the card to its owner.
+   */
+  last4: string;
+}
+/**
  * A carrier's document passed its expiry date; the hourly sweep marked it expired. A person paper names `subject_user_id`, a vehicle paper `vehicle_id`; an organization's own names neither.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -2092,6 +2165,34 @@ export interface DriverStatsChanged {
    */
   rating_avg: number | null;
   rating_count: number;
+}
+/**
+ * A carrier's income from hauls paid by card finished its wait and may now be withdrawn.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "EarningsReleased".
+ */
+export interface EarningsReleased {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  /**
+   * The carrier organization.
+   */
+  org_id: string;
+  /**
+   * What became available just now, whole so'm (a bare integer; `currency` is UZS today).
+   */
+  amount: number;
+  /**
+   * What may be withdrawn after it, whole so'm (a bare integer; `currency` is UZS today).
+   */
+  available: number;
+  /**
+   * ISO 4217 code; `UZS` today.
+   */
+  currency: string;
 }
 /**
  * Frame `error` goway-realtime sends to an app.
@@ -3168,6 +3269,82 @@ export interface OrgUpdated {
   updated_at: string;
 }
 /**
+ * A haul's sum was settled again after its card payment was charged. A lower sum went back to the shipper's wallet (`delta` negative); a higher one was charged to the card (`delta` positive, what the card gave of it). `captured`, `refunded` and `shortfall` are the payment's totals after it.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "PaymentAdjusted".
+ */
+export interface PaymentAdjusted {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  /**
+   * The card payment of the load.
+   */
+  payment_id: string;
+  /**
+   * The load the payment is for.
+   */
+  load_id: string;
+  /**
+   * The load's short code, for example `GW-7F3K2M`; null when billing was not told it.
+   */
+  load_code?: string | null;
+  /**
+   * The haul the payment settled.
+   */
+  booking_id: string;
+  /**
+   * The shipper organization that pays.
+   */
+  org_id: string;
+  /**
+   * The person whose card pays.
+   */
+  user_id: string;
+  /**
+   * What stands blocked on the card for the load, whole so'm (a bare integer; `currency` is UZS today).
+   */
+  authorized: number;
+  /**
+   * ISO 4217 code; `UZS` today.
+   */
+  currency: string;
+  /**
+   * The shipper organization.
+   */
+  shipper_org_id: string;
+  /**
+   * The carrier organization of the haul.
+   */
+  carrier_org_id: string;
+  /**
+   * What tells this adjustment from another of the same payment.
+   */
+  adjustment_id: string;
+  /**
+   * What the shipper paid more (positive) or got back (negative), whole so'm (a bare integer; `currency` is UZS today).
+   */
+  delta: number;
+  /**
+   * How the platform's commission on the haul moved with it, whole so'm (a bare integer; `currency` is UZS today).
+   */
+  commission_delta: number;
+  /**
+   * Taken from the card in all, whole so'm (a bare integer; `currency` is UZS today).
+   */
+  captured: number;
+  /**
+   * Given back in all, whole so'm (a bare integer; `currency` is UZS today).
+   */
+  refunded: number;
+  /**
+   * What the card did not give in all, whole so'm (a bare integer; `currency` is UZS today).
+   */
+  shortfall: number;
+}
+/**
  * A sum was blocked on a shipper's card for a load: the load's price when it was posted, or a rise of it.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -3186,6 +3363,10 @@ export interface PaymentAuthorized {
    * The load the payment is for.
    */
   load_id: string;
+  /**
+   * The load's short code, for example `GW-7F3K2M`; null when billing was not told it.
+   */
+  load_code?: string | null;
   /**
    * The haul the payment settled; null while the load has none yet.
    */
@@ -3226,6 +3407,10 @@ export interface PaymentCaptureFailed {
    * The load the payment is for.
    */
   load_id: string;
+  /**
+   * The load's short code, for example `GW-7F3K2M`; null when billing was not told it.
+   */
+  load_code?: string | null;
   /**
    * The haul the payment settled.
    */
@@ -3284,6 +3469,10 @@ export interface PaymentCaptured {
    */
   load_id: string;
   /**
+   * The load's short code, for example `GW-7F3K2M`; null when billing was not told it.
+   */
+  load_code?: string | null;
+  /**
    * The haul the payment settled.
    */
   booking_id: string;
@@ -3317,7 +3506,7 @@ export interface PaymentCaptured {
    */
   amount: number;
   /**
-   * The platform's commission on the haul, whole so'm (a bare integer; `currency` is UZS today); 0 for a cancellation fee. The carrier is credited `amount` less the part of it the card covered.
+   * The part of the platform's commission on the haul that the card covered, whole so'm (a bare integer; `currency` is UZS today); 0 for a cancellation fee. The carrier is credited `amount` less it.
    */
   commission: number;
   /**
@@ -3345,6 +3534,10 @@ export interface PaymentDeclined {
    */
   load_id: string;
   /**
+   * The load's short code, for example `GW-7F3K2M`; null when billing was not told it.
+   */
+  load_code?: string | null;
+  /**
    * The haul the payment settled; null while the load has none yet.
    */
   booking_id: string | null;
@@ -3370,6 +3563,66 @@ export interface PaymentDeclined {
   reason: string;
 }
 /**
+ * Everything a card payment had taken was given back to the shipper's card. The carrier's part came out of their card income, the platform's out of its revenue.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "PaymentRefunded".
+ */
+export interface PaymentRefunded {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  /**
+   * The card payment of the load.
+   */
+  payment_id: string;
+  /**
+   * The load the payment is for.
+   */
+  load_id: string;
+  /**
+   * The load's short code, for example `GW-7F3K2M`; null when billing was not told it.
+   */
+  load_code?: string | null;
+  /**
+   * The haul the payment settled.
+   */
+  booking_id: string;
+  /**
+   * The shipper organization that pays.
+   */
+  org_id: string;
+  /**
+   * The person whose card pays.
+   */
+  user_id: string;
+  /**
+   * What stands blocked on the card for the load, whole so'm (a bare integer; `currency` is UZS today).
+   */
+  authorized: number;
+  /**
+   * ISO 4217 code; `UZS` today.
+   */
+  currency: string;
+  /**
+   * The shipper organization.
+   */
+  shipper_org_id: string;
+  /**
+   * The carrier organization of the haul.
+   */
+  carrier_org_id: string;
+  /**
+   * What went back to the card, whole so'm (a bare integer; `currency` is UZS today).
+   */
+  amount: number;
+  /**
+   * The platform's part of it, whole so'm (a bare integer; `currency` is UZS today): the haul's commission is no longer charged.
+   */
+  commission: number;
+}
+/**
  * The sum blocked for a load was released without anything being taken: the load closed without a haul to pay for.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -3388,6 +3641,10 @@ export interface PaymentVoided {
    * The load the payment is for.
    */
   load_id: string;
+  /**
+   * The load's short code, for example `GW-7F3K2M`; null when billing was not told it.
+   */
+  load_code?: string | null;
   /**
    * The haul the payment settled; null while the load has none yet.
    */
@@ -3412,6 +3669,130 @@ export interface PaymentVoided {
    * Why the block was released; null when nobody said.
    */
   reason: string | null;
+}
+/**
+ * A payout did not go through. The whole sum, fee included, is back in the carrier's available income.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "PayoutFailed".
+ */
+export interface PayoutFailed {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  /**
+   * The payout.
+   */
+  payout_id: string;
+  /**
+   * The carrier organization that withdraws.
+   */
+  org_id: string;
+  /**
+   * The person who asked, to whose card the money goes.
+   */
+  user_id: string;
+  /**
+   * What left the carrier's available card income, whole so'm (a bare integer; `currency` is UZS today).
+   */
+  amount: number;
+  /**
+   * The transfer fee kept from it, whole so'm (a bare integer; `currency` is UZS today).
+   */
+  fee: number;
+  /**
+   * What the card receives, whole so'm (a bare integer; `currency` is UZS today).
+   */
+  net: number;
+  /**
+   * ISO 4217 code; `UZS` today.
+   */
+  currency: string;
+  /**
+   * Why, as a stable code (`PAYOUT_FAILED`, `CARD_NOT_FOUND`, `BANK_DECLINED`, ...).
+   */
+  reason: string;
+}
+/**
+ * A payout reached the carrier's card.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "PayoutPaid".
+ */
+export interface PayoutPaid {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  /**
+   * The payout.
+   */
+  payout_id: string;
+  /**
+   * The carrier organization that withdraws.
+   */
+  org_id: string;
+  /**
+   * The person who asked, to whose card the money goes.
+   */
+  user_id: string;
+  /**
+   * What left the carrier's available card income, whole so'm (a bare integer; `currency` is UZS today).
+   */
+  amount: number;
+  /**
+   * The transfer fee kept from it, whole so'm (a bare integer; `currency` is UZS today).
+   */
+  fee: number;
+  /**
+   * What the card receives, whole so'm (a bare integer; `currency` is UZS today).
+   */
+  net: number;
+  /**
+   * ISO 4217 code; `UZS` today.
+   */
+  currency: string;
+}
+/**
+ * A carrier asked to withdraw card income to a card. The sum is set aside and on its way.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "PayoutRequested".
+ */
+export interface PayoutRequested {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  /**
+   * The payout.
+   */
+  payout_id: string;
+  /**
+   * The carrier organization that withdraws.
+   */
+  org_id: string;
+  /**
+   * The person who asked, to whose card the money goes.
+   */
+  user_id: string;
+  /**
+   * What left the carrier's available card income, whole so'm (a bare integer; `currency` is UZS today).
+   */
+  amount: number;
+  /**
+   * The transfer fee kept from it, whole so'm (a bare integer; `currency` is UZS today).
+   */
+  fee: number;
+  /**
+   * What the card receives, whole so'm (a bare integer; `currency` is UZS today).
+   */
+  net: number;
+  /**
+   * ISO 4217 code; `UZS` today.
+   */
+  currency: string;
 }
 /**
  * The answer to `ping`; nothing in it.
@@ -4048,6 +4429,123 @@ export interface VehicleUpserted {
    */
   updated_at: string;
   status?: VehicleStatus;
+}
+/**
+ * A wallet's automatic top-up switched itself off: the bank declined it too many times in a row, or its card was removed.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "WalletAutoTopupDisabled".
+ */
+export interface WalletAutoTopupDisabled {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  /**
+   * The organization whose wallet it is.
+   */
+  org_id: string;
+  /**
+   * The person who had set it up.
+   */
+  user_id: string;
+  reason: AutoTopupOffReason;
+}
+/**
+ * A wallet was filled from a linked card, by hand or by its automatic top-up.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "WalletCardToppedUp".
+ */
+export interface WalletCardToppedUp {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  /**
+   * The top-up, as `/v1/wallet/topups` names it.
+   */
+  topup_id: string;
+  /**
+   * The organization whose wallet it is.
+   */
+  org_id: string;
+  /**
+   * The person whose card paid.
+   */
+  user_id: string;
+  /**
+   * The sum of the top-up, whole so'm (a bare integer; `currency` is UZS today).
+   */
+  amount: number;
+  /**
+   * ISO 4217 code; `UZS` today.
+   */
+  currency: string;
+  /**
+   * Started by the wallet's automatic top-up, not by the person.
+   */
+  auto: boolean;
+  /**
+   * The network of the card that paid; null when the card is gone.
+   */
+  card_brand: string | null;
+  /**
+   * Its last four digits; null when the card is gone.
+   */
+  card_last4: string | null;
+  /**
+   * The wallet's balance after it, whole so'm (a bare integer; `currency` is UZS today); negative means debt.
+   */
+  balance: number;
+}
+/**
+ * A top-up from a card did not go through; nothing was charged.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "WalletCardTopupFailed".
+ */
+export interface WalletCardTopupFailed {
+  /**
+   * Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it.
+   */
+  event_id: string;
+  /**
+   * The top-up, as `/v1/wallet/topups` names it.
+   */
+  topup_id: string;
+  /**
+   * The organization whose wallet it is.
+   */
+  org_id: string;
+  /**
+   * The person whose card paid.
+   */
+  user_id: string;
+  /**
+   * The sum of the top-up, whole so'm (a bare integer; `currency` is UZS today).
+   */
+  amount: number;
+  /**
+   * ISO 4217 code; `UZS` today.
+   */
+  currency: string;
+  /**
+   * Started by the wallet's automatic top-up, not by the person.
+   */
+  auto: boolean;
+  /**
+   * The network of the card that paid; null when the card is gone.
+   */
+  card_brand: string | null;
+  /**
+   * Its last four digits; null when the card is gone.
+   */
+  card_last4: string | null;
+  /**
+   * Why, as a stable code (`INSUFFICIENT_FUNDS`, `CARD_EXPIRED`, `BANK_DECLINED`, ...).
+   */
+  reason: string;
 }
 /**
  * An organization's wallet started or stopped being allowed to receive offers. One event per user of the organization, or a single event with a null `user_id` when billing knows no user of it yet. `side` says which: realtime acts only on carriers, goway-loads refuses posting for shippers.

@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WalletAutoTopupDisabled",
+  "description": "A wallet's automatic top-up switched itself off: the bank declined it too many times in a row, or its card was removed.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The organization whose wallet it is."
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person who had set it up."
+    },
+    "reason": {
+      "title": "AutoTopupOffReason",
+      "type": "string",
+      "enum": [
+        "DECLINED",
+        "CARD_REMOVED",
+        "AMOUNT"
+      ],
+      "description": "`DECLINED`: the bank declined too many times in a row; `CARD_REMOVED`: the card it charged is gone; `AMOUNT`: its sum is outside what a top-up may carry now."
+    }
+  },
+  "required": [
+    "event_id",
+    "org_id",
+    "user_id",
+    "reason"
+  ]
+}

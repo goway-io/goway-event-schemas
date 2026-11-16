@@ -1,0 +1,17 @@
+{
+  "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+  "payment_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e31",
+  "load_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e02",
+  "booking_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e03",
+  "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+  "user_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e06",
+  "authorized": 0,
+  "currency": "UZS",
+  "shipper_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+  "carrier_org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e04",
+  "adjustment_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e51",
+  "commission_delta": -12000,
+  "captured": 875500,
+  "refunded": 100000,
+  "shortfall": 0
+}

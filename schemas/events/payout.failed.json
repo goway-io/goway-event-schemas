@@ -1,0 +1,65 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PayoutFailed",
+  "description": "A payout did not go through. The whole sum, fee included, is back in the carrier's available income.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique id of this event, stamped by the publisher's outbox. Consumers dedupe on it."
+    },
+    "payout_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The payout."
+    },
+    "org_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The carrier organization that withdraws."
+    },
+    "user_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The person who asked, to whose card the money goes."
+    },
+    "amount": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "What left the carrier's available card income, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "fee": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The transfer fee kept from it, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "net": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "What the card receives, whole so'm (a bare integer; `currency` is UZS today)."
+    },
+    "currency": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3,
+      "description": "ISO 4217 code; `UZS` today."
+    },
+    "reason": {
+      "type": "string",
+      "description": "Why, as a stable code (`PAYOUT_FAILED`, `CARD_NOT_FOUND`, `BANK_DECLINED`, ...)."
+    }
+  },
+  "required": [
+    "event_id",
+    "payout_id",
+    "org_id",
+    "user_id",
+    "amount",
+    "fee",
+    "net",
+    "currency",
+    "reason"
+  ]
+}
