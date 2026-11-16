@@ -26,6 +26,7 @@
         "commission_adjustment",
         "cash_topup",
         "cash_void",
+        "card_topup",
         "adjustment",
         "subscription_fee",
         "promo",
@@ -36,7 +37,7 @@
         "cancel_fee",
         "cancel_fee_share"
       ],
-      "description": "Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it."
+      "description": "Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it. `card_topup`: the wallet was filled from a bank card, by hand or by its automatic top-up."
     },
     "amount": {
       "type": "integer",

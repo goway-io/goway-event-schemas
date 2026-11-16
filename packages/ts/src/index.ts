@@ -351,7 +351,7 @@ export type VehicleLoadingMethod = "top" | "rear" | "both";
  */
 export type WalletSide = "carrier" | "shipper";
 /**
- * Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it.
+ * Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it. `card_topup`: the wallet was filled from a bank card, by hand or by its automatic top-up.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
  * via the `definition` "WalletEntryKind".
@@ -361,6 +361,7 @@ export type WalletEntryKind =
   | "commission_adjustment"
   | "cash_topup"
   | "cash_void"
+  | "card_topup"
   | "adjustment"
   | "subscription_fee"
   | "promo"

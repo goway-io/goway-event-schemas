@@ -5872,7 +5872,7 @@ pub struct WalletEligibilityChanged {
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub user_id: ::std::option::Option<::uuid::Uuid>,
 }
-#[doc = "Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it."]
+#[doc = "Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it. `card_topup`: the wallet was filled from a bank card, by hand or by its automatic top-up."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum WalletEntryKind {
     #[serde(rename = "commission")]
@@ -5883,6 +5883,8 @@ pub enum WalletEntryKind {
     CashTopup,
     #[serde(rename = "cash_void")]
     CashVoid,
+    #[serde(rename = "card_topup")]
+    CardTopup,
     #[serde(rename = "adjustment")]
     Adjustment,
     #[serde(rename = "subscription_fee")]
@@ -5909,6 +5911,7 @@ impl ::std::fmt::Display for WalletEntryKind {
             Self::CommissionAdjustment => f.write_str("commission_adjustment"),
             Self::CashTopup => f.write_str("cash_topup"),
             Self::CashVoid => f.write_str("cash_void"),
+            Self::CardTopup => f.write_str("card_topup"),
             Self::Adjustment => f.write_str("adjustment"),
             Self::SubscriptionFee => f.write_str("subscription_fee"),
             Self::Promo => f.write_str("promo"),
@@ -5929,6 +5932,7 @@ impl ::std::str::FromStr for WalletEntryKind {
             "commission_adjustment" => Ok(Self::CommissionAdjustment),
             "cash_topup" => Ok(Self::CashTopup),
             "cash_void" => Ok(Self::CashVoid),
+            "card_topup" => Ok(Self::CardTopup),
             "adjustment" => Ok(Self::Adjustment),
             "subscription_fee" => Ok(Self::SubscriptionFee),
             "promo" => Ok(Self::Promo),

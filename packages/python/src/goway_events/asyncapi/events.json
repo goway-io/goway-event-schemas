@@ -5496,6 +5496,7 @@
         "commission_adjustment",
         "cash_topup",
         "cash_void",
+        "card_topup",
         "adjustment",
         "subscription_fee",
         "promo",
@@ -5506,7 +5507,7 @@
         "cancel_fee",
         "cancel_fee_share"
        ],
-       "description": "Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it."
+       "description": "Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it. `card_topup`: the wallet was filled from a bank card, by hand or by its automatic top-up."
       },
       "amount": {
        "type": "integer",
@@ -5552,6 +5553,19 @@
        "kind": "cancel_fee",
        "amount": -131325,
        "balance": 81500,
+       "booking_id": null,
+       "currency": "UZS"
+      }
+     },
+     {
+      "name": "Card topup",
+      "payload": {
+       "event_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e01",
+       "org_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e05",
+       "entry_id": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e1a",
+       "kind": "card_topup",
+       "amount": 200000,
+       "balance": 150000,
        "booking_id": null,
        "currency": "UZS"
       }

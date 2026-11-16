@@ -2428,13 +2428,14 @@ class VerificationStatus(StrEnum):
 
 class WalletEntryKind(StrEnum):
     """
-    Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it.
+    Ledger line kind. `cancel_fee`: a shipper owes the fee for cancelling after the driver set off; `cancel_fee_share`: the carrier's share of it. `card_topup`: the wallet was filled from a bank card, by hand or by its automatic top-up.
     """
 
     COMMISSION = "commission"
     COMMISSION_ADJUSTMENT = "commission_adjustment"
     CASH_TOPUP = "cash_topup"
     CASH_VOID = "cash_void"
+    CARD_TOPUP = "card_topup"
     ADJUSTMENT = "adjustment"
     SUBSCRIPTION_FEE = "subscription_fee"
     PROMO = "promo"
