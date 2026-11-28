@@ -4035,6 +4035,24 @@
         "payment_method": {
           "$ref": "#/definitions/PaymentMethod"
         },
+        "payer": {
+          "$ref": "#/definitions/Payer"
+        },
+        "total_amount": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "What the load costs before any waiting, in minor units of `currency`: transport, loaders and requirement surcharges; null while it has no price."
+        },
+        "driver_net": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "What the driver keeps of `total_amount`: less the platform's share of the transport at the rate in force when this was published; null when billing could not say. Loaders' pay is never shared."
+        },
         "reposted": {
           "type": "boolean",
           "description": "Present, and true, only when a cancelled booking put the load back."
@@ -4265,6 +4283,24 @@
         },
         "payment_method": {
           "$ref": "#/definitions/PaymentMethod"
+        },
+        "payer": {
+          "$ref": "#/definitions/Payer"
+        },
+        "total_amount": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "What the load costs before any waiting, in minor units of `currency`: transport, loaders and requirement surcharges; null while it has no price."
+        },
+        "driver_net": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "What the driver keeps of `total_amount`: less the platform's share of the transport at the rate in force when this was published; null when billing could not say. Loaders' pay is never shared."
         },
         "created_by": {
           "type": "string",
@@ -5281,6 +5317,24 @@
         "payment_method": {
           "$ref": "#/definitions/PaymentMethod"
         },
+        "payer": {
+          "$ref": "#/definitions/Payer"
+        },
+        "total_amount": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "What the load costs before any waiting, in minor units of `currency`: transport, loaders and requirement surcharges; null while it has no price."
+        },
+        "driver_net": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "What the driver keeps of `total_amount` («sizga qoladi»): less the platform's share of the transport at the rate in force when the load was posted or last changed; null when billing could not say."
+        },
         "is_urgent": {
           "type": "boolean"
         }
@@ -5766,6 +5820,15 @@
         "region_id",
         "passed_at"
       ]
+    },
+    "Payer": {
+      "title": "Payer",
+      "type": "string",
+      "enum": [
+        "sender",
+        "receiver"
+      ],
+      "description": "Who hands the driver the money: the shipper, or whoever receives the cargo at the drop-off. A card load is always paid by its sender."
     },
     "PaymentAdjusted": {
       "title": "PaymentAdjusted",
@@ -6858,6 +6921,11 @@
           "type": "integer",
           "minimum": 0,
           "description": "Drivers the load was offered to so far."
+        },
+        "pending": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Drivers holding the offer right now, still to answer: «hozir oʻylayapti»."
         },
         "started_at": {
           "type": "string",

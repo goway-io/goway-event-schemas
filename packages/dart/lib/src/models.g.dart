@@ -1616,6 +1616,7 @@ OfferProposed _$OfferProposedFromJson(
         'distance_km',
         (v) => (v as num?)?.toDouble(),
       ),
+      driverNet: $checkedConvert('driver_net', (v) => (v as num?)?.toInt()),
       dropoffAddress: $checkedConvert('dropoff_address', (v) => v as String?),
       durationMin: $checkedConvert('duration_min', (v) => (v as num?)?.toInt()),
       fromRegionId: $checkedConvert('from_region_id', (v) => v as String),
@@ -1629,6 +1630,10 @@ OfferProposed _$OfferProposedFromJson(
       needsRefrigeration: $checkedConvert(
         'needs_refrigeration',
         (v) => v as bool,
+      ),
+      payer: $checkedConvert(
+        'payer',
+        (v) => $enumDecodeNullable(_$PayerEnumMap, v),
       ),
       paymentMethod: $checkedConvert(
         'payment_method',
@@ -1653,6 +1658,7 @@ OfferProposed _$OfferProposedFromJson(
       ),
       stopsCount: $checkedConvert('stops_count', (v) => (v as num).toInt()),
       toRegionId: $checkedConvert('to_region_id', (v) => v as String),
+      totalAmount: $checkedConvert('total_amount', (v) => (v as num?)?.toInt()),
       truckClass: $checkedConvert('truck_class', (v) => v as String),
       volumeM3: $checkedConvert('volume_m3', (v) => (v as num?)?.toDouble()),
       weightKg: $checkedConvert('weight_kg', (v) => (v as num).toInt()),
@@ -1663,6 +1669,7 @@ OfferProposed _$OfferProposedFromJson(
     'cargoCategory': 'cargo_category',
     'deadlineAt': 'deadline_at',
     'distanceKm': 'distance_km',
+    'driverNet': 'driver_net',
     'dropoffAddress': 'dropoff_address',
     'durationMin': 'duration_min',
     'fromRegionId': 'from_region_id',
@@ -1679,6 +1686,7 @@ OfferProposed _$OfferProposedFromJson(
     'serverTime': 'server_time',
     'stopsCount': 'stops_count',
     'toRegionId': 'to_region_id',
+    'totalAmount': 'total_amount',
     'truckClass': 'truck_class',
     'volumeM3': 'volume_m3',
     'weightKg': 'weight_kg',
@@ -1692,6 +1700,7 @@ Map<String, dynamic> _$OfferProposedToJson(OfferProposed instance) =>
       'currency': instance.currency,
       'deadline_at': instance.deadlineAt,
       'distance_km': ?instance.distanceKm,
+      'driver_net': ?instance.driverNet,
       'dropoff_address': ?instance.dropoffAddress,
       'duration_min': ?instance.durationMin,
       'from_region_id': instance.fromRegionId,
@@ -1700,6 +1709,7 @@ Map<String, dynamic> _$OfferProposedToJson(OfferProposed instance) =>
       'loaders_count': instance.loadersCount,
       'loading_method': _$LoadingMethodEnumMap[instance.loadingMethod]!,
       'needs_refrigeration': instance.needsRefrigeration,
+      'payer': ?_$PayerEnumMap[instance.payer],
       'payment_method': _$PaymentMethodEnumMap[instance.paymentMethod]!,
       'pickup_address': ?instance.pickupAddress,
       'pickup_distance_km': ?instance.pickupDistanceKm,
@@ -1708,6 +1718,7 @@ Map<String, dynamic> _$OfferProposedToJson(OfferProposed instance) =>
       'server_time': instance.serverTime.toIso8601String(),
       'stops_count': instance.stopsCount,
       'to_region_id': instance.toRegionId,
+      'total_amount': ?instance.totalAmount,
       'truck_class': instance.truckClass,
       'volume_m3': ?instance.volumeM3,
       'weight_kg': instance.weightKg,
@@ -1717,6 +1728,8 @@ const _$LoadingMethodEnumMap = {
   LoadingMethod.REAR: 'rear',
   LoadingMethod.TOP: 'top',
 };
+
+const _$PayerEnumMap = {Payer.RECEIVER: 'receiver', Payer.SENDER: 'sender'};
 
 const _$PaymentMethodEnumMap = {
   PaymentMethod.CARD: 'card',
@@ -2075,6 +2088,7 @@ SearchProgress _$SearchProgressFromJson(Map<String, dynamic> json) =>
     $checkedCreate('SearchProgress', json, ($checkedConvert) {
       final val = SearchProgress(
         loadId: $checkedConvert('load_id', (v) => v as String),
+        pending: $checkedConvert('pending', (v) => (v as num?)?.toInt()),
         seen: $checkedConvert('seen', (v) => (v as num).toInt()),
         startedAt: $checkedConvert(
           'started_at',
@@ -2087,6 +2101,7 @@ SearchProgress _$SearchProgressFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$SearchProgressToJson(SearchProgress instance) =>
     <String, dynamic>{
       'load_id': instance.loadId,
+      'pending': ?instance.pending,
       'seen': instance.seen,
       'started_at': instance.startedAt.toIso8601String(),
     };

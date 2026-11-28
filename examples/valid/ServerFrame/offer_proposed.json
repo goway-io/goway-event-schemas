@@ -24,6 +24,9 @@
     "loading_method": "rear",
     "needs_refrigeration": false,
     "payment_method": "cash",
+    "payer": "sender",
+    "total_amount": 2150000,
+    "driver_net": 1892000,
     "is_urgent": false
   },
   "ts": "2026-10-14T09:30:00.123Z"

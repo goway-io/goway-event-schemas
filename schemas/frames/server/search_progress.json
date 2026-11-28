@@ -24,6 +24,11 @@
           "minimum": 0,
           "description": "Drivers the load was offered to so far."
         },
+        "pending": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Drivers holding the offer right now, still to answer: «hozir oʻylayapti»."
+        },
         "started_at": {
           "type": "string",
           "format": "date-time",

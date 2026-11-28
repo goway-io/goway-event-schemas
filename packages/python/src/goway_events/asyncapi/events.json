@@ -4101,6 +4101,30 @@
         "mixed"
        ]
       },
+      "payer": {
+       "title": "Payer",
+       "type": "string",
+       "enum": [
+        "sender",
+        "receiver"
+       ],
+       "description": "Who hands the driver the money: the shipper, or whoever receives the cargo at the drop-off. A card load is always paid by its sender."
+      },
+      "total_amount": {
+       "type": [
+        "integer",
+        "null"
+       ],
+       "minimum": 0,
+       "description": "What the load costs before any waiting, in minor units of `currency`: transport, loaders and requirement surcharges; null while it has no price."
+      },
+      "driver_net": {
+       "type": [
+        "integer",
+        "null"
+       ],
+       "description": "What the driver keeps of `total_amount`: less the platform's share of the transport at the rate in force when this was published; null when billing could not say. Loaders' pay is never shared."
+      },
       "reposted": {
        "type": "boolean",
        "description": "Present, and true, only when a cancelled booking put the load back."
@@ -4227,6 +4251,9 @@
        "group_id": null,
        "is_urgent": false,
        "payment_method": "cash",
+       "payer": "receiver",
+       "total_amount": 2180000,
+       "driver_net": 1922000,
        "created_by": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
        "pickup_address": "Andijon, Xonabod, Sanoat ko'chasi 14",
        "dropoff_address": "Toshkent, Yunusobod, Ziyolilar ko'chasi 42",
@@ -7252,6 +7279,30 @@
         "mixed"
        ]
       },
+      "payer": {
+       "title": "Payer",
+       "type": "string",
+       "enum": [
+        "sender",
+        "receiver"
+       ],
+       "description": "Who hands the driver the money: the shipper, or whoever receives the cargo at the drop-off. A card load is always paid by its sender."
+      },
+      "total_amount": {
+       "type": [
+        "integer",
+        "null"
+       ],
+       "minimum": 0,
+       "description": "What the load costs before any waiting, in minor units of `currency`: transport, loaders and requirement surcharges; null while it has no price."
+      },
+      "driver_net": {
+       "type": [
+        "integer",
+        "null"
+       ],
+       "description": "What the driver keeps of `total_amount`: less the platform's share of the transport at the rate in force when this was published; null when billing could not say. Loaders' pay is never shared."
+      },
       "created_by": {
        "type": "string",
        "format": "uuid",
@@ -7398,6 +7449,9 @@
        "group_id": null,
        "is_urgent": false,
        "payment_method": "cash",
+       "payer": "sender",
+       "total_amount": 2365000,
+       "driver_net": 2087000,
        "created_by": "0192f6a0-7c1e-7b3a-9d2e-1a2b3c4d5e0a",
        "pickup_address": "Andijon, Xonabod, Sanoat ko'chasi 14",
        "dropoff_address": "Toshkent, Yunusobod, Ziyolilar ko'chasi 42",

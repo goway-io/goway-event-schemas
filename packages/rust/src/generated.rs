@@ -3030,6 +3030,9 @@ pub struct LoadPosted {
     #[doc = "Driving distance through the stops; null when routing was unavailable at posting."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub distance_km: ::std::option::Option<f64>,
+    #[doc = "What the driver keeps of `total_amount`: less the platform's share of the transport at the rate in force when this was published; null when billing could not say. Loaders' pay is never shared."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub driver_net: ::std::option::Option<i64>,
     #[doc = "Last drop-off stop's address; null only when the load has no stops."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub dropoff_address: ::std::option::Option<::std::string::String>,
@@ -3052,6 +3055,8 @@ pub struct LoadPosted {
     pub needs_refrigeration: bool,
     #[doc = "The shipper organization."]
     pub org_id: ::uuid::Uuid,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub payer: ::std::option::Option<Payer>,
     pub payment_method: PaymentMethod,
     #[doc = "First pickup stop's address as the shipper wrote it; null only when the load has no stops."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
@@ -3082,6 +3087,9 @@ pub struct LoadPosted {
     #[doc = "Drop-off region; null when the address resolved to none."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub to_region_id: ::std::option::Option<::uuid::Uuid>,
+    #[doc = "What the load costs before any waiting, in minor units of `currency`: transport, loaders and requirement surcharges; null while it has no price."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub total_amount: ::std::option::Option<u64>,
     #[doc = "Truck class code from the reference list."]
     pub truck_class: ::std::string::String,
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
@@ -3159,6 +3167,9 @@ pub struct LoadUpdated {
     #[doc = "Driving distance through the stops; null when routing was unavailable at posting."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub distance_km: ::std::option::Option<f64>,
+    #[doc = "What the driver keeps of `total_amount`: less the platform's share of the transport at the rate in force when this was published; null when billing could not say. Loaders' pay is never shared."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub driver_net: ::std::option::Option<i64>,
     #[doc = "Last drop-off stop's address; null only when the load has no stops."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub dropoff_address: ::std::option::Option<::std::string::String>,
@@ -3181,6 +3192,8 @@ pub struct LoadUpdated {
     pub needs_refrigeration: bool,
     #[doc = "The shipper organization."]
     pub org_id: ::uuid::Uuid,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub payer: ::std::option::Option<Payer>,
     pub payment_method: PaymentMethod,
     #[doc = "First pickup stop's address as the shipper wrote it; null only when the load has no stops."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
@@ -3208,6 +3221,9 @@ pub struct LoadUpdated {
     #[doc = "Drop-off region; null when the address resolved to none."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub to_region_id: ::std::option::Option<::uuid::Uuid>,
+    #[doc = "What the load costs before any waiting, in minor units of `currency`: transport, loaders and requirement surcharges; null while it has no price."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub total_amount: ::std::option::Option<u64>,
     #[doc = "Truck class code from the reference list."]
     pub truck_class: ::std::string::String,
     #[doc = "When the edit was saved; consumers ignore an edit older than the one they hold."]
@@ -3914,6 +3930,9 @@ pub struct OfferProposed {
     #[doc = "Driving distance through the stops; null when routing was unavailable at posting."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub distance_km: ::std::option::Option<f64>,
+    #[doc = "What the driver keeps of `total_amount` («sizga qoladi»): less the platform's share of the transport at the rate in force when the load was posted or last changed; null when billing could not say."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub driver_net: ::std::option::Option<i64>,
     #[doc = "Last drop-off stop's address; null only when the load has no stops."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub dropoff_address: ::std::option::Option<::std::string::String>,
@@ -3927,6 +3946,8 @@ pub struct OfferProposed {
     pub loaders_count: u64,
     pub loading_method: LoadingMethod,
     pub needs_refrigeration: bool,
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub payer: ::std::option::Option<Payer>,
     pub payment_method: PaymentMethod,
     #[doc = "First pickup stop's address as the shipper wrote it; null only when the load has no stops."]
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
@@ -3944,6 +3965,9 @@ pub struct OfferProposed {
     #[doc = "Pickup and drop-off stops together."]
     pub stops_count: u64,
     pub to_region_id: ::uuid::Uuid,
+    #[doc = "What the load costs before any waiting, in minor units of `currency`: transport, loaders and requirement surcharges; null while it has no price."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub total_amount: ::std::option::Option<u64>,
     pub truck_class: ::std::string::String,
     #[serde(deserialize_with = "::std::option::Option::deserialize")]
     pub volume_m3: ::std::option::Option<f64>,
@@ -4336,6 +4360,44 @@ pub struct OrgUpdated {
 pub struct PassedWaypoint {
     pub passed_at: ::chrono::DateTime<::chrono::offset::Utc>,
     pub region_id: ::uuid::Uuid,
+}
+#[doc = "Who hands the driver the money: the shipper, or whoever receives the cargo at the drop-off. A card load is always paid by its sender."]
+#[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum Payer {
+    #[serde(rename = "sender")]
+    Sender,
+    #[serde(rename = "receiver")]
+    Receiver,
+}
+impl ::std::fmt::Display for Payer {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+        match *self {
+            Self::Sender => f.write_str("sender"),
+            Self::Receiver => f.write_str("receiver"),
+        }
+    }
+}
+impl ::std::str::FromStr for Payer {
+    type Err = self::error::ConversionError;
+    fn from_str(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        match value {
+            "sender" => Ok(Self::Sender),
+            "receiver" => Ok(Self::Receiver),
+            _ => Err("invalid value".into()),
+        }
+    }
+}
+impl ::std::convert::TryFrom<&str> for Payer {
+    type Error = self::error::ConversionError;
+    fn try_from(value: &str) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
+}
+impl ::std::convert::TryFrom<::std::string::String> for Payer {
+    type Error = self::error::ConversionError;
+    fn try_from(value: ::std::string::String) -> ::std::result::Result<Self, self::error::ConversionError> {
+        value.parse()
+    }
 }
 #[doc = "A haul's sum was settled again after its card payment was charged. A lower sum went back to the shipper's wallet (`delta` negative); a higher one was charged to the card (`delta` positive, what the card gave of it). `captured`, `refunded` and `shortfall` are the payment's totals after it."]
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
@@ -5538,6 +5600,9 @@ pub struct SearchExhaustedFrame {
 #[derive(:: serde :: Deserialize, :: serde :: Serialize, Clone, Debug)]
 pub struct SearchProgress {
     pub load_id: ::uuid::Uuid,
+    #[doc = "Drivers holding the offer right now, still to answer: «hozir oʻylayapti»."]
+    #[serde(skip_serializing_if = "::std::option::Option::is_none")]
+    pub pending: ::std::option::Option<u64>,
     #[doc = "Drivers the load was offered to so far."]
     pub seen: u64,
     #[doc = "When the search began; the app counts the waiting time from it."]

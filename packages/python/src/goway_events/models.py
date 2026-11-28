@@ -1652,6 +1652,15 @@ class PassedWaypoint(BaseModel):
     passed_at: AwareDatetime
 
 
+class Payer(StrEnum):
+    """
+    Who hands the driver the money: the shipper, or whoever receives the cargo at the drop-off. A card load is always paid by its sender.
+    """
+
+    SENDER = "sender"
+    RECEIVER = "receiver"
+
+
 class PaymentAdjusted(BaseModel):
     """
     A haul's sum was settled again after its card payment was charged. A lower sum went back to the shipper's wallet (`delta` negative); a higher one was charged to the card (`delta` positive, what the card gave of it). `captured`, `refunded` and `shortfall` are the payment's totals after it.
@@ -2239,6 +2248,10 @@ class SearchProgress(BaseModel):
     seen: Annotated[int, Field(ge=0)]
     """
     Drivers the load was offered to so far.
+    """
+    pending: Annotated[int | None, Field(ge=0)] = None
+    """
+    Drivers holding the offer right now, still to answer: «hozir oʻylayapti».
     """
     started_at: AwareDatetime
     """
@@ -4394,6 +4407,15 @@ class LoadPosted(BaseModel):
     """
     is_urgent: bool
     payment_method: PaymentMethod
+    payer: Payer | None = None
+    total_amount: Annotated[int | None, Field(ge=0)] = None
+    """
+    What the load costs before any waiting, in minor units of `currency`: transport, loaders and requirement surcharges; null while it has no price.
+    """
+    driver_net: int | None = None
+    """
+    What the driver keeps of `total_amount`: less the platform's share of the transport at the rate in force when this was published; null when billing could not say. Loaders' pay is never shared.
+    """
     reposted: bool | None = None
     """
     Present, and true, only when a cancelled booking put the load back.
@@ -4512,6 +4534,15 @@ class LoadUpdated(BaseModel):
     """
     is_urgent: bool
     payment_method: PaymentMethod
+    payer: Payer | None = None
+    total_amount: Annotated[int | None, Field(ge=0)] = None
+    """
+    What the load costs before any waiting, in minor units of `currency`: transport, loaders and requirement surcharges; null while it has no price.
+    """
+    driver_net: int | None = None
+    """
+    What the driver keeps of `total_amount`: less the platform's share of the transport at the rate in force when this was published; null when billing could not say. Loaders' pay is never shared.
+    """
     created_by: UUID
     """
     The person who posted the load; dispatch tells them how the search goes.
@@ -4756,6 +4787,15 @@ class OfferProposed(BaseModel):
     loading_method: LoadingMethod
     needs_refrigeration: bool
     payment_method: PaymentMethod
+    payer: Payer | None = None
+    total_amount: Annotated[int | None, Field(ge=0)] = None
+    """
+    What the load costs before any waiting, in minor units of `currency`: transport, loaders and requirement surcharges; null while it has no price.
+    """
+    driver_net: int | None = None
+    """
+    What the driver keeps of `total_amount` («sizga qoladi»): less the platform's share of the transport at the rate in force when the load was posted or last changed; null when billing could not say.
+    """
     is_urgent: bool
 
 

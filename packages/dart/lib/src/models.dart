@@ -2145,6 +2145,12 @@ class OfferProposed {
     @JsonKey(name: "distance_km")
     final double? distanceKm;
     
+    ///What the driver keeps of `total_amount` («sizga qoladi»): less the platform's share of
+    ///the transport at the rate in force when the load was posted or last changed; null when
+    ///billing could not say.
+    @JsonKey(name: "driver_net")
+    final int? driverNet;
+    
     ///Last drop-off stop's address; null only when the load has no stops.
     @JsonKey(name: "dropoff_address")
     final String? dropoffAddress;
@@ -2166,6 +2172,8 @@ class OfferProposed {
     final LoadingMethod loadingMethod;
     @JsonKey(name: "needs_refrigeration")
     final bool needsRefrigeration;
+    @JsonKey(name: "payer")
+    final Payer? payer;
     @JsonKey(name: "payment_method")
     final PaymentMethod paymentMethod;
     
@@ -2195,6 +2203,11 @@ class OfferProposed {
     final int stopsCount;
     @JsonKey(name: "to_region_id")
     final String toRegionId;
+    
+    ///What the load costs before any waiting, in minor units of `currency`: transport, loaders
+    ///and requirement surcharges; null while it has no price.
+    @JsonKey(name: "total_amount")
+    final int? totalAmount;
     @JsonKey(name: "truck_class")
     final String truckClass;
     @JsonKey(name: "volume_m3")
@@ -2208,6 +2221,7 @@ class OfferProposed {
         required this.currency,
         required this.deadlineAt,
         required this.distanceKm,
+        this.driverNet,
         required this.dropoffAddress,
         required this.durationMin,
         required this.fromRegionId,
@@ -2216,6 +2230,7 @@ class OfferProposed {
         required this.loadersCount,
         required this.loadingMethod,
         required this.needsRefrigeration,
+        this.payer,
         required this.paymentMethod,
         required this.pickupAddress,
         required this.pickupDistanceKm,
@@ -2224,6 +2239,7 @@ class OfferProposed {
         required this.serverTime,
         required this.stopsCount,
         required this.toRegionId,
+        this.totalAmount,
         required this.truckClass,
         required this.volumeM3,
         required this.weightKg,
@@ -2246,6 +2262,21 @@ enum LoadingMethod {
 final loadingMethodValues = EnumValues({
     "rear": LoadingMethod.REAR,
     "top": LoadingMethod.TOP
+});
+
+
+///Who hands the driver the money: the shipper, or whoever receives the cargo at the
+///drop-off. A card load is always paid by its sender.
+enum Payer {
+    @JsonValue("receiver")
+    RECEIVER,
+    @JsonValue("sender")
+    SENDER
+}
+
+final payerValues = EnumValues({
+    "receiver": Payer.RECEIVER,
+    "sender": Payer.SENDER
 });
 
 enum PaymentMethod {
@@ -2721,6 +2752,10 @@ class SearchProgress {
     @JsonKey(name: "load_id")
     final String loadId;
     
+    ///Drivers holding the offer right now, still to answer: «hozir oʻylayapti».
+    @JsonKey(name: "pending")
+    final int? pending;
+    
     ///Drivers the load was offered to so far.
     @JsonKey(name: "seen")
     final int seen;
@@ -2731,6 +2766,7 @@ class SearchProgress {
 
     SearchProgress({
         required this.loadId,
+        this.pending,
         required this.seen,
         required this.startedAt,
     });

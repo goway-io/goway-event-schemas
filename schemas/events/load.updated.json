@@ -148,6 +148,30 @@
         "mixed"
       ]
     },
+    "payer": {
+      "title": "Payer",
+      "type": "string",
+      "enum": [
+        "sender",
+        "receiver"
+      ],
+      "description": "Who hands the driver the money: the shipper, or whoever receives the cargo at the drop-off. A card load is always paid by its sender."
+    },
+    "total_amount": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "description": "What the load costs before any waiting, in minor units of `currency`: transport, loaders and requirement surcharges; null while it has no price."
+    },
+    "driver_net": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "What the driver keeps of `total_amount`: less the platform's share of the transport at the rate in force when this was published; null when billing could not say. Loaders' pay is never shared."
+    },
     "created_by": {
       "type": "string",
       "format": "uuid",

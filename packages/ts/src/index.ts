@@ -214,6 +214,13 @@ export type LoadingMethod = "top" | "rear";
  */
 export type PriceMode = "fixed" | "negotiable";
 /**
+ * Who hands the driver the money: the shipper, or whoever receives the cargo at the drop-off. A card load is always paid by its sender.
+ *
+ * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
+ * via the `definition` "Payer".
+ */
+export type Payer = "sender" | "receiver";
+/**
  * What the person is inside the organization: `owner` for the account that opened it, `member` otherwise.
  *
  * This interface was referenced by `GowayEventSchemas`'s JSON-Schema
@@ -2441,6 +2448,15 @@ export interface LoadPosted {
   group_id: string | null;
   is_urgent: boolean;
   payment_method: PaymentMethod;
+  payer?: Payer;
+  /**
+   * What the load costs before any waiting, in minor units of `currency`: transport, loaders and requirement surcharges; null while it has no price.
+   */
+  total_amount?: number | null;
+  /**
+   * What the driver keeps of `total_amount`: less the platform's share of the transport at the rate in force when this was published; null when billing could not say. Loaders' pay is never shared.
+   */
+  driver_net?: number | null;
   /**
    * Present, and true, only when a cancelled booking put the load back.
    */
@@ -2557,6 +2573,15 @@ export interface LoadUpdated {
   group_id: string | null;
   is_urgent: boolean;
   payment_method: PaymentMethod;
+  payer?: Payer;
+  /**
+   * What the load costs before any waiting, in minor units of `currency`: transport, loaders and requirement surcharges; null while it has no price.
+   */
+  total_amount?: number | null;
+  /**
+   * What the driver keeps of `total_amount`: less the platform's share of the transport at the rate in force when this was published; null when billing could not say. Loaders' pay is never shared.
+   */
+  driver_net?: number | null;
   /**
    * The person who posted the load; dispatch tells them how the search goes.
    */
@@ -3051,6 +3076,15 @@ export interface OfferProposed {
   loading_method: LoadingMethod;
   needs_refrigeration: boolean;
   payment_method: PaymentMethod;
+  payer?: Payer;
+  /**
+   * What the load costs before any waiting, in minor units of `currency`: transport, loaders and requirement surcharges; null while it has no price.
+   */
+  total_amount?: number | null;
+  /**
+   * What the driver keeps of `total_amount` («sizga qoladi»): less the platform's share of the transport at the rate in force when the load was posted or last changed; null when billing could not say.
+   */
+  driver_net?: number | null;
   is_urgent: boolean;
 }
 /**
@@ -3907,6 +3941,10 @@ export interface SearchProgress {
    * Drivers the load was offered to so far.
    */
   seen: number;
+  /**
+   * Drivers holding the offer right now, still to answer: «hozir oʻylayapti».
+   */
+  pending?: number;
   /**
    * When the search began; the app counts the waiting time from it.
    */
